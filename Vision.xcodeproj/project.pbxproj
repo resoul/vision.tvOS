@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */ = {isa = PBXBuildFile; productRef = 89D9DFBA2E5A719200ED2152 /* FontManager */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		899CC2E32E5264F800083036 /* Vision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vision.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = Vision;
 			packageProductDependencies = (
+				89D9DFBA2E5A719200ED2152 /* FontManager */,
 			);
 			productName = Vision;
 			productReference = 899CC2E32E5264F800083036 /* Vision.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 899CC2DA2E5264F800083036;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 899CC2E42E5264F800083036 /* Products */;
 			projectDirPath = "";
@@ -333,6 +342,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/resoul/font-manager.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		89D9DFBA2E5A719200ED2152 /* FontManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */;
+			productName = FontManager;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 899CC2DB2E5264F800083036 /* Project object */;
 }

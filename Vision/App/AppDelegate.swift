@@ -1,4 +1,5 @@
 import UIKit
+import FontManager
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -11,6 +12,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        FontManager.registerFonts(fontFamily: Fonts.Montserrat.self)
+        
         if launchManager.isFirstLaunch {
             cacheManager.createCacheDirectory()
         }
