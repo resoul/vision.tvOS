@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		899FE8A12E7E0591009B8AFF /* AsyncDisplayKit in Frameworks */ = {isa = PBXBuildFile; productRef = 899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */; };
 		89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */ = {isa = PBXBuildFile; productRef = 89D9DFBA2E5A719200ED2152 /* FontManager */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */,
+				899FE8A12E7E0591009B8AFF /* AsyncDisplayKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +86,7 @@
 			name = Vision;
 			packageProductDependencies = (
 				89D9DFBA2E5A719200ED2152 /* FontManager */,
+				899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */,
 			);
 			productName = Vision;
 			productReference = 899CC2E32E5264F800083036 /* Vision.app */;
@@ -115,6 +118,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */,
+				899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 899CC2E42E5264F800083036 /* Products */;
@@ -344,6 +348,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/resoul/AsyncDisplayKit.tvOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
+			};
+		};
 		89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/resoul/font-manager.git";
@@ -355,6 +367,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */;
+			productName = AsyncDisplayKit;
+		};
 		89D9DFBA2E5A719200ED2152 /* FontManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */;
