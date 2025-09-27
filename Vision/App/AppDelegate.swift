@@ -19,9 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = RootController(
-            rootViewController: MovieDetailController()
-        )
+        window.rootViewController = RootController()
+//        window.rootViewController = UINavigationController(rootViewController: ViewController())
         
         window.makeKeyAndVisible()
         self.window = window
