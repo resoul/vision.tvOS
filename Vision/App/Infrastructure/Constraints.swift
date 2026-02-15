@@ -1,7 +1,6 @@
 import UIKit
 
 extension UIView {
-    
     func constraints(
         top: NSLayoutYAxisAnchor?,
         leading: NSLayoutXAxisAnchor?,
