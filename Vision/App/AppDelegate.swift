@@ -13,9 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window.rootViewController = UINavigationController(rootViewController: MainController())
         window.makeKeyAndVisible()
         self.window = window
-        
-        fetch()
-        
+
         return true
     }
 }

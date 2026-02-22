@@ -8,13 +8,19 @@ final class FilmixService {
     private init() {}
 
     let baseURL = "https://filmix.my"
+    let session: Session = {
+        let config = URLSessionConfiguration.default
+        config.httpCookieStorage = HTTPCookieStorage.shared
+        config.httpShouldSetCookies = true
+        config.httpCookieAcceptPolicy = .always
+        return Session(configuration: config)
+    }()
 
     // MARK: - Fetch listing
-
     func fetchPage(url: URL? = nil,
                    completion: @escaping (Result<FilmixPage, Error>) -> Void) {
         let targetURL = url?.absoluteString ?? baseURL
-        AF.request(targetURL, method: .get).responseData { response in
+        session.request(targetURL, method: .get).responseData { response in
             switch response.result {
             case .success(let data):
                 do {
@@ -30,12 +36,10 @@ final class FilmixService {
     }
 
     // MARK: - Fetch detail
-
-    /// Pass either a relative path (/film/…/xxx.html) or a full URL.
     func fetchDetail(path: String,
                      completion: @escaping (Result<FilmixDetail, Error>) -> Void) {
         let fullURL = path.hasPrefix("http") ? path : "\(baseURL)\(path)"
-        AF.request(fullURL, method: .get).responseData { response in
+        session.request(fullURL, method: .get).responseData { response in
             switch response.result {
             case .success(let data):
                 do {
