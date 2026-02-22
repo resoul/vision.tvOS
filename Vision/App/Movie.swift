@@ -12,7 +12,6 @@ struct Movie {
     let type: ContentType
     let translate: String
     let isAdIn: Bool
-    let audioTracks: [AudioTrack]
 
     let movieURL: String
     let posterURL: String
@@ -41,10 +40,10 @@ struct Movie {
 extension Movie {
     init(id: Int, title: String, year: String, description: String,
          imageName: String, genre: String, rating: String, duration: String,
-         type: ContentType, audioTracks: [AudioTrack]) {
+         type: ContentType) {
         self.init(id: id, title: title, year: year, description: description,
                   imageName: imageName, genre: genre, rating: rating, duration: duration,
-                  type: type, translate: "", isAdIn: false, audioTracks: audioTracks,
+                  type: type, translate: "", isAdIn: false,
                   movieURL: "", posterURL: "", actors: [], directors: [], genreList: [],
                   lastAdded: nil)
     }

@@ -1,16 +1,12 @@
 import UIKit
 
 final class HeroPanel: UIView {
-
-    // MARK: - Background layers
-
     private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
-
     private let accentGlow: UIView = {
         let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false; return v
     }()
+    
     private let accentGlowLayer = CAGradientLayer()
-
     private let accentLine: UIView = {
         let v = UIView()
         v.layer.cornerRadius = 2
@@ -183,21 +179,15 @@ final class HeroPanel: UIView {
             text: "★ \(movie.rating)",
             color: UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)
         ))
-        let yearText = movie.type.isSeries ? "\(movie.year)–" : movie.year
         if !movie.year.isEmpty && movie.year != "—" {
-            metaStack.addArrangedSubview(MetaPill(text: yearText, color: UIColor(white: 0.35, alpha: 1)))
+            metaStack.addArrangedSubview(MetaPill(text: movie.year, color: UIColor(white: 0.35, alpha: 1)))
         }
         let genres = movie.genreList.isEmpty ? [movie.genre] : movie.genreList
         let genreAlphas: [CGFloat] = [0.90, 0.70, 0.55]
         for (i, g) in genres.prefix(3).enumerated() where !g.isEmpty && g != "—" {
             metaStack.addArrangedSubview(MetaPill(text: g, color: movie.accentColor.withAlphaComponent(genreAlphas[i])))
         }
-        if case .series(let seasons) = movie.type {
-            metaStack.addArrangedSubview(MetaPill(
-                text: "\(seasons.count) сезонов",
-                color: UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.85)
-            ))
-        } else if !movie.duration.isEmpty && movie.duration != "—" {
+        if !movie.duration.isEmpty && movie.duration != "—" {
             metaStack.addArrangedSubview(MetaPill(text: movie.duration, color: UIColor(white: 0.25, alpha: 1)))
         }
 
@@ -213,63 +203,4 @@ final class HeroPanel: UIView {
             movie.accentColor.withAlphaComponent(0.0).cgColor,
         ]
     }
-}
-
-private final class HeroInfoRow: UIView {
-
-    private let keyLabel: UILabel = {
-        let l = UILabel()
-        l.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
-        l.textColor = UIColor(white: 0.42, alpha: 1)
-        l.setContentHuggingPriority(.required, for: .horizontal)
-        l.setContentCompressionResistancePriority(.required, for: .horizontal)
-        l.translatesAutoresizingMaskIntoConstraints = false
-        return l
-    }()
-
-    private let valueLabel: UILabel = {
-        let l = UILabel()
-        l.font = UIFont.systemFont(ofSize: 20, weight: .regular)
-        l.textColor = UIColor(white: 0.74, alpha: 1)
-        l.numberOfLines = 1
-        l.translatesAutoresizingMaskIntoConstraints = false
-        return l
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        translatesAutoresizingMaskIntoConstraints = false
-        addSubview(keyLabel)
-        addSubview(valueLabel)
-        NSLayoutConstraint.activate([
-            keyLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            keyLabel.firstBaselineAnchor.constraint(equalTo: valueLabel.firstBaselineAnchor),
-
-            valueLabel.leadingAnchor.constraint(equalTo: keyLabel.trailingAnchor, constant: 10),
-            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            valueLabel.topAnchor.constraint(equalTo: topAnchor),
-            valueLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    func set(key: String, value: String, lines: Int = 1) {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        let empty   = trimmed.isEmpty || trimmed == "—"
-        isHidden    = empty
-        guard !empty else { return }
-        keyLabel.text            = key + ":"
-        valueLabel.text          = trimmed
-        valueLabel.numberOfLines = lines
-    }
-}
-
-private final class ThinDividerView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = UIColor(white: 1, alpha: 0.08)
-        heightAnchor.constraint(equalToConstant: 1).isActive = true
-    }
-    required init?(coder: NSCoder) { fatalError() }
 }

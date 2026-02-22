@@ -44,41 +44,6 @@ final class MainController: UIViewController {
         return l
     }()
 
-    private lazy var logoLabel: UILabel = {
-        let l = UILabel()
-        l.attributedText = NSAttributedString(string: "FILMIX", attributes: [
-            .kern: CGFloat(8),
-            .font: UIFont.systemFont(ofSize: 38, weight: .heavy),
-            .foregroundColor: UIColor.white,
-        ])
-        l.translatesAutoresizingMaskIntoConstraints = false
-        return l
-    }()
-
-    private let logoAccentDot: UIView = {
-        let v = UIView()
-        v.backgroundColor = UIColor(red: 0.95, green: 0.25, blue: 0.25, alpha: 1)
-        v.layer.cornerRadius = 5
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
-    }()
-
-    private lazy var sectionLabel: UILabel = {
-        let l = UILabel()
-        l.text = "Popular"
-        l.font = UIFont.systemFont(ofSize: 30, weight: .medium)
-        l.textColor = UIColor(white: 0.65, alpha: 1)
-        l.translatesAutoresizingMaskIntoConstraints = false
-        return l
-    }()
-
-    private let headerSeparator: UIView = {
-        let v = UIView()
-        v.backgroundColor = UIColor(white: 1, alpha: 0.08)
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
-    }()
-
     private lazy var heroPanel: HeroPanel = {
         let p = HeroPanel()
         p.alpha = 0
@@ -90,6 +55,7 @@ final class MainController: UIViewController {
     private lazy var collectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout())
         cv.backgroundColor = .clear
+        cv.contentInsetAdjustmentBehavior = .never
         cv.remembersLastFocusedIndexPath = true
         cv.register(MovieCell.self, forCellWithReuseIdentifier: MovieCell.reuseID)
         cv.register(LoadingFooterView.self,
@@ -131,6 +97,8 @@ final class MainController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        additionalSafeAreaInsets = .zero
+
         view.layer.insertSublayer(baseGradientLayer, at: 0)
         view.addSubview(backdropImageView)
         view.layer.addSublayer(vignetteLayer)
@@ -154,7 +122,7 @@ final class MainController: UIViewController {
             backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            heroPanel.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
+            heroPanel.topAnchor.constraint(equalTo: view.topAnchor, constant: 4),
             heroPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             heroPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             heroPanelHeightConstraint,
@@ -205,7 +173,6 @@ final class MainController: UIViewController {
                     self.nextPageURL = page.nextPageURL
                     self.movies = page.movies
                     self.collectionView.reloadData()
-                    // После reloadData обновляем hero для текущего фокуса если он есть
                     self.refreshHeroForCurrentFocus()
 
                 case .failure(let error):
@@ -262,7 +229,7 @@ final class MainController: UIViewController {
         l.scrollDirection         = .vertical
         l.minimumInteritemSpacing = 28
         l.minimumLineSpacing      = 44
-        l.sectionInset = UIEdgeInsets(top: 0, left: 80, bottom: 80, right: 80)
+        l.sectionInset = UIEdgeInsets(top: 30, left: 80, bottom: 80, right: 80)
         l.footerReferenceSize = CGSize(width: 0, height: 80)
         return l
     }

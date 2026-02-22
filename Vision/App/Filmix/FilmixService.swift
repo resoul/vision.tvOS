@@ -125,7 +125,7 @@ final class FilmixService {
             genre: genreList.first ?? "—",
             rating: rating, duration: duration,
             type: type, translate: translate,
-            isAdIn: isAdIn, audioTracks: AudioTrack.movieTracks,
+            isAdIn: isAdIn,
             movieURL: movieURL, posterURL: posterURL,
             actors: actors, directors: directors,
             genreList: genreList, lastAdded: lastAdded

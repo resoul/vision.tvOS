@@ -183,11 +183,6 @@ final class MovieDetailViewController: UIViewController {
         v.setContentHuggingPriority(.defaultLow, for: .horizontal)
         v.setContentCompressionResistancePriority(.defaultLow, for: .horizontal); return v
     }()
-    private lazy var audioTabButton: AudioTabButton = {
-        let b = AudioTabButton()
-        b.accentColor = movie.accentColor.lighter(by: 0.5)
-        b.addTarget(self, action: #selector(audioTapped), for: .primaryActionTriggered); return b
-    }()
 
     // MARK: - Constants
 
@@ -214,7 +209,6 @@ final class MovieDetailViewController: UIViewController {
         buildLayout()
         populateFromListing()
         fetchDetail()
-        setupAudio()
         fetchTranslations()
     }
 
@@ -522,35 +516,6 @@ final class MovieDetailViewController: UIViewController {
         }
     }
 
-    private func setupAudio() {
-        let savedId = WatchStore.shared.selectedAudioId(movieId: movie.id)
-        selectedAudio = movie.audioTracks.first { $0.id == savedId } ?? movie.audioTracks.first
-        audioTabButton.configure(with: selectedAudio)
-    }
-
-    @objc private func audioTapped() {
-        let picker = AudioTrackPickerViewController(
-            tracks: movie.audioTracks, movieId: movie.id, selectedId: selectedAudio?.id)
-        picker.delegate = self; present(picker, animated: true)
-    }
-
-    private func setupSeriesIfNeeded() {
-        guard case .series(let seasons) = movie.type else { return }
-        episodesPanelContainer.isHidden = false
-        for (i, season) in seasons.enumerated() {
-            let btn = SeasonTabButton(season: season)
-            btn.accentColor = movie.accentColor.lighter(by: 0.5)
-            btn.isActiveSeason = (i == 0); btn.tag = i
-            btn.addTarget(self, action: #selector(seasonTapped(_:)), for: .primaryActionTriggered)
-            seasonTabsStack.addArrangedSubview(btn); seasonTabButtons.append(btn)
-        }
-        if movie.audioTracks.count > 1 {
-            seasonTabsStack.addArrangedSubview(audioTabSpacer)
-            seasonTabsStack.addArrangedSubview(audioTabButton)
-        }
-        scrollToFirstUnwatched(animated: false)
-    }
-
     private func scrollToFirstUnwatched(animated: Bool) {
         guard let season = currentSeason() else { return }
         if let idx = WatchStore.shared.firstUnwatchedIndex(movieId: movie.id, season: season) {
@@ -609,11 +574,5 @@ extension MovieDetailViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ cv: UICollectionView, layout: UICollectionViewLayout,
                         sizeForItemAt ip: IndexPath) -> CGSize {
         CGSize(width: cv.bounds.width, height: 166)
-    }
-}
-
-extension MovieDetailViewController: AudioTrackPickerDelegate {
-    func audioPicker(_ picker: AudioTrackPickerViewController, didSelect track: AudioTrack) {
-        selectedAudio = track; audioTabButton.configure(with: selectedAudio)
     }
 }
