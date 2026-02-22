@@ -1,7 +1,7 @@
 import UIKit
 
 final class HeroPanel: UIView {
-    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
+    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     private let accentGlow: UIView = {
         let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false; return v
     }()
@@ -87,6 +87,7 @@ final class HeroPanel: UIView {
 
     private func build() {
         blurView.translatesAutoresizingMaskIntoConstraints = false
+        infoStack.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         addSubview(blurView)
 
         accentGlowLayer.type       = .radial
@@ -95,6 +96,7 @@ final class HeroPanel: UIView {
         accentGlow.layer.addSublayer(accentGlowLayer)
 
         let cv = blurView.contentView
+        cv.backgroundColor = UIColor(red: 0.06, green: 0.06, blue: 0.10, alpha: 0.85)
         cv.addSubview(accentGlow)
         cv.addSubview(accentLine)
         cv.addSubview(posterView)

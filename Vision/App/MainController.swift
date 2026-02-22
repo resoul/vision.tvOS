@@ -51,7 +51,12 @@ final class MainController: UIViewController {
         return p
     }()
 
-    private lazy var heroPanelHeightConstraint = heroPanel.heightAnchor.constraint(equalToConstant: 0)
+    private lazy var heroPanelHeightConstraint: NSLayoutConstraint = {
+        let c = heroPanel.heightAnchor.constraint(equalToConstant: 0)
+        c.priority = UILayoutPriority(999)
+        return c
+    }()
+    
     private lazy var collectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout())
         cv.backgroundColor = .clear
