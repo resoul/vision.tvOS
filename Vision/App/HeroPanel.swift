@@ -50,7 +50,7 @@ final class HeroPanel: UIView {
         let l = UILabel()
         l.font = UIFont.systemFont(ofSize: 44, weight: .heavy)
         l.textColor = .white
-        l.numberOfLines = 2
+        l.numberOfLines = 3
         l.adjustsFontSizeToFitWidth = true
         l.minimumScaleFactor = 0.72
         l.translatesAutoresizingMaskIntoConstraints = false
@@ -145,7 +145,7 @@ final class HeroPanel: UIView {
 
             // Title anchored near top with padding
             titleLabel.leadingAnchor.constraint(equalTo: posterView.trailingAnchor, constant: 48),
-            titleLabel.topAnchor.constraint(equalTo: cv.topAnchor, constant: 30),
+            titleLabel.topAnchor.constraint(equalTo: cv.topAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: cv.trailingAnchor, constant: -inset),
 
             // Pills row

@@ -135,10 +135,6 @@ final class MainController: UIViewController {
         view.addSubview(backdropImageView)
         view.layer.addSublayer(vignetteLayer)
         view.addSubview(backdropBlur)
-        view.addSubview(logoLabel)
-        view.addSubview(logoAccentDot)
-        view.addSubview(sectionLabel)
-        view.addSubview(headerSeparator)
         view.addSubview(heroPanel)
         view.addSubview(collectionView)
         view.addSubview(loadingIndicator)
@@ -158,28 +154,12 @@ final class MainController: UIViewController {
             backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            logoLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
-            logoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
-
-            logoAccentDot.widthAnchor.constraint(equalToConstant: 10),
-            logoAccentDot.heightAnchor.constraint(equalToConstant: 10),
-            logoAccentDot.leadingAnchor.constraint(equalTo: logoLabel.trailingAnchor, constant: 4),
-            logoAccentDot.bottomAnchor.constraint(equalTo: logoLabel.bottomAnchor, constant: -6),
-
-            sectionLabel.centerYAnchor.constraint(equalTo: logoLabel.centerYAnchor),
-            sectionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80),
-
-            headerSeparator.topAnchor.constraint(equalTo: logoLabel.bottomAnchor, constant: 18),
-            headerSeparator.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
-            headerSeparator.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80),
-            headerSeparator.heightAnchor.constraint(equalToConstant: 1),
-
-            heroPanel.topAnchor.constraint(equalTo: headerSeparator.bottomAnchor, constant: 16),
+            heroPanel.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
             heroPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             heroPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             heroPanelHeightConstraint,
 
-            collectionView.topAnchor.constraint(equalTo: heroPanel.bottomAnchor, constant: 60),
+            collectionView.topAnchor.constraint(equalTo: heroPanel.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -304,7 +284,7 @@ final class MainController: UIViewController {
             self.backdropImageView.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 1920, height: 1080))
         }
         if heroPanel.alpha < 0.5 {
-            heroPanelHeightConstraint.constant = 290
+            heroPanelHeightConstraint.constant = 320
             heroPanel.transform = CGAffineTransform(translationX: 0, y: -20)
             UIView.animate(withDuration: 0.40, delay: 0, options: .curveEaseOut) {
                 self.heroPanel.alpha     = 1
