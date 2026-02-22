@@ -7,7 +7,7 @@ final class FilmixService {
     static let shared = FilmixService()
     private init() {}
 
-    private let baseURL = "https://filmix.my"
+    let baseURL = "https://filmix.my"
 
     // MARK: - Fetch listing
 
