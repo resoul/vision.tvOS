@@ -15,7 +15,6 @@ final class MovieCell: UICollectionViewCell {
 
     private let scrimLayer: CAGradientLayer = {
         let l = CAGradientLayer()
-        // Лёгкий скрим только сверху — для ранга и рейтинга
         l.colors = [
             UIColor.black.withAlphaComponent(0.45).cgColor,
             UIColor.clear.cgColor,
@@ -25,7 +24,6 @@ final class MovieCell: UICollectionViewCell {
         return l
     }()
 
-    // Номер позиции — верхний левый угол
     private let rankLabel: UILabel = {
         let l = UILabel()
         l.font = UIFont.systemFont(ofSize: 22, weight: .heavy)
@@ -34,23 +32,24 @@ final class MovieCell: UICollectionViewCell {
         return l
     }()
 
-    // Рейтинг — верхний правый угол
-    private let ratingPill: UIView = {
+    private let adsBadge: UIView = {
         let v = UIView()
-        v.layer.cornerRadius = 7
+        v.backgroundColor = UIColor(red: 0.85, green: 0.20, blue: 0.20, alpha: 0.92)
+        v.layer.cornerRadius = 6
         v.layer.cornerCurve = .continuous
+        v.isHidden = true
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
-    private let ratingLabel: UILabel = {
+    private let adsLabel: UILabel = {
         let l = UILabel()
-        l.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        l.textColor = .black
+        l.text = "ADS"
+        l.font = UIFont.systemFont(ofSize: 14, weight: .heavy)
+        l.textColor = .white
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
 
-    // Series badge — маленький, в правом нижнем углу
     private let seriesBadge: UIView = {
         let v = UIView()
         v.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.88)
@@ -59,6 +58,7 @@ final class MovieCell: UICollectionViewCell {
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
+    
     private let seriesBadgeLabel: UILabel = {
         let l = UILabel()
         l.font = UIFont.systemFont(ofSize: 15, weight: .bold)
@@ -79,6 +79,7 @@ final class MovieCell: UICollectionViewCell {
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
+    
     private let focusGlowLayer: CALayer = {
         let l = CALayer()
         l.cornerRadius = 14
@@ -98,8 +99,8 @@ final class MovieCell: UICollectionViewCell {
         contentView.layer.addSublayer(scrimLayer)
         contentView.layer.addSublayer(focusGlowLayer)
         contentView.addSubview(rankLabel)
-        contentView.addSubview(ratingPill)
-        ratingPill.addSubview(ratingLabel)
+        contentView.addSubview(adsBadge)
+        adsBadge.addSubview(adsLabel)
         contentView.addSubview(seriesBadge)
         seriesBadge.addSubview(seriesBadgeLabel)
         contentView.addSubview(focusBorderView)
@@ -110,19 +111,16 @@ final class MovieCell: UICollectionViewCell {
             posterImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             posterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            // Ранг — верх лево
             rankLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             rankLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
 
-            // Рейтинг — верх право
-            ratingPill.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            ratingPill.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            ratingPill.heightAnchor.constraint(equalToConstant: 28),
-            ratingLabel.leadingAnchor.constraint(equalTo: ratingPill.leadingAnchor, constant: 7),
-            ratingLabel.trailingAnchor.constraint(equalTo: ratingPill.trailingAnchor, constant: -7),
-            ratingLabel.centerYAnchor.constraint(equalTo: ratingPill.centerYAnchor),
+            adsBadge.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            adsBadge.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            adsLabel.leadingAnchor.constraint(equalTo: adsBadge.leadingAnchor, constant: 6),
+            adsLabel.trailingAnchor.constraint(equalTo: adsBadge.trailingAnchor, constant: -6),
+            adsLabel.topAnchor.constraint(equalTo: adsBadge.topAnchor, constant: 4),
+            adsLabel.bottomAnchor.constraint(equalTo: adsBadge.bottomAnchor, constant: -4),
 
-            // Series badge — низ право
             seriesBadge.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             seriesBadge.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
             seriesBadgeLabel.leadingAnchor.constraint(equalTo: seriesBadge.leadingAnchor, constant: 7),
@@ -143,7 +141,6 @@ final class MovieCell: UICollectionViewCell {
     }
     required init?(coder: NSCoder) { fatalError() }
 
-
     override func layoutSubviews() {
         super.layoutSubviews()
         scrimLayer.frame = contentView.bounds
@@ -156,9 +153,9 @@ final class MovieCell: UICollectionViewCell {
     // MARK: - Configure
 
     func configure(with movie: Movie, rank: Int) {
-        rankLabel.text  = "#\(rank)"
-        ratingLabel.text = "★ \(movie.rating)"
-        ratingPill.backgroundColor = movie.accentColor.lighter(by: 0.5)
+        rankLabel.text = "#\(rank)"
+
+        adsBadge.isHidden = !movie.isAdIn
 
         if case .series = movie.type {
             seriesBadge.isHidden = false

@@ -1,55 +1,6 @@
 import UIKit
 
 // MARK: - Models
-
-struct Movie {
-    let id: Int
-    let title: String
-    let year: String
-    let description: String
-    let imageName: String
-    let genre: String
-    let rating: String
-    let duration: String
-    let type: ContentType
-    let translate: String
-    let isAdIn: Bool
-    let audioTracks: [AudioTrack]
-
-    let movieURL: String
-    let posterURL: String
-    let actors: [String]
-    let directors: [String]
-    let genreList: [String]
-
-    enum ContentType {
-        case movie
-        case series(seasons: [Season])
-    }
-
-    var accentColor: UIColor {
-        let palette: [UIColor] = [
-            UIColor(red: 0.55, green: 0.27, blue: 0.07, alpha: 1),
-            UIColor(red: 0.10, green: 0.28, blue: 0.55, alpha: 1),
-            UIColor(red: 0.35, green: 0.12, blue: 0.45, alpha: 1),
-            UIColor(red: 0.08, green: 0.35, blue: 0.28, alpha: 1),
-            UIColor(red: 0.50, green: 0.10, blue: 0.10, alpha: 1),
-        ]
-        return palette[abs(id) % palette.count]
-    }
-}
-
-extension Movie {
-    init(id: Int, title: String, year: String, description: String,
-         imageName: String, genre: String, rating: String, duration: String,
-         type: ContentType, audioTracks: [AudioTrack]) {
-        self.init(id: id, title: title, year: year, description: description,
-                  imageName: imageName, genre: genre, rating: rating, duration: duration,
-                  type: type, translate: "",isAdIn: false, audioTracks: audioTracks,
-                  movieURL: "", posterURL: "", actors: [], directors: [], genreList: [])
-    }
-}
-
 struct Season {
     let number: Int
     let year: String
@@ -65,9 +16,9 @@ struct Episode {
 
 struct AudioTrack: Equatable {
     let id: String
-    let language: String   // "Русский", "English", etc.
+    let language: String
     let kind: Kind
-    let flag: String       // emoji flag
+    let flag: String
 
     enum Kind {
         case original
@@ -924,311 +875,311 @@ final class EpisodeCell: UICollectionViewCell {
 
 // MARK: - MovieDetailViewController
 
-final class MovieDetailViewController: UIViewController {
-
-    private let movie: Movie
-    private var currentSeasonIndex = 0
-    private var seasonTabButtons: [SeasonTabButton] = []
-    private var selectedAudio: AudioTrack?
-
-    // MARK: Background
-
-    private lazy var backdropIV: UIImageView = {
-        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
-        iv.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 1920, height: 1080))
-        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
-    }()
-    private lazy var backdropBlur: UIVisualEffectView = {
-        let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark)); v.alpha = 0.92
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-
-    // MARK: Left Panel
-
-    private lazy var posterIV: UIImageView = {
-        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
-        iv.layer.cornerRadius = 16; iv.layer.cornerCurve = .continuous
-        iv.layer.shadowColor = UIColor.black.cgColor; iv.layer.shadowOpacity = 0.7
-        iv.layer.shadowRadius = 28; iv.layer.shadowOffset = CGSize(width: 0, height: 14)
-        iv.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 550, height: 782))
-        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
-    }()
-    private lazy var accentStripe: UIView = {
-        let v = UIView(); v.backgroundColor = movie.accentColor.lighter(by: 0.5)
-        v.layer.cornerRadius = 3; v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private lazy var titleLabel: UILabel = {
-        let l = UILabel(); l.text = movie.title; l.font = UIFont.systemFont(ofSize: 42, weight: .heavy)
-        l.textColor = .white; l.numberOfLines = 2; l.adjustsFontSizeToFitWidth = true; l.minimumScaleFactor = 0.7
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private lazy var metaRow: UIStackView = {
-        let sv = UIStackView(); sv.axis = .horizontal; sv.spacing = 8; sv.alignment = .center
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        let pills: [(String, UIColor)]
-        if case .series(let seasons) = movie.type {
-            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
-                     ("\(movie.year)–",    UIColor(white: 0.32, alpha: 1)),
-                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
-                     ("\(seasons.count) Seasons", UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.85))]
-        } else {
-            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
-                     (movie.year,          UIColor(white: 0.32, alpha: 1)),
-                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
-                     (movie.duration,      UIColor(white: 0.25, alpha: 1))]
-        }
-        pills.forEach { sv.addArrangedSubview(MetaPill(text: $0.0, color: $0.1)) }
-        return sv
-    }()
-    private lazy var descLabel: UILabel = {
-        let l = UILabel(); l.text = movie.description; l.font = UIFont.systemFont(ofSize: 23, weight: .regular)
-        l.textColor = UIColor(white: 0.78, alpha: 1); l.numberOfLines = 4
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let watchBtn    = DetailButton(title: "▶  Watch",    style: .primary)
-    private let myListBtn   = DetailButton(title: "+  My List",  style: .secondary)
-    private let trailerBtn  = DetailButton(title: "⊳  Trailer",  style: .secondary)
-    private lazy var btnStack: UIStackView = {
-        let sv = UIStackView(arrangedSubviews: [watchBtn, myListBtn, trailerBtn])
-        sv.axis = .horizontal; sv.spacing = 14; sv.alignment = .center
-        sv.translatesAutoresizingMaskIntoConstraints = false; return sv
-    }()
-
-    // MARK: Episodes Panel (bottom)
-
-    private lazy var episodesPanelContainer: UIView = {
-        let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false; v.isHidden = true; return v
-    }()
-    private let episodesDivider: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.09)
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private lazy var seasonTabsStack: UIStackView = {
-        let sv = UIStackView(); sv.axis = .horizontal; sv.spacing = 6; sv.alignment = .center
-        sv.translatesAutoresizingMaskIntoConstraints = false; return sv
-    }()
-    private let audioTabSpacer: UIView = {
-        // flexible spacer to push audio tab to the right
-        let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false
-        v.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        v.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        return v
-    }()
-    private lazy var audioTabButton: AudioTabButton = {
-        let b = AudioTabButton()
-        b.accentColor = movie.accentColor.lighter(by: 0.5)
-        b.addTarget(self, action: #selector(audioTapped), for: .primaryActionTriggered)
-        return b
-    }()
-    private let tabsSeparator: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.08)
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private lazy var episodesCV: UICollectionView = {
-        let layout = UICollectionViewFlowLayout(); layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 14; layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 60, right: 0)
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .clear; cv.remembersLastFocusedIndexPath = true
-        cv.register(EpisodeCell.self, forCellWithReuseIdentifier: EpisodeCell.reuseID)
-        cv.dataSource = self; cv.delegate = self
-        cv.translatesAutoresizingMaskIntoConstraints = false; return cv
-    }()
-
-    init(movie: Movie) { self.movie = movie; super.init(nibName: nil, bundle: nil) }
-    required init?(coder: NSCoder) { fatalError() }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .black
-        buildLayout()
-        setupSeriesIfNeeded()
-        setupAudio()
-    }
-
-    private func setupAudio() {
-        let savedId = WatchStore.shared.selectedAudioId(movieId: movie.id)
-        selectedAudio = movie.audioTracks.first { $0.id == savedId } ?? movie.audioTracks.first
-        // Audio tab is only added for series (called after setupSeriesIfNeeded adds season tabs)
-        // For movies the tab row is hidden entirely — so we add it here for series only
-        updateAudioTab()
-    }
-
-    private func updateAudioTab() {
-        guard movie.audioTracks.count > 1 else { return }
-        audioTabButton.configure(with: selectedAudio)
-    }
-
-    @objc private func audioTapped() {
-        let picker = AudioTrackPickerViewController(
-            tracks: movie.audioTracks,
-            movieId: movie.id,
-            selectedId: selectedAudio?.id
-        )
-        picker.delegate = self
-        present(picker, animated: true)
-    }
-
-    private func buildLayout() {
-        view.addSubview(backdropIV); view.addSubview(backdropBlur)
-        view.addSubview(posterIV); view.addSubview(accentStripe)
-        view.addSubview(titleLabel); view.addSubview(metaRow); view.addSubview(descLabel); view.addSubview(btnStack)
-        view.addSubview(episodesPanelContainer)
-        episodesPanelContainer.addSubview(episodesDivider)
-        episodesPanelContainer.addSubview(seasonTabsStack)
-        episodesPanelContainer.addSubview(tabsSeparator)
-        episodesPanelContainer.addSubview(episodesCV)
-
-        let lInset: CGFloat = 64
-        let hInset: CGFloat = 80
-
-        NSLayoutConstraint.activate([
-            backdropIV.topAnchor.constraint(equalTo: view.topAnchor), backdropIV.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropIV.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropIV.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor), backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            // Poster — top left
-            posterIV.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lInset),
-            posterIV.topAnchor.constraint(equalTo: view.topAnchor, constant: 64),
-            posterIV.widthAnchor.constraint(equalToConstant: 220),
-            posterIV.heightAnchor.constraint(equalToConstant: 313),
-
-            // Accent stripe next to poster
-            accentStripe.leadingAnchor.constraint(equalTo: posterIV.trailingAnchor, constant: 28),
-            accentStripe.topAnchor.constraint(equalTo: posterIV.topAnchor, constant: 8),
-            accentStripe.widthAnchor.constraint(equalToConstant: 4),
-            accentStripe.heightAnchor.constraint(equalToConstant: 250),
-
-            // Title / meta / desc / buttons aligned next to accent stripe, spanning wider
-            titleLabel.leadingAnchor.constraint(equalTo: accentStripe.trailingAnchor, constant: 22),
-            titleLabel.topAnchor.constraint(equalTo: posterIV.topAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -hInset),
-
-            metaRow.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            metaRow.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
-
-            descLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            descLabel.topAnchor.constraint(equalTo: metaRow.bottomAnchor, constant: 16),
-            descLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -hInset),
-
-            btnStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            btnStack.topAnchor.constraint(equalTo: descLabel.bottomAnchor, constant: 26),
-
-            // Episodes panel below poster + info block
-            episodesPanelContainer.topAnchor.constraint(equalTo: posterIV.bottomAnchor, constant: 48),
-            episodesPanelContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            episodesPanelContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            episodesPanelContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            episodesDivider.topAnchor.constraint(equalTo: episodesPanelContainer.topAnchor),
-            episodesDivider.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
-            episodesDivider.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
-            episodesDivider.heightAnchor.constraint(equalToConstant: 1),
-
-            seasonTabsStack.topAnchor.constraint(equalTo: episodesDivider.bottomAnchor, constant: 24),
-            seasonTabsStack.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
-            seasonTabsStack.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
-
-            tabsSeparator.topAnchor.constraint(equalTo: seasonTabsStack.bottomAnchor, constant: 10),
-            tabsSeparator.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
-            tabsSeparator.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
-            tabsSeparator.heightAnchor.constraint(equalToConstant: 1),
-
-            episodesCV.topAnchor.constraint(equalTo: tabsSeparator.bottomAnchor),
-            episodesCV.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
-            episodesCV.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
-            episodesCV.bottomAnchor.constraint(equalTo: episodesPanelContainer.bottomAnchor),
-        ])
-    }
-
-    private func setupSeriesIfNeeded() {
-        guard case .series(let seasons) = movie.type else { return }
-        episodesPanelContainer.isHidden = false
-
-        for (i, season) in seasons.enumerated() {
-            let btn = SeasonTabButton(season: season)
-            btn.accentColor = movie.accentColor.lighter(by: 0.5)
-            btn.isActiveSeason = (i == 0)
-            btn.tag = i
-            btn.addTarget(self, action: #selector(seasonTapped(_:)), for: .primaryActionTriggered)
-            seasonTabsStack.addArrangedSubview(btn)
-            seasonTabButtons.append(btn)
-        }
-
-        // Audio tab — push to trailing edge with spacer
-        if movie.audioTracks.count > 1 {
-            seasonTabsStack.addArrangedSubview(audioTabSpacer)
-            seasonTabsStack.addArrangedSubview(audioTabButton)
-        }
-
-        scrollToFirstUnwatched(animated: false)
-    }
-
-    private func scrollToFirstUnwatched(animated: Bool) {
-        guard let season = currentSeason() else { return }
-        if let idx = WatchStore.shared.firstUnwatchedIndex(movieId: movie.id, season: season) {
-            let ip = IndexPath(item: idx, section: 0)
-            DispatchQueue.main.async {
-                self.episodesCV.scrollToItem(at: ip, at: .top, animated: animated)
-            }
-        }
-    }
-
-    @objc private func seasonTapped(_ sender: SeasonTabButton) {
-        guard sender.tag != currentSeasonIndex else { return }
-        seasonTabButtons[currentSeasonIndex].isActiveSeason = false
-        currentSeasonIndex = sender.tag
-        seasonTabButtons[currentSeasonIndex].isActiveSeason = true
-
-        UIView.animate(withDuration: 0.14, animations: { self.episodesCV.alpha = 0 }) { _ in
-            self.episodesCV.reloadData()
-            self.scrollToFirstUnwatched(animated: false)
-            UIView.animate(withDuration: 0.18) { self.episodesCV.alpha = 1 }
-        }
-    }
-
-    private func currentSeason() -> Season? {
-        guard case .series(let seasons) = movie.type else { return nil }
-        return seasons[safe: currentSeasonIndex]
-    }
-}
-
-extension MovieDetailViewController: UICollectionViewDataSource {
-    func collectionView(_ cv: UICollectionView, numberOfItemsInSection s: Int) -> Int {
-        currentSeason()?.episodes.count ?? 0
-    }
-    func collectionView(_ cv: UICollectionView, cellForItemAt ip: IndexPath) -> UICollectionViewCell {
-        let cell = cv.dequeueReusableCell(withReuseIdentifier: EpisodeCell.reuseID, for: ip) as! EpisodeCell
-        if let season = currentSeason(), let ep = season.episodes[safe: ip.item] {
-            let watched = WatchStore.shared.isWatched(movieId: movie.id, season: season.number, episode: ep.number)
-            cell.configure(with: ep, movie: movie, isWatched: watched)
-        }
-        return cell
-    }
-}
-
-extension MovieDetailViewController: UICollectionViewDelegate {
-    func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
-        guard let season = currentSeason(), let ep = season.episodes[safe: ip.item] else { return }
-        let store = WatchStore.shared
-        let wasWatched = store.isWatched(movieId: movie.id, season: season.number, episode: ep.number)
-        store.setWatched(!wasWatched, movieId: movie.id, season: season.number, episode: ep.number)
-        cv.reloadItems(at: [ip])
-    }
-}
-
-extension MovieDetailViewController: AudioTrackPickerDelegate {
-    func audioPicker(_ picker: AudioTrackPickerViewController, didSelect track: AudioTrack) {
-        selectedAudio = track
-        updateAudioTab()
-    }
-}
-
-extension MovieDetailViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ cv: UICollectionView, layout: UICollectionViewLayout, sizeForItemAt ip: IndexPath) -> CGSize {
-        CGSize(width: cv.bounds.width, height: 166)
-    }
-}
+//final class MovieDetailViewController: UIViewController {
+//
+//    private let movie: Movie
+//    private var currentSeasonIndex = 0
+//    private var seasonTabButtons: [SeasonTabButton] = []
+//    private var selectedAudio: AudioTrack?
+//
+//    // MARK: Background
+//
+//    private lazy var backdropIV: UIImageView = {
+//        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
+//        iv.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 1920, height: 1080))
+//        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
+//    }()
+//    private lazy var backdropBlur: UIVisualEffectView = {
+//        let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark)); v.alpha = 0.92
+//        v.translatesAutoresizingMaskIntoConstraints = false; return v
+//    }()
+//
+//    // MARK: Left Panel
+//
+//    private lazy var posterIV: UIImageView = {
+//        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
+//        iv.layer.cornerRadius = 16; iv.layer.cornerCurve = .continuous
+//        iv.layer.shadowColor = UIColor.black.cgColor; iv.layer.shadowOpacity = 0.7
+//        iv.layer.shadowRadius = 28; iv.layer.shadowOffset = CGSize(width: 0, height: 14)
+//        iv.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 550, height: 782))
+//        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
+//    }()
+//    private lazy var accentStripe: UIView = {
+//        let v = UIView(); v.backgroundColor = movie.accentColor.lighter(by: 0.5)
+//        v.layer.cornerRadius = 3; v.translatesAutoresizingMaskIntoConstraints = false; return v
+//    }()
+//    private lazy var titleLabel: UILabel = {
+//        let l = UILabel(); l.text = movie.title; l.font = UIFont.systemFont(ofSize: 42, weight: .heavy)
+//        l.textColor = .white; l.numberOfLines = 2; l.adjustsFontSizeToFitWidth = true; l.minimumScaleFactor = 0.7
+//        l.translatesAutoresizingMaskIntoConstraints = false; return l
+//    }()
+//    private lazy var metaRow: UIStackView = {
+//        let sv = UIStackView(); sv.axis = .horizontal; sv.spacing = 8; sv.alignment = .center
+//        sv.translatesAutoresizingMaskIntoConstraints = false
+//        let pills: [(String, UIColor)]
+//        if case .series(let seasons) = movie.type {
+//            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
+//                     ("\(movie.year)–",    UIColor(white: 0.32, alpha: 1)),
+//                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
+//                     ("\(seasons.count) Seasons", UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.85))]
+//        } else {
+//            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
+//                     (movie.year,          UIColor(white: 0.32, alpha: 1)),
+//                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
+//                     (movie.duration,      UIColor(white: 0.25, alpha: 1))]
+//        }
+//        pills.forEach { sv.addArrangedSubview(MetaPill(text: $0.0, color: $0.1)) }
+//        return sv
+//    }()
+//    private lazy var descLabel: UILabel = {
+//        let l = UILabel(); l.text = movie.description; l.font = UIFont.systemFont(ofSize: 23, weight: .regular)
+//        l.textColor = UIColor(white: 0.78, alpha: 1); l.numberOfLines = 4
+//        l.translatesAutoresizingMaskIntoConstraints = false; return l
+//    }()
+//    private let watchBtn    = DetailButton(title: "▶  Watch",    style: .primary)
+//    private let myListBtn   = DetailButton(title: "+  My List",  style: .secondary)
+//    private let trailerBtn  = DetailButton(title: "⊳  Trailer",  style: .secondary)
+//    private lazy var btnStack: UIStackView = {
+//        let sv = UIStackView(arrangedSubviews: [watchBtn, myListBtn, trailerBtn])
+//        sv.axis = .horizontal; sv.spacing = 14; sv.alignment = .center
+//        sv.translatesAutoresizingMaskIntoConstraints = false; return sv
+//    }()
+//
+//    // MARK: Episodes Panel (bottom)
+//
+//    private lazy var episodesPanelContainer: UIView = {
+//        let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false; v.isHidden = true; return v
+//    }()
+//    private let episodesDivider: UIView = {
+//        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.09)
+//        v.translatesAutoresizingMaskIntoConstraints = false; return v
+//    }()
+//    private lazy var seasonTabsStack: UIStackView = {
+//        let sv = UIStackView(); sv.axis = .horizontal; sv.spacing = 6; sv.alignment = .center
+//        sv.translatesAutoresizingMaskIntoConstraints = false; return sv
+//    }()
+//    private let audioTabSpacer: UIView = {
+//        // flexible spacer to push audio tab to the right
+//        let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false
+//        v.setContentHuggingPriority(.defaultLow, for: .horizontal)
+//        v.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+//        return v
+//    }()
+//    private lazy var audioTabButton: AudioTabButton = {
+//        let b = AudioTabButton()
+//        b.accentColor = movie.accentColor.lighter(by: 0.5)
+//        b.addTarget(self, action: #selector(audioTapped), for: .primaryActionTriggered)
+//        return b
+//    }()
+//    private let tabsSeparator: UIView = {
+//        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.08)
+//        v.translatesAutoresizingMaskIntoConstraints = false; return v
+//    }()
+//    private lazy var episodesCV: UICollectionView = {
+//        let layout = UICollectionViewFlowLayout(); layout.scrollDirection = .vertical
+//        layout.minimumLineSpacing = 14; layout.sectionInset = UIEdgeInsets(top: 20, left: 0, bottom: 60, right: 0)
+//        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+//        cv.backgroundColor = .clear; cv.remembersLastFocusedIndexPath = true
+//        cv.register(EpisodeCell.self, forCellWithReuseIdentifier: EpisodeCell.reuseID)
+//        cv.dataSource = self; cv.delegate = self
+//        cv.translatesAutoresizingMaskIntoConstraints = false; return cv
+//    }()
+//
+//    init(movie: Movie) { self.movie = movie; super.init(nibName: nil, bundle: nil) }
+//    required init?(coder: NSCoder) { fatalError() }
+//
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//        view.backgroundColor = .black
+//        buildLayout()
+//        setupSeriesIfNeeded()
+//        setupAudio()
+//    }
+//
+//    private func setupAudio() {
+//        let savedId = WatchStore.shared.selectedAudioId(movieId: movie.id)
+//        selectedAudio = movie.audioTracks.first { $0.id == savedId } ?? movie.audioTracks.first
+//        // Audio tab is only added for series (called after setupSeriesIfNeeded adds season tabs)
+//        // For movies the tab row is hidden entirely — so we add it here for series only
+//        updateAudioTab()
+//    }
+//
+//    private func updateAudioTab() {
+//        guard movie.audioTracks.count > 1 else { return }
+//        audioTabButton.configure(with: selectedAudio)
+//    }
+//
+//    @objc private func audioTapped() {
+//        let picker = AudioTrackPickerViewController(
+//            tracks: movie.audioTracks,
+//            movieId: movie.id,
+//            selectedId: selectedAudio?.id
+//        )
+//        picker.delegate = self
+//        present(picker, animated: true)
+//    }
+//
+//    private func buildLayout() {
+//        view.addSubview(backdropIV); view.addSubview(backdropBlur)
+//        view.addSubview(posterIV); view.addSubview(accentStripe)
+//        view.addSubview(titleLabel); view.addSubview(metaRow); view.addSubview(descLabel); view.addSubview(btnStack)
+//        view.addSubview(episodesPanelContainer)
+//        episodesPanelContainer.addSubview(episodesDivider)
+//        episodesPanelContainer.addSubview(seasonTabsStack)
+//        episodesPanelContainer.addSubview(tabsSeparator)
+//        episodesPanelContainer.addSubview(episodesCV)
+//
+//        let lInset: CGFloat = 64
+//        let hInset: CGFloat = 80
+//
+//        NSLayoutConstraint.activate([
+//            backdropIV.topAnchor.constraint(equalTo: view.topAnchor), backdropIV.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            backdropIV.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropIV.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor), backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//
+//            // Poster — top left
+//            posterIV.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lInset),
+//            posterIV.topAnchor.constraint(equalTo: view.topAnchor, constant: 64),
+//            posterIV.widthAnchor.constraint(equalToConstant: 220),
+//            posterIV.heightAnchor.constraint(equalToConstant: 313),
+//
+//            // Accent stripe next to poster
+//            accentStripe.leadingAnchor.constraint(equalTo: posterIV.trailingAnchor, constant: 28),
+//            accentStripe.topAnchor.constraint(equalTo: posterIV.topAnchor, constant: 8),
+//            accentStripe.widthAnchor.constraint(equalToConstant: 4),
+//            accentStripe.heightAnchor.constraint(equalToConstant: 250),
+//
+//            // Title / meta / desc / buttons aligned next to accent stripe, spanning wider
+//            titleLabel.leadingAnchor.constraint(equalTo: accentStripe.trailingAnchor, constant: 22),
+//            titleLabel.topAnchor.constraint(equalTo: posterIV.topAnchor),
+//            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -hInset),
+//
+//            metaRow.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+//            metaRow.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
+//
+//            descLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+//            descLabel.topAnchor.constraint(equalTo: metaRow.bottomAnchor, constant: 16),
+//            descLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -hInset),
+//
+//            btnStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+//            btnStack.topAnchor.constraint(equalTo: descLabel.bottomAnchor, constant: 26),
+//
+//            // Episodes panel below poster + info block
+//            episodesPanelContainer.topAnchor.constraint(equalTo: posterIV.bottomAnchor, constant: 48),
+//            episodesPanelContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            episodesPanelContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+//            episodesPanelContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//
+//            episodesDivider.topAnchor.constraint(equalTo: episodesPanelContainer.topAnchor),
+//            episodesDivider.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
+//            episodesDivider.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
+//            episodesDivider.heightAnchor.constraint(equalToConstant: 1),
+//
+//            seasonTabsStack.topAnchor.constraint(equalTo: episodesDivider.bottomAnchor, constant: 24),
+//            seasonTabsStack.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
+//            seasonTabsStack.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
+//
+//            tabsSeparator.topAnchor.constraint(equalTo: seasonTabsStack.bottomAnchor, constant: 10),
+//            tabsSeparator.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
+//            tabsSeparator.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
+//            tabsSeparator.heightAnchor.constraint(equalToConstant: 1),
+//
+//            episodesCV.topAnchor.constraint(equalTo: tabsSeparator.bottomAnchor),
+//            episodesCV.leadingAnchor.constraint(equalTo: episodesPanelContainer.leadingAnchor, constant: hInset),
+//            episodesCV.trailingAnchor.constraint(equalTo: episodesPanelContainer.trailingAnchor, constant: -hInset),
+//            episodesCV.bottomAnchor.constraint(equalTo: episodesPanelContainer.bottomAnchor),
+//        ])
+//    }
+//
+//    private func setupSeriesIfNeeded() {
+//        guard case .series(let seasons) = movie.type else { return }
+//        episodesPanelContainer.isHidden = false
+//
+//        for (i, season) in seasons.enumerated() {
+//            let btn = SeasonTabButton(season: season)
+//            btn.accentColor = movie.accentColor.lighter(by: 0.5)
+//            btn.isActiveSeason = (i == 0)
+//            btn.tag = i
+//            btn.addTarget(self, action: #selector(seasonTapped(_:)), for: .primaryActionTriggered)
+//            seasonTabsStack.addArrangedSubview(btn)
+//            seasonTabButtons.append(btn)
+//        }
+//
+//        // Audio tab — push to trailing edge with spacer
+//        if movie.audioTracks.count > 1 {
+//            seasonTabsStack.addArrangedSubview(audioTabSpacer)
+//            seasonTabsStack.addArrangedSubview(audioTabButton)
+//        }
+//
+//        scrollToFirstUnwatched(animated: false)
+//    }
+//
+//    private func scrollToFirstUnwatched(animated: Bool) {
+//        guard let season = currentSeason() else { return }
+//        if let idx = WatchStore.shared.firstUnwatchedIndex(movieId: movie.id, season: season) {
+//            let ip = IndexPath(item: idx, section: 0)
+//            DispatchQueue.main.async {
+//                self.episodesCV.scrollToItem(at: ip, at: .top, animated: animated)
+//            }
+//        }
+//    }
+//
+//    @objc private func seasonTapped(_ sender: SeasonTabButton) {
+//        guard sender.tag != currentSeasonIndex else { return }
+//        seasonTabButtons[currentSeasonIndex].isActiveSeason = false
+//        currentSeasonIndex = sender.tag
+//        seasonTabButtons[currentSeasonIndex].isActiveSeason = true
+//
+//        UIView.animate(withDuration: 0.14, animations: { self.episodesCV.alpha = 0 }) { _ in
+//            self.episodesCV.reloadData()
+//            self.scrollToFirstUnwatched(animated: false)
+//            UIView.animate(withDuration: 0.18) { self.episodesCV.alpha = 1 }
+//        }
+//    }
+//
+//    private func currentSeason() -> Season? {
+//        guard case .series(let seasons) = movie.type else { return nil }
+//        return seasons[safe: currentSeasonIndex]
+//    }
+//}
+//
+//extension MovieDetailViewController: UICollectionViewDataSource {
+//    func collectionView(_ cv: UICollectionView, numberOfItemsInSection s: Int) -> Int {
+//        currentSeason()?.episodes.count ?? 0
+//    }
+//    func collectionView(_ cv: UICollectionView, cellForItemAt ip: IndexPath) -> UICollectionViewCell {
+//        let cell = cv.dequeueReusableCell(withReuseIdentifier: EpisodeCell.reuseID, for: ip) as! EpisodeCell
+//        if let season = currentSeason(), let ep = season.episodes[safe: ip.item] {
+//            let watched = WatchStore.shared.isWatched(movieId: movie.id, season: season.number, episode: ep.number)
+//            cell.configure(with: ep, movie: movie, isWatched: watched)
+//        }
+//        return cell
+//    }
+//}
+//
+//extension MovieDetailViewController: UICollectionViewDelegate {
+//    func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
+//        guard let season = currentSeason(), let ep = season.episodes[safe: ip.item] else { return }
+//        let store = WatchStore.shared
+//        let wasWatched = store.isWatched(movieId: movie.id, season: season.number, episode: ep.number)
+//        store.setWatched(!wasWatched, movieId: movie.id, season: season.number, episode: ep.number)
+//        cv.reloadItems(at: [ip])
+//    }
+//}
+//
+//extension MovieDetailViewController: AudioTrackPickerDelegate {
+//    func audioPicker(_ picker: AudioTrackPickerViewController, didSelect track: AudioTrack) {
+//        selectedAudio = track
+//        updateAudioTab()
+//    }
+//}
+//
+//extension MovieDetailViewController: UICollectionViewDelegateFlowLayout {
+//    func collectionView(_ cv: UICollectionView, layout: UICollectionViewLayout, sizeForItemAt ip: IndexPath) -> CGSize {
+//        CGSize(width: cv.bounds.width, height: 166)
+//    }
+//}
 
 // MARK: - MainController
 
@@ -1664,45 +1615,5 @@ extension MainController: UICollectionViewDelegateFlowLayout {
         nextPageURL != nil
             ? CGSize(width: cv.bounds.width, height: 80)
             : .zero
-    }
-}
-
-// MARK: - Helpers
-
-extension UIColor {
-    func lighter(by f: CGFloat) -> UIColor {
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        getRed(&r, green: &g, blue: &b, alpha: &a)
-        return UIColor(red: min(r + (1-r)*f, 1), green: min(g + (1-g)*f, 1), blue: min(b + (1-b)*f, 1), alpha: a)
-    }
-}
-
-extension Array {
-    subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
-}
-
-final class LoadingFooterView: UICollectionReusableView {
-    static let reuseID = "LoadingFooterView"
-
-    private let spinner: UIActivityIndicatorView = {
-        let v = UIActivityIndicatorView(style: .medium)
-        v.color = UIColor(white: 0.5, alpha: 1)
-        v.hidesWhenStopped = true
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        addSubview(spinner)
-        NSLayoutConstraint.activate([
-            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
-            spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
-        ])
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    func setAnimating(_ animating: Bool) {
-        animating ? spinner.startAnimating() : spinner.stopAnimating()
     }
 }
