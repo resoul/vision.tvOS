@@ -6,61 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		899FE8A12E7E0591009B8AFF /* AsyncDisplayKit in Frameworks */ = {isa = PBXBuildFile; productRef = 899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */; };
-		89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */ = {isa = PBXBuildFile; productRef = 89D9DFBA2E5A719200ED2152 /* FontManager */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		899CC2E32E5264F800083036 /* Vision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vision.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89CEB8452F4B1873001982C4 /* Vision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vision.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		89EFF8BD2E53B60700D7ED34 /* Exceptions for "Vision" folder in "Vision" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Resource/Info.plist,
-			);
-			target = 899CC2E22E5264F800083036 /* Vision */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		899CC2E52E5264F800083036 /* Vision */ = {
+		89CEB8472F4B1873001982C4 /* Vision */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				89EFF8BD2E53B60700D7ED34 /* Exceptions for "Vision" folder in "Vision" target */,
-			);
 			path = Vision;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		899CC2E02E5264F800083036 /* Frameworks */ = {
+		89CEB8422F4B1873001982C4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				89D9DFBB2E5A719200ED2152 /* FontManager in Frameworks */,
-				899FE8A12E7E0591009B8AFF /* AsyncDisplayKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		899CC2DA2E5264F800083036 = {
+		89CEB83C2F4B1873001982C4 = {
 			isa = PBXGroup;
 			children = (
-				899CC2E52E5264F800083036 /* Vision */,
-				899CC2E42E5264F800083036 /* Products */,
+				89CEB8472F4B1873001982C4 /* Vision */,
+				89CEB8462F4B1873001982C4 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		899CC2E42E5264F800083036 /* Products */ = {
+		89CEB8462F4B1873001982C4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				899CC2E32E5264F800083036 /* Vision.app */,
+				89CEB8452F4B1873001982C4 /* Vision.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,70 +48,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		899CC2E22E5264F800083036 /* Vision */ = {
+		89CEB8442F4B1873001982C4 /* Vision */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 899CC2F42E5264F900083036 /* Build configuration list for PBXNativeTarget "Vision" */;
+			buildConfigurationList = 89CEB8562F4B1875001982C4 /* Build configuration list for PBXNativeTarget "Vision" */;
 			buildPhases = (
-				899CC2DF2E5264F800083036 /* Sources */,
-				899CC2E02E5264F800083036 /* Frameworks */,
-				899CC2E12E5264F800083036 /* Resources */,
+				89CEB8412F4B1873001982C4 /* Sources */,
+				89CEB8422F4B1873001982C4 /* Frameworks */,
+				89CEB8432F4B1873001982C4 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				899CC2E52E5264F800083036 /* Vision */,
+				89CEB8472F4B1873001982C4 /* Vision */,
 			);
 			name = Vision;
 			packageProductDependencies = (
-				89D9DFBA2E5A719200ED2152 /* FontManager */,
-				899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */,
 			);
 			productName = Vision;
-			productReference = 899CC2E32E5264F800083036 /* Vision.app */;
+			productReference = 89CEB8452F4B1873001982C4 /* Vision.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		899CC2DB2E5264F800083036 /* Project object */ = {
+		89CEB83D2F4B1873001982C4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					899CC2E22E5264F800083036 = {
-						CreatedOnToolsVersion = 16.4;
+					89CEB8442F4B1873001982C4 = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
-			buildConfigurationList = 899CC2DE2E5264F800083036 /* Build configuration list for PBXProject "Vision" */;
+			buildConfigurationList = 89CEB8402F4B1873001982C4 /* Build configuration list for PBXProject "Vision" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 899CC2DA2E5264F800083036;
+			mainGroup = 89CEB83C2F4B1873001982C4;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */,
-				899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */,
-			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 899CC2E42E5264F800083036 /* Products */;
+			productRefGroup = 89CEB8462F4B1873001982C4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				899CC2E22E5264F800083036 /* Vision */,
+				89CEB8442F4B1873001982C4 /* Vision */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		899CC2E12E5264F800083036 /* Resources */ = {
+		89CEB8432F4B1873001982C4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -141,7 +115,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		899CC2DF2E5264F800083036 /* Sources */ = {
+		89CEB8412F4B1873001982C4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -151,7 +125,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		899CC2F22E5264F900083036 /* Debug */ = {
+		89CEB8542F4B1875001982C4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -210,11 +184,11 @@
 				SDKROOT = appletvos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				TVOS_DEPLOYMENT_TARGET = 18.5;
+				TVOS_DEPLOYMENT_TARGET = 15.6;
 			};
 			name = Debug;
 		};
-		899CC2F32E5264F900083036 /* Release */ = {
+		89CEB8552F4B1875001982C4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -265,12 +239,12 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = appletvos;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				TVOS_DEPLOYMENT_TARGET = 18.5;
+				TVOS_DEPLOYMENT_TARGET = 15.6;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		899CC2F52E5264F900083036 /* Debug */ = {
+		89CEB8572F4B1875001982C4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
@@ -278,8 +252,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Vision/Resource/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Vision;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
@@ -288,16 +260,20 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.air.Vision;
+				PRODUCT_BUNDLE_IDENTIFIER = airlance.Vision;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 15.0;
 			};
 			name = Debug;
 		};
-		899CC2F62E5264F900083036 /* Release */ = {
+		89CEB8582F4B1875001982C4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
@@ -305,8 +281,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Vision/Resource/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Vision;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
@@ -315,9 +289,13 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.air.Vision;
+				PRODUCT_BUNDLE_IDENTIFIER = airlance.Vision;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 15.0;
@@ -327,57 +305,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		899CC2DE2E5264F800083036 /* Build configuration list for PBXProject "Vision" */ = {
+		89CEB8402F4B1873001982C4 /* Build configuration list for PBXProject "Vision" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				899CC2F22E5264F900083036 /* Debug */,
-				899CC2F32E5264F900083036 /* Release */,
+				89CEB8542F4B1875001982C4 /* Debug */,
+				89CEB8552F4B1875001982C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		899CC2F42E5264F900083036 /* Build configuration list for PBXNativeTarget "Vision" */ = {
+		89CEB8562F4B1875001982C4 /* Build configuration list for PBXNativeTarget "Vision" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				899CC2F52E5264F900083036 /* Debug */,
-				899CC2F62E5264F900083036 /* Release */,
+				89CEB8572F4B1875001982C4 /* Debug */,
+				89CEB8582F4B1875001982C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/resoul/AsyncDisplayKit.tvOS.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.2.0;
-			};
-		};
-		89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/resoul/font-manager.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		899FE8A02E7E0591009B8AFF /* AsyncDisplayKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 899FE89F2E7E0591009B8AFF /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */;
-			productName = AsyncDisplayKit;
-		};
-		89D9DFBA2E5A719200ED2152 /* FontManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 89D9DFB92E5A719200ED2152 /* XCRemoteSwiftPackageReference "font-manager" */;
-			productName = FontManager;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 899CC2DB2E5264F800083036 /* Project object */;
+	rootObject = 89CEB83D2F4B1873001982C4 /* Project object */;
 }

@@ -1,1 +1,0 @@
-let testData = Movie(title: "Two and a Half Men", description: "A hedonistic jingle writer's free-wheeling life comes to an abrupt halt when his brother and 10-year-old nephew move into his beach-front house.", backgroundImageURL: "https://static1.srcdn.com/wordpress/wp-content/uploads/2018/06/Angus-T.-Jones-Two-and-a-Half-Men.jpg")
