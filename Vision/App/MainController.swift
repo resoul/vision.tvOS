@@ -12,7 +12,15 @@ struct Movie {
     let rating: String
     let duration: String
     let type: ContentType
+    let translate: String
+    let isAdIn: Bool
     let audioTracks: [AudioTrack]
+
+    let movieURL: String
+    let posterURL: String
+    let actors: [String]
+    let directors: [String]
+    let genreList: [String]
 
     enum ContentType {
         case movie
@@ -27,7 +35,18 @@ struct Movie {
             UIColor(red: 0.08, green: 0.35, blue: 0.28, alpha: 1),
             UIColor(red: 0.50, green: 0.10, blue: 0.10, alpha: 1),
         ]
-        return palette[id % palette.count]
+        return palette[abs(id) % palette.count]
+    }
+}
+
+extension Movie {
+    init(id: Int, title: String, year: String, description: String,
+         imageName: String, genre: String, rating: String, duration: String,
+         type: ContentType, audioTracks: [AudioTrack]) {
+        self.init(id: id, title: title, year: year, description: description,
+                  imageName: imageName, genre: genre, rating: rating, duration: duration,
+                  type: type, translate: "",isAdIn: false, audioTracks: audioTracks,
+                  movieURL: "", posterURL: "", actors: [], directors: [], genreList: [])
     }
 }
 
@@ -290,7 +309,7 @@ extension Season {
 
 // MARK: - Placeholder Art
 
-private enum PlaceholderArt {
+enum PlaceholderArt {
     static func generate(for movie: Movie, size: CGSize = CGSize(width: 440, height: 626)) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
         defer { UIGraphicsEndImageContext() }
@@ -560,239 +579,6 @@ final class MetaPill: UIView {
                                      l.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6)])
     }
     required init?(coder: NSCoder) { fatalError() }
-}
-
-// MARK: - MovieCell
-
-final class MovieCell: UICollectionViewCell {
-    static let reuseID = "MovieCell"
-
-    private let posterImageView: UIImageView = {
-        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
-        iv.layer.cornerRadius = 14; iv.layer.cornerCurve = .continuous
-        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
-    }()
-    private let scrimLayer: CAGradientLayer = {
-        let l = CAGradientLayer()
-        l.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.5).cgColor, UIColor.black.withAlphaComponent(0.92).cgColor]
-        l.locations = [0.35, 0.65, 1.0]; return l
-    }()
-    private let rankLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 22, weight: .heavy)
-        l.textColor = UIColor(white: 1, alpha: 0.18); l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let seriesBadge: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.85)
-        v.layer.cornerRadius = 6; v.isHidden = true; v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private let seriesBadgeLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 16, weight: .bold); l.textColor = .white
-        l.text = "SERIES"; l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let ratingPill: UIView = {
-        let v = UIView(); v.layer.cornerRadius = 7; v.layer.cornerCurve = .continuous
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private let ratingLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 17, weight: .bold); l.textColor = .black
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let titleLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 24, weight: .bold); l.textColor = .white
-        l.numberOfLines = 2; l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let subtitleLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        l.textColor = UIColor(white: 0.65, alpha: 1); l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let focusBorderView: UIView = {
-        let v = UIView(); v.backgroundColor = .clear; v.layer.cornerRadius = 14; v.layer.cornerCurve = .continuous
-        v.layer.borderWidth = 3.5; v.layer.borderColor = UIColor.white.cgColor; v.alpha = 0
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private let focusGlowLayer: CALayer = {
-        let l = CALayer(); l.cornerRadius = 14; l.borderWidth = 1
-        l.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor; l.opacity = 0; return l
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        contentView.layer.cornerRadius = 14; contentView.layer.cornerCurve = .continuous; contentView.clipsToBounds = false
-        contentView.addSubview(posterImageView); contentView.layer.addSublayer(scrimLayer); contentView.layer.addSublayer(focusGlowLayer)
-        contentView.addSubview(rankLabel); contentView.addSubview(seriesBadge); seriesBadge.addSubview(seriesBadgeLabel)
-        contentView.addSubview(ratingPill); ratingPill.addSubview(ratingLabel)
-        contentView.addSubview(titleLabel); contentView.addSubview(subtitleLabel); contentView.addSubview(focusBorderView)
-        NSLayoutConstraint.activate([
-            posterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            posterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            posterImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            posterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            rankLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
-            rankLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            ratingPill.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            ratingPill.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-            ratingPill.heightAnchor.constraint(equalToConstant: 30),
-            ratingLabel.leadingAnchor.constraint(equalTo: ratingPill.leadingAnchor, constant: 8),
-            ratingLabel.trailingAnchor.constraint(equalTo: ratingPill.trailingAnchor, constant: -8),
-            ratingLabel.centerYAnchor.constraint(equalTo: ratingPill.centerYAnchor),
-            seriesBadge.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
-            seriesBadge.bottomAnchor.constraint(equalTo: titleLabel.topAnchor, constant: -8),
-            seriesBadgeLabel.leadingAnchor.constraint(equalTo: seriesBadge.leadingAnchor, constant: 8),
-            seriesBadgeLabel.trailingAnchor.constraint(equalTo: seriesBadge.trailingAnchor, constant: -8),
-            seriesBadgeLabel.topAnchor.constraint(equalTo: seriesBadge.topAnchor, constant: 4),
-            seriesBadgeLabel.bottomAnchor.constraint(equalTo: seriesBadge.bottomAnchor, constant: -4),
-            subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
-            subtitleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -14),
-            subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -14),
-            titleLabel.leadingAnchor.constraint(equalTo: subtitleLabel.leadingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: subtitleLabel.topAnchor, constant: -5),
-            titleLabel.trailingAnchor.constraint(equalTo: subtitleLabel.trailingAnchor),
-            focusBorderView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            focusBorderView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            focusBorderView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            focusBorderView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-        ])
-        layer.shadowColor = UIColor.black.cgColor; layer.shadowOpacity = 0.45; layer.shadowRadius = 14; layer.shadowOffset = CGSize(width: 0, height: 10)
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        scrimLayer.frame = contentView.bounds; focusGlowLayer.frame = contentView.bounds.insetBy(dx: 1, dy: 1)
-        let mask = CAShapeLayer(); mask.path = UIBezierPath(roundedRect: contentView.bounds, cornerRadius: 14).cgPath; scrimLayer.mask = mask
-    }
-
-    func configure(with movie: Movie, rank: Int) {
-        titleLabel.text = movie.title; subtitleLabel.text = "\(movie.year)  ·  \(movie.genre)"
-        rankLabel.text = "#\(rank)"; ratingLabel.text = "★ \(movie.rating)"
-        ratingPill.backgroundColor = movie.accentColor.lighter(by: 0.5)
-        posterImageView.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 440, height: 626))
-        if case .series = movie.type { seriesBadge.isHidden = false } else { seriesBadge.isHidden = true }
-    }
-
-    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
-        coordinator.addCoordinatedAnimations({
-            if self.isFocused {
-                self.transform = CGAffineTransform(scaleX: 1.09, y: 1.09); self.layer.shadowOpacity = 0.9
-                self.layer.shadowRadius = 32; self.layer.shadowOffset = CGSize(width: 0, height: 22)
-                self.focusBorderView.alpha = 1; self.focusGlowLayer.opacity = 1
-                self.titleLabel.alpha = 1; self.subtitleLabel.alpha = 1
-            } else {
-                self.transform = .identity; self.layer.shadowOpacity = 0.45; self.layer.shadowRadius = 14
-                self.layer.shadowOffset = CGSize(width: 0, height: 10); self.focusBorderView.alpha = 0
-                self.focusGlowLayer.opacity = 0; self.titleLabel.alpha = 0.85; self.subtitleLabel.alpha = 0.65
-            }
-        }, completion: nil)
-    }
-}
-
-// MARK: - HeroPanel (info only — no buttons, focus cannot reach top panel)
-
-final class HeroPanel: UIView {
-
-    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .prominent))
-    private let accentGlow: UIView = { let v = UIView(); v.translatesAutoresizingMaskIntoConstraints = false; return v }()
-    private let accentGlowLayer = CAGradientLayer()
-    private let accentLine: UIView = { let v = UIView(); v.layer.cornerRadius = 2; v.translatesAutoresizingMaskIntoConstraints = false; return v }()
-    private let posterView: UIImageView = {
-        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true
-        iv.layer.cornerRadius = 12; iv.layer.cornerCurve = .continuous; iv.translatesAutoresizingMaskIntoConstraints = false; return iv
-    }()
-    private let titleLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 50, weight: .heavy); l.textColor = .white
-        l.numberOfLines = 2; l.adjustsFontSizeToFitWidth = true; l.minimumScaleFactor = 0.75
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let metaStack: UIStackView = {
-        let sv = UIStackView(); sv.axis = .horizontal; sv.spacing = 8; sv.alignment = .center
-        sv.translatesAutoresizingMaskIntoConstraints = false; return sv
-    }()
-    private let descLabel: UILabel = {
-        let l = UILabel(); l.font = UIFont.systemFont(ofSize: 26, weight: .regular)
-        l.textColor = UIColor(white: 0.80, alpha: 1); l.numberOfLines = 3
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let hintLabel: UILabel = {
-        let l = UILabel(); l.text = "Press  ◉  to open"
-        l.font = UIFont.systemFont(ofSize: 22, weight: .medium); l.textColor = UIColor(white: 0.40, alpha: 1)
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
-    }()
-    private let separator: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.10)
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
-    }()
-    private let bottomFade: CAGradientLayer = {
-        let l = CAGradientLayer()
-        l.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.55).cgColor]; l.locations = [0.7, 1.0]; return l
-    }()
-
-    override init(frame: CGRect) { super.init(frame: frame); build() }
-    required init?(coder: NSCoder) { fatalError() }
-
-    private func build() {
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(blurView)
-        accentGlowLayer.type = .radial; accentGlowLayer.startPoint = CGPoint(x: 0, y: 0.5); accentGlowLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        accentGlow.layer.addSublayer(accentGlowLayer)
-        blurView.contentView.addSubview(accentGlow); blurView.contentView.addSubview(accentLine); blurView.contentView.addSubview(posterView)
-        blurView.contentView.addSubview(titleLabel); blurView.contentView.addSubview(metaStack)
-        blurView.contentView.addSubview(descLabel); blurView.contentView.addSubview(hintLabel)
-        blurView.contentView.addSubview(separator); layer.addSublayer(bottomFade)
-
-        let inset: CGFloat = 72, pW: CGFloat = 186, pH = pW * 313 / 220
-        NSLayoutConstraint.activate([
-            blurView.topAnchor.constraint(equalTo: topAnchor), blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: trailingAnchor), blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            accentGlow.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
-            accentGlow.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
-            accentGlow.widthAnchor.constraint(equalToConstant: 500), accentGlow.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
-            accentLine.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: inset),
-            accentLine.centerYAnchor.constraint(equalTo: blurView.contentView.centerYAnchor),
-            accentLine.widthAnchor.constraint(equalToConstant: 4), accentLine.heightAnchor.constraint(equalToConstant: pH * 0.75),
-            posterView.leadingAnchor.constraint(equalTo: accentLine.trailingAnchor, constant: 20),
-            posterView.centerYAnchor.constraint(equalTo: blurView.contentView.centerYAnchor),
-            posterView.widthAnchor.constraint(equalToConstant: pW), posterView.heightAnchor.constraint(equalToConstant: pH),
-            titleLabel.leadingAnchor.constraint(equalTo: posterView.trailingAnchor, constant: 44),
-            titleLabel.topAnchor.constraint(equalTo: posterView.topAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -inset),
-            metaStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            metaStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
-            descLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            descLabel.topAnchor.constraint(equalTo: metaStack.bottomAnchor, constant: 18),
-            descLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            hintLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            hintLabel.topAnchor.constraint(equalTo: descLabel.bottomAnchor, constant: 16),
-            separator.leadingAnchor.constraint(equalTo: leadingAnchor), separator.trailingAnchor.constraint(equalTo: trailingAnchor),
-            separator.bottomAnchor.constraint(equalTo: bottomAnchor), separator.heightAnchor.constraint(equalToConstant: 1),
-        ])
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        accentGlowLayer.frame = accentGlow.bounds
-        bottomFade.frame = CGRect(x: 0, y: bounds.height - 60, width: bounds.width, height: 60)
-    }
-
-    func configure(with movie: Movie) {
-        titleLabel.text = movie.title; descLabel.text = movie.description
-        posterView.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 372, height: 530))
-        metaStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        let pills: [(String, UIColor)]
-        if case .series(let seasons) = movie.type {
-            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
-                     ("\(movie.year)–",    UIColor(white: 0.35, alpha: 1)),
-                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
-                     ("\(seasons.count) Seasons", UIColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 0.85))]
-        } else {
-            pills = [("★ \(movie.rating)", UIColor(red: 1, green: 0.82, blue: 0, alpha: 1)),
-                     (movie.year,          UIColor(white: 0.35, alpha: 1)),
-                     (movie.genre,         movie.accentColor.withAlphaComponent(0.9)),
-                     (movie.duration,      UIColor(white: 0.25, alpha: 1))]
-        }
-        pills.forEach { metaStack.addArrangedSubview(MetaPill(text: $0.0, color: $0.1)) }
-        accentLine.backgroundColor = movie.accentColor.lighter(by: 0.6)
-        accentGlowLayer.colors = [movie.accentColor.withAlphaComponent(0.28).cgColor, movie.accentColor.withAlphaComponent(0).cgColor]
-    }
 }
 
 // MARK: - SeasonTabButton
@@ -1448,111 +1234,319 @@ extension MovieDetailViewController: UICollectionViewDelegateFlowLayout {
 
 final class MainController: UIViewController {
 
-    private let movies = Movie.samples
+    // MARK: - State
+
+    private var movies: [Movie] = []
     private var currentFocusedIndex: Int? = nil
     private var detailDebounceTimer: Timer?
     private var pendingMovie: Movie?
 
+    // Пагинация
+    private var nextPageURL: URL? = nil
+    private var isFetching = false
+    private var hasLoadedFirstPage = false
+
+    // MARK: - Background
+
     private lazy var backdropImageView: UIImageView = {
-        let iv = UIImageView(); iv.contentMode = .scaleAspectFill; iv.clipsToBounds = true; iv.alpha = 0
-        iv.translatesAutoresizingMaskIntoConstraints = false; return iv
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.clipsToBounds = true
+        iv.alpha = 0
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
     }()
+
     private lazy var backdropBlur: UIVisualEffectView = {
-        let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark)); v.alpha = 0
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
+        let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+        v.alpha = 0
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
     }()
+
     private let vignetteLayer: CAGradientLayer = {
-        let l = CAGradientLayer(); l.type = .radial
+        let l = CAGradientLayer()
+        l.type = .radial
         l.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.70).cgColor]
-        l.startPoint = CGPoint(x: 0.5, y: 0.5); l.endPoint = CGPoint(x: 1.0, y: 1.0); return l
+        l.startPoint = CGPoint(x: 0.5, y: 0.5)
+        l.endPoint   = CGPoint(x: 1.0, y: 1.0)
+        return l
     }()
+
     private let baseGradientLayer: CAGradientLayer = {
         let l = CAGradientLayer()
-        l.colors = [UIColor(red: 0.07, green: 0.07, blue: 0.11, alpha: 1).cgColor,
-                    UIColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1).cgColor]; return l
+        l.colors = [
+            UIColor(red: 0.07, green: 0.07, blue: 0.11, alpha: 1).cgColor,
+            UIColor(red: 0.04, green: 0.04, blue: 0.07, alpha: 1).cgColor,
+        ]
+        return l
     }()
+
+    // MARK: - Header
+
     private lazy var logoLabel: UILabel = {
         let l = UILabel()
         l.attributedText = NSAttributedString(string: "FILMIX", attributes: [
-            .kern: CGFloat(8), .font: UIFont.systemFont(ofSize: 38, weight: .heavy), .foregroundColor: UIColor.white])
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
+            .kern: CGFloat(8),
+            .font: UIFont.systemFont(ofSize: 38, weight: .heavy),
+            .foregroundColor: UIColor.white,
+        ])
+        l.translatesAutoresizingMaskIntoConstraints = false
+        return l
     }()
+
     private let logoAccentDot: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(red: 0.95, green: 0.25, blue: 0.25, alpha: 1)
-        v.layer.cornerRadius = 5; v.translatesAutoresizingMaskIntoConstraints = false; return v
+        let v = UIView()
+        v.backgroundColor = UIColor(red: 0.95, green: 0.25, blue: 0.25, alpha: 1)
+        v.layer.cornerRadius = 5
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
     }()
+
     private lazy var sectionLabel: UILabel = {
-        let l = UILabel(); l.text = "Popular"
-        l.font = UIFont.systemFont(ofSize: 30, weight: .medium); l.textColor = UIColor(white: 0.65, alpha: 1)
-        l.translatesAutoresizingMaskIntoConstraints = false; return l
+        let l = UILabel()
+        l.text = "Popular"
+        l.font = UIFont.systemFont(ofSize: 30, weight: .medium)
+        l.textColor = UIColor(white: 0.65, alpha: 1)
+        l.translatesAutoresizingMaskIntoConstraints = false
+        return l
     }()
+
     private let headerSeparator: UIView = {
-        let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.08)
-        v.translatesAutoresizingMaskIntoConstraints = false; return v
+        let v = UIView()
+        v.backgroundColor = UIColor(white: 1, alpha: 0.08)
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
     }()
+
+    // MARK: - Hero Panel
+
     private lazy var heroPanel: HeroPanel = {
-        let p = HeroPanel(); p.alpha = 0; p.translatesAutoresizingMaskIntoConstraints = false; return p
+        let p = HeroPanel()
+        p.alpha = 0
+        p.translatesAutoresizingMaskIntoConstraints = false
+        return p
     }()
+
     private lazy var heroPanelHeightConstraint = heroPanel.heightAnchor.constraint(equalToConstant: 0)
+
+    // MARK: - Collection View
+
     private lazy var collectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout())
-        cv.backgroundColor = .clear; cv.remembersLastFocusedIndexPath = true
+        cv.backgroundColor = .clear
+        cv.remembersLastFocusedIndexPath = true
         cv.register(MovieCell.self, forCellWithReuseIdentifier: MovieCell.reuseID)
-        cv.dataSource = self; cv.delegate = self; cv.translatesAutoresizingMaskIntoConstraints = false; return cv
+        cv.register(LoadingFooterView.self,
+                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+                    withReuseIdentifier: LoadingFooterView.reuseID)
+        cv.dataSource = self
+        cv.delegate   = self
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        return cv
     }()
+
+    // MARK: - Loading / Error overlays
+
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let v = UIActivityIndicatorView(style: .large)
+        v.color = .white
+        v.hidesWhenStopped = true
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
+    }()
+
+    private lazy var errorLabel: UILabel = {
+        let l = UILabel()
+        l.font = UIFont.systemFont(ofSize: 28, weight: .medium)
+        l.textColor = UIColor(white: 0.6, alpha: 1)
+        l.textAlignment = .center
+        l.numberOfLines = 3
+        l.isHidden = true
+        l.translatesAutoresizingMaskIntoConstraints = false
+        return l
+    }()
+
+    private lazy var retryButton: DetailButton = {
+        let b = DetailButton(title: "↻  Retry", style: .secondary)
+        b.isHidden = true
+        b.addTarget(self, action: #selector(retryTapped), for: .primaryActionTriggered)
+        return b
+    }()
+
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.layer.insertSublayer(baseGradientLayer, at: 0)
-        view.addSubview(backdropImageView); view.layer.addSublayer(vignetteLayer); view.addSubview(backdropBlur)
-        view.addSubview(logoLabel); view.addSubview(logoAccentDot); view.addSubview(sectionLabel)
-        view.addSubview(headerSeparator); view.addSubview(heroPanel); view.addSubview(collectionView)
+        view.addSubview(backdropImageView)
+        view.layer.addSublayer(vignetteLayer)
+        view.addSubview(backdropBlur)
+        view.addSubview(logoLabel)
+        view.addSubview(logoAccentDot)
+        view.addSubview(sectionLabel)
+        view.addSubview(headerSeparator)
+        view.addSubview(heroPanel)
+        view.addSubview(collectionView)
+        view.addSubview(loadingIndicator)
+        view.addSubview(errorLabel)
+        view.addSubview(retryButton)
+
         heroPanelHeightConstraint.isActive = true
+
         NSLayoutConstraint.activate([
-            backdropImageView.topAnchor.constraint(equalTo: view.topAnchor), backdropImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor), backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor), backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            logoLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52), logoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
-            logoAccentDot.widthAnchor.constraint(equalToConstant: 10), logoAccentDot.heightAnchor.constraint(equalToConstant: 10),
+            // Backdrop
+            backdropImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backdropImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backdropImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backdropImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor),
+            backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // Logo
+            logoLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
+            logoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
+
+            logoAccentDot.widthAnchor.constraint(equalToConstant: 10),
+            logoAccentDot.heightAnchor.constraint(equalToConstant: 10),
             logoAccentDot.leadingAnchor.constraint(equalTo: logoLabel.trailingAnchor, constant: 4),
             logoAccentDot.bottomAnchor.constraint(equalTo: logoLabel.bottomAnchor, constant: -6),
+
             sectionLabel.centerYAnchor.constraint(equalTo: logoLabel.centerYAnchor),
             sectionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80),
+
+            // Separator
             headerSeparator.topAnchor.constraint(equalTo: logoLabel.bottomAnchor, constant: 18),
             headerSeparator.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
             headerSeparator.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80),
             headerSeparator.heightAnchor.constraint(equalToConstant: 1),
+
+            // Hero panel
             heroPanel.topAnchor.constraint(equalTo: headerSeparator.bottomAnchor, constant: 16),
-            heroPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor), heroPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            heroPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            heroPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             heroPanelHeightConstraint,
+
+            // Collection
             collectionView.topAnchor.constraint(equalTo: heroPanel.bottomAnchor, constant: 60),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor), collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // Loading / Error
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+            errorLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            errorLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -40),
+            errorLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
+
+            retryButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            retryButton.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 24),
         ])
+
+        loadFirstPage()
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        baseGradientLayer.frame = view.bounds; vignetteLayer.frame = view.bounds
+        baseGradientLayer.frame = view.bounds
+        vignetteLayer.frame     = view.bounds
     }
 
+    // MARK: - Networking
+
+    private func loadFirstPage() {
+        guard !isFetching else { return }
+        isFetching = true
+        errorLabel.isHidden  = true
+        retryButton.isHidden = true
+        loadingIndicator.startAnimating()
+
+        FilmixService.shared.fetchPage(url: nil) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isFetching = false
+                self.loadingIndicator.stopAnimating()
+                self.hasLoadedFirstPage = true
+
+                switch result {
+                case .success(let page):
+                    self.nextPageURL = page.nextPageURL
+                    self.movies = page.movies
+                    self.collectionView.reloadData()
+
+                case .failure(let error):
+                    self.errorLabel.text = "Failed to load\n\(error.localizedDescription)"
+                    self.errorLabel.isHidden  = false
+                    self.retryButton.isHidden = false
+                }
+            }
+        }
+    }
+
+    private func loadNextPage() {
+        guard !isFetching, let url = nextPageURL else { return }
+        isFetching = true
+
+        FilmixService.shared.fetchPage(url: url) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isFetching = false
+
+                switch result {
+                case .success(let page):
+                    let startIndex = self.movies.count
+                    self.nextPageURL = page.nextPageURL
+                    self.movies.append(contentsOf: page.movies)
+
+                    let indexPaths = (startIndex ..< self.movies.count)
+                        .map { IndexPath(item: $0, section: 0) }
+                    self.collectionView.performBatchUpdates {
+                        self.collectionView.insertItems(at: indexPaths)
+                    }
+
+                    // Убираем footer-спиннер если больше нет страниц
+                    if self.nextPageURL == nil {
+                        self.collectionView.reloadData()
+                    }
+
+                case .failure:
+                    break   // тихо: пользователь может доскроллить снова
+                }
+            }
+        }
+    }
+
+    @objc private func retryTapped() {
+        loadFirstPage()
+    }
+
+    // MARK: - Layout helpers
+
     private func makeFlowLayout() -> UICollectionViewFlowLayout {
-        let l = UICollectionViewFlowLayout(); l.scrollDirection = .vertical
-        l.minimumInteritemSpacing = 28; l.minimumLineSpacing = 44
-        l.sectionInset = UIEdgeInsets(top: 0, left: 80, bottom: 80, right: 80); return l
+        let l = UICollectionViewFlowLayout()
+        l.scrollDirection         = .vertical
+        l.minimumInteritemSpacing = 28
+        l.minimumLineSpacing      = 44
+        l.sectionInset = UIEdgeInsets(top: 0, left: 80, bottom: 80, right: 80)
+        l.footerReferenceSize = CGSize(width: 0, height: 80)
+        return l
     }
 
     private func cellSize() -> CGSize {
-        let width = view.bounds.width
-        let horizontalPadding: CGFloat = 80 * 2
-        let spacing: CGFloat = 28 * 4
-        
+        let width             = view.bounds.width
+        let horizontalPadding = 80.0 * 2
+        let spacing           = 28.0 * 4
         let w = floor((width - horizontalPadding - spacing) / 5)
         let h = floor(w * 313 / 220)
-        
         return CGSize(width: w, height: h)
     }
+
+    // MARK: - Hero Panel
 
     private func showHeroPanel(for movie: Movie) {
         heroPanel.configure(with: movie)
@@ -1563,8 +1557,11 @@ final class MainController: UIViewController {
             heroPanelHeightConstraint.constant = 290
             heroPanel.transform = CGAffineTransform(translationX: 0, y: -20)
             UIView.animate(withDuration: 0.40, delay: 0, options: .curveEaseOut) {
-                self.heroPanel.alpha = 1; self.heroPanel.transform = .identity
-                self.backdropImageView.alpha = 0.22; self.backdropBlur.alpha = 0.60; self.view.layoutIfNeeded()
+                self.heroPanel.alpha     = 1
+                self.heroPanel.transform = .identity
+                self.backdropImageView.alpha = 0.22
+                self.backdropBlur.alpha      = 0.60
+                self.view.layoutIfNeeded()
             }
         } else {
             UIView.animate(withDuration: 0.20) { self.heroPanel.alpha = 1 }
@@ -1573,33 +1570,68 @@ final class MainController: UIViewController {
 
     private func hideHeroPanel() {
         UIView.animate(withDuration: 0.28, delay: 0, options: .curveEaseIn) {
-            self.heroPanel.alpha = 0; self.heroPanel.transform = CGAffineTransform(translationX: 0, y: -10)
-            self.backdropImageView.alpha = 0; self.backdropBlur.alpha = 0
-            self.heroPanelHeightConstraint.constant = 0; self.view.layoutIfNeeded()
-        } completion: { _ in self.heroPanel.transform = .identity }
+            self.heroPanel.alpha     = 0
+            self.heroPanel.transform = CGAffineTransform(translationX: 0, y: -10)
+            self.backdropImageView.alpha = 0
+            self.backdropBlur.alpha      = 0
+            self.heroPanelHeightConstraint.constant = 0
+            self.view.layoutIfNeeded()
+        } completion: { _ in
+            self.heroPanel.transform = .identity
+        }
     }
 
-    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+    // MARK: - Focus
+
+    override func didUpdateFocus(in context: UIFocusUpdateContext,
+                                 with coordinator: UIFocusAnimationCoordinator) {
         super.didUpdateFocus(in: context, with: coordinator)
-        if let cell = context.nextFocusedItem as? MovieCell, let ip = collectionView.indexPath(for: cell) {
+
+        if let cell = context.nextFocusedItem as? MovieCell,
+           let ip   = collectionView.indexPath(for: cell) {
             let movie = movies[ip.item]
             guard ip.item != currentFocusedIndex else { return }
-            currentFocusedIndex = ip.item; detailDebounceTimer?.invalidate(); pendingMovie = movie
+            currentFocusedIndex = ip.item
+            detailDebounceTimer?.invalidate()
+            pendingMovie = movie
             detailDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: false) { [weak self] _ in
                 guard let self, let m = self.pendingMovie else { return }
                 self.showHeroPanel(for: m)
             }
         } else if !(context.nextFocusedItem is MovieCell) {
-            detailDebounceTimer?.invalidate(); pendingMovie = nil; currentFocusedIndex = nil; hideHeroPanel()
+            detailDebounceTimer?.invalidate()
+            pendingMovie        = nil
+            currentFocusedIndex = nil
+            hideHeroPanel()
         }
     }
 }
 
 extension MainController: UICollectionViewDataSource {
-    func collectionView(_ cv: UICollectionView, numberOfItemsInSection s: Int) -> Int { movies.count }
-    func collectionView(_ cv: UICollectionView, cellForItemAt ip: IndexPath) -> UICollectionViewCell {
-        let cell = cv.dequeueReusableCell(withReuseIdentifier: MovieCell.reuseID, for: ip) as! MovieCell
-        cell.configure(with: movies[ip.item], rank: ip.item + 1); return cell
+
+    func collectionView(_ cv: UICollectionView,
+                        numberOfItemsInSection s: Int) -> Int {
+        movies.count
+    }
+
+    func collectionView(_ cv: UICollectionView,
+                        cellForItemAt ip: IndexPath) -> UICollectionViewCell {
+        let cell = cv.dequeueReusableCell(withReuseIdentifier: MovieCell.reuseID,
+                                          for: ip) as! MovieCell
+        cell.configure(with: movies[ip.item], rank: ip.item + 1)
+        return cell
+    }
+
+    func collectionView(_ cv: UICollectionView,
+                        viewForSupplementaryElementOfKind kind: String,
+                        at ip: IndexPath) -> UICollectionReusableView {
+        let footer = cv.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: LoadingFooterView.reuseID,
+            for: ip) as! LoadingFooterView
+
+        footer.setAnimating(isFetching && nextPageURL != nil)
+        return footer
     }
 }
 
@@ -1607,15 +1639,37 @@ extension MainController: UICollectionViewDelegate {
     func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
         present(MovieDetailViewController(movie: movies[ip.item]), animated: true)
     }
+
+    func collectionView(_ cv: UICollectionView,
+                        willDisplay cell: UICollectionViewCell,
+                        forItemAt ip: IndexPath) {
+        let threshold = max(0, movies.count - 10)
+        if ip.item >= threshold {
+            loadNextPage()
+        }
+    }
 }
 
 extension MainController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ cv: UICollectionView, layout: UICollectionViewLayout, sizeForItemAt ip: IndexPath) -> CGSize { cellSize() }
+
+    func collectionView(_ cv: UICollectionView,
+                        layout: UICollectionViewLayout,
+                        sizeForItemAt ip: IndexPath) -> CGSize {
+        cellSize()
+    }
+
+    func collectionView(_ cv: UICollectionView,
+                        layout: UICollectionViewLayout,
+                        referenceSizeForFooterInSection section: Int) -> CGSize {
+        nextPageURL != nil
+            ? CGSize(width: cv.bounds.width, height: 80)
+            : .zero
+    }
 }
 
 // MARK: - Helpers
 
-private extension UIColor {
+extension UIColor {
     func lighter(by f: CGFloat) -> UIColor {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         getRed(&r, green: &g, blue: &b, alpha: &a)
@@ -1623,6 +1677,32 @@ private extension UIColor {
     }
 }
 
-private extension Array {
+extension Array {
     subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
+}
+
+final class LoadingFooterView: UICollectionReusableView {
+    static let reuseID = "LoadingFooterView"
+
+    private let spinner: UIActivityIndicatorView = {
+        let v = UIActivityIndicatorView(style: .medium)
+        v.color = UIColor(white: 0.5, alpha: 1)
+        v.hidesWhenStopped = true
+        v.translatesAutoresizingMaskIntoConstraints = false
+        return v
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    func setAnimating(_ animating: Bool) {
+        animating ? spinner.startAnimating() : spinner.stopAnimating()
+    }
 }
