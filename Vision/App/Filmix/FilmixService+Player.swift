@@ -41,8 +41,6 @@ extension FilmixService {
             }
     }
 
-    // MARK: - Series helper
-
     private func resolveSeriesTranslations(
         entries: [(key: String, value: String)],
         completion: @escaping (Result<[FilmixTranslation], Error>) -> Void

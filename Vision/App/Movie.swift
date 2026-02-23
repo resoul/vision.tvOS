@@ -36,15 +36,3 @@ struct Movie {
         return palette[abs(id) % palette.count]
     }
 }
-
-extension Movie {
-    init(id: Int, title: String, year: String, description: String,
-         imageName: String, genre: String, rating: String, duration: String,
-         type: ContentType) {
-        self.init(id: id, title: title, year: year, description: description,
-                  imageName: imageName, genre: genre, rating: rating, duration: duration,
-                  type: type, translate: "", isAdIn: false,
-                  movieURL: "", posterURL: "", actors: [], directors: [], genreList: [],
-                  lastAdded: nil)
-    }
-}

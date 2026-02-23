@@ -16,7 +16,6 @@ final class FilmixService {
         return Session(configuration: config)
     }()
 
-    // MARK: - Fetch listing
     func fetchPage(url: URL? = nil,
                    completion: @escaping (Result<FilmixPage, Error>) -> Void) {
         let targetURL = url?.absoluteString ?? baseURL
@@ -35,7 +34,6 @@ final class FilmixService {
         }
     }
 
-    // MARK: - Fetch detail
     func fetchDetail(path: String,
                      completion: @escaping (Result<FilmixDetail, Error>) -> Void) {
         let fullURL = path.hasPrefix("http") ? path : "\(baseURL)\(path)"
@@ -54,11 +52,12 @@ final class FilmixService {
         }
     }
 
-    // MARK: - Listing parser
-
-    private static func parseListing(html: String) throws -> FilmixPage {
-        let doc      = try SwiftSoup.parse(html)
-        let articles = try doc.select("#dle-content article.shortstory")
+    static func parseListing(html: String) throws -> FilmixPage {
+        let doc = try SwiftSoup.parse(html)
+        var articles = try doc.select("#dle-content article.shortstory")
+        if articles.isEmpty() {
+            articles = try doc.select("article.shortstory")
+        }
 
         var movies: [Movie] = []
         for (index, article) in articles.enumerated() {
@@ -71,8 +70,6 @@ final class FilmixService {
 
     private static func parseListingMovie(article: Element, index: Int) throws -> Movie {
         let id  = Int(try article.attr("data-id")) ?? index
-
-        // Title: prefer itemprop content on h2, fall back to visible text
         let titleRaw  = try article.select("div.full div.title-one-line h2.name").attr("content")
         let title     = titleRaw.isEmpty
             ? (try? article.select("h2.name").text()) ?? "Unknown"
@@ -87,7 +84,6 @@ final class FilmixService {
         let isSeries  = movieURL.contains("/seria/")
         let translate = (try? article.select(".item.translate .item-content").text()) ?? ""
 
-        // Rating from user thumbs
         let up    = Double((try? article.select("span.counter span.hand-up span").text()) ?? "") ?? 0
         let down  = Double((try? article.select("span.counter span.hand-down span").text()) ?? "") ?? 0
         let total = up + down
@@ -96,12 +92,11 @@ final class FilmixService {
         let directors = personNames(in: article, selector: ".item:contains(Режиссер) .item-content span")
         let actors    = personNames(in: article, selector: ".item:contains(В ролях) .item-content span")
 
-        // "Добавлена" for series
         let lastAdded: String? = {
             guard isSeries,
                   let span  = try? article.select(".added-info").first(),
                   let clone = span.copy() as? Element else { return nil }
-            try? clone.select("i").remove()
+            let _ = try? clone.select("i").remove()
             let t = (try? clone.text())?.trimmingCharacters(in: .whitespaces) ?? ""
             return t.isEmpty ? nil : t
         }()
@@ -132,12 +127,8 @@ final class FilmixService {
         )
     }
 
-    // MARK: - Detail page parser
-
     static func parseDetail(html: String) throws -> FilmixDetail {
         let doc = try SwiftSoup.parse(html)
-
-        // Detail page uses article.fullstory (not .shortstory)
         guard let article = try? doc.select("#dle-content article.fullstory").first()
                          ?? doc.select("#dle-content article").first()
         else { throw FilmixError.articleNotFound }
@@ -145,7 +136,6 @@ final class FilmixService {
         let id       = Int((try? article.attr("data-id")) ?? "") ?? 0
         let movieURL = (try? article.select(".short a.watch").attr("href")) ?? ""
 
-        // ── Poster ─────────────────────────────────────────────────────────
         let posterThumb: String = {
             guard let src = try? article.select(".short img.poster").attr("src"), !src.isEmpty else { return "" }
             return src.hasPrefix("http") ? src : "https://filmix.my\(src)"
@@ -155,17 +145,13 @@ final class FilmixService {
             return href.hasPrefix("http") ? href : "https://filmix.my\(href)"
         }()
 
-        // ── Titles ──────────────────────────────────────────────────────────
         let title         = (try? article.select("h1.name").text()) ?? ""
         let originalTitle = labeledItemContent(in: article, label: "Название:")
 
-        // ── Date / Quality ──────────────────────────────────────────────────
         let quality = (try? article.select(".quality").first()?.text()) ?? ""
         let date    = (try? article.select("time.date").first()?.text()) ?? ""
         let dateISO = (try? article.select("meta[itemprop=dateCreated]").attr("content")) ?? ""
 
-        // ── Description ─────────────────────────────────────────────────────
-        // .about .full-story has the clean full text; strip the "Больше" button
         var description = ""
         if let fullStory = try? article.select(".about .full-story").first() {
             description = (try? fullStory.text()) ?? ""
@@ -174,21 +160,17 @@ final class FilmixService {
             description = (try? article.select("[itemprop=description]").first()?.text()) ?? ""
         }
 
-        // ── isAdIn ──────────────────────────────────────────────────────────
         let isAdIn = !(try article.select("span.video-in").isEmpty())
 
-        // ── People ──────────────────────────────────────────────────────────
         let directors = personNames(in: article, selector: ".item.directors .item-content span")
         let actors    = actorNames(in: article)
         let writers   = personNames(in: article, labelText: "Сценарист:")
         let producers = personNames(in: article, labelText: "Продюсер:")
 
-        // ── Taxonomy ────────────────────────────────────────────────────────
         let genres    = (try? article.select("a[itemprop=genre]").array().map { try $0.text() }) ?? []
         let countries = (try? article.select(".item.contry .item-content a").array().map { try $0.text() }) ?? []
         let year      = (try? article.select(".item.year .item-content").text()) ?? "—"
 
-        // Duration: prefer itemprop attr "content"="110", fallback parse text
         let durationMinutes: Int? = {
             if let v = Int((try? article.select(".item.durarion").attr("content")) ?? "") { return v }
             let text   = (try? article.select(".item.durarion .item-content").text()) ?? ""
@@ -200,8 +182,6 @@ final class FilmixService {
         let mpaa      = labeledItemContent(in: article, label: "MPAA:")
         let slogan    = labeledItemContent(in: article, label: "Слоган:")
 
-        // ── Series-specific ─────────────────────────────────────────────────
-        // "В эфире" badge from .status span; its title attr = hint text
         let statusOnAir: String? = {
             guard let el = try? article.select(".top-date .status").first() else { return nil }
             let text = (try? el.select(".ico").text()) ?? ""
@@ -213,30 +193,23 @@ final class FilmixService {
             return hint.isEmpty ? nil : hint
         }()
 
-        // "Добавлена" on detail page lives in .item.xfgiven_added .added-info
         let lastAdded: String? = {
             guard let span  = try? article.select(".item.xfgiven_added .added-info").first(),
                   let clone = span.copy() as? Element else { return nil }
-            try? clone.select("i").remove()
+            let _ = try? clone.select("i").remove()
             let t = (try? clone.text())?.trimmingCharacters(in: .whitespaces) ?? ""
             return t.isEmpty ? nil : t
         }()
 
-        // ── Ratings ─────────────────────────────────────────────────────────
-        // Kinopoisk — span.kinopoisk contains two <p>: rating, votes
         let kpPs      = (try? article.select("span.kinopoisk p").array()) ?? []
         let kpRating  = (try? kpPs[safe: 0]?.text()) ?? "—"
         let kpVotes   = (try? kpPs[safe: 1]?.text()) ?? "—"
 
-        // IMDB — span.imdb contains two <p>: rating, votes
         let imdbPs    = (try? article.select("span.imdb p").array()) ?? []
         let imdbRating = (try? imdbPs[safe: 0]?.text()) ?? "—"
         let imdbVotes  = (try? imdbPs[safe: 1]?.text()) ?? "—"
 
-        // User percent slider
         let userPositive = Int((try? article.select(".percent-p").attr("data-percent-p")) ?? "") ?? 0
-
-        // Thumb up / down counts
         let userLikes    = Int((try? article.select(".rateinf.ratePos").text()) ?? "") ?? 0
         let userDislikes = Int((try? article.select(".rateinf.rateNeg").text()) ?? "") ?? 0
 
@@ -260,8 +233,6 @@ final class FilmixService {
         )
     }
 
-    // MARK: - Next page URL
-
     private static func parseNextPageURL(doc: Document) throws -> URL? {
         if let href = try? doc.select("div.navigation a.next").first()?.attr("href"),
            !href.isEmpty { return URL(string: href) }
@@ -273,17 +244,12 @@ final class FilmixService {
         return nil
     }
 
-    // MARK: - Encoding
-
     static func decode(_ data: Data) -> String {
         String(data: data, encoding: .windowsCP1251)
             ?? String(data: data, encoding: .utf8)
             ?? ""
     }
 
-    // MARK: - DOM helpers
-
-    /// Finds the .item whose .label text equals `label:` and returns trimmed .item-content text.
     private static func labeledItemContent(in el: Element, label: String) -> String {
         guard let items = try? el.select(".item").array() else { return "" }
         for item in items {
@@ -296,7 +262,6 @@ final class FilmixService {
         return ""
     }
 
-    /// Person names from a CSS selector, stripping commas and whitespace.
     private static func personNames(in el: Element, selector: String) -> [String] {
         (try? el.select(selector).array()
             .compactMap { try? $0.text() }
@@ -305,7 +270,6 @@ final class FilmixService {
         ) ?? []
     }
 
-    /// Person names by label — finds .item by .label text, then reads spans.
     private static func personNames(in el: Element, labelText: String) -> [String] {
         guard let items = try? el.select(".item").array() else { return [] }
         for item in items {
@@ -317,17 +281,14 @@ final class FilmixService {
         return []
     }
 
-    /// Actors: collects itemprop=name actors first, then plain inline spans.
     private static func actorNames(in el: Element) -> [String] {
         guard let actorItem = try? el.select(".item.actors").first() else { return [] }
 
-        // itemprop actors (linked)
         var names = (try? actorItem.select("span[itemprop=name]").array()
             .compactMap { try? $0.text() }
             .filter { !$0.isEmpty }
         ) ?? []
 
-        // Plain non-itemprop spans (unlisted actors)
         let plain = (try? actorItem.select(".item-content > span:not([itemprop])").array()
             .compactMap { try? $0.text() }
             .map { $0.replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces) }

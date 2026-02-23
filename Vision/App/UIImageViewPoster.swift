@@ -1,7 +1,5 @@
 import UIKit
 
-// MARK: - UIImageView + Poster
-
 extension UIImageView {
     func setPoster(url: String,
                    placeholder: UIImage?,
@@ -48,5 +46,5 @@ extension UIImageView {
 }
 
 private enum AssociatedKeys {
-    static var posterURL = "posterURL"
+    static var posterURL: UInt8 = 0
 }

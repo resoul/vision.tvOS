@@ -33,8 +33,6 @@ struct _FilmixPlayerFolder: Codable {
     }
 }
 
-// MARK: - Codable wrappers
-
 struct _FilmixPlayerResponse: nonisolated Codable {
     let type: String
     let message: _FilmixPlayerMessage

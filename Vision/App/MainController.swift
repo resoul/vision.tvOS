@@ -3,12 +3,15 @@ import UIKit
 final class MainController: UIViewController {
     private var movies: [Movie] = []
     private var currentFocusedMovieId: Int? = nil
-    private var detailDebounceTimer: Timer?
-    private var pendingMovie: Movie?
 
     private var nextPageURL: URL? = nil
     private var isFetching = false
     private var hasLoadedFirstPage = false
+    private var currentCategoryURL: String? = nil
+    private var isFavoritesTab = false
+    private var tabBarHeightConstraint: NSLayoutConstraint!
+
+    // MARK: - Background
 
     private lazy var backdropImageView: UIImageView = {
         let iv = UIImageView()
@@ -44,19 +47,17 @@ final class MainController: UIViewController {
         return l
     }()
 
-    private lazy var heroPanel: HeroPanel = {
-        let p = HeroPanel()
-        p.alpha = 0
-        p.translatesAutoresizingMaskIntoConstraints = false
-        return p
+    // MARK: - Category Tab Bar
+
+    private lazy var categoryTabBar: CategoryTabBar = {
+        let bar = CategoryTabBar()
+        bar.delegate = self
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        return bar
     }()
 
-    private lazy var heroPanelHeightConstraint: NSLayoutConstraint = {
-        let c = heroPanel.heightAnchor.constraint(equalToConstant: 0)
-        c.priority = UILayoutPriority(999)
-        return c
-    }()
-    
+    // MARK: - Collection View
+
     private lazy var collectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout())
         cv.backgroundColor = .clear
@@ -71,6 +72,22 @@ final class MainController: UIViewController {
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
+
+    // MARK: - Empty favorites
+
+    private lazy var emptyFavoritesLabel: UILabel = {
+        let l = UILabel()
+        l.text = "Нет избранных фильмов\nНажмите «+ Добавить в избранное» на странице фильма"
+        l.font = UIFont.systemFont(ofSize: 28, weight: .medium)
+        l.textColor = UIColor(white: 0.4, alpha: 1)
+        l.textAlignment = .center
+        l.numberOfLines = 2
+        l.isHidden = true
+        l.translatesAutoresizingMaskIntoConstraints = false
+        return l
+    }()
+
+    // MARK: - Loading / Error views
 
     private let loadingIndicator: UIActivityIndicatorView = {
         let v = UIActivityIndicatorView(style: .large)
@@ -108,13 +125,12 @@ final class MainController: UIViewController {
         view.addSubview(backdropImageView)
         view.layer.addSublayer(vignetteLayer)
         view.addSubview(backdropBlur)
-        view.addSubview(heroPanel)
+        view.addSubview(categoryTabBar)
         view.addSubview(collectionView)
+        view.addSubview(emptyFavoritesLabel)
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
         view.addSubview(retryButton)
-
-        heroPanelHeightConstraint.isActive = true
 
         NSLayoutConstraint.activate([
             backdropImageView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -127,15 +143,25 @@ final class MainController: UIViewController {
             backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            heroPanel.topAnchor.constraint(equalTo: view.topAnchor, constant: 4),
-            heroPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            heroPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            heroPanelHeightConstraint,
+            categoryTabBar.topAnchor.constraint(equalTo: view.topAnchor),
+            categoryTabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            categoryTabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+           
+            {
+                let c = categoryTabBar.heightAnchor.constraint(equalToConstant: CategoryTabBar.collapsedHeight)
+                tabBarHeightConstraint = c
+                return c
+            }(),
 
-            collectionView.topAnchor.constraint(equalTo: heroPanel.bottomAnchor, constant: 20),
+            // CollectionView теперь занимает всё пространство под табом
+            collectionView.topAnchor.constraint(equalTo: categoryTabBar.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            emptyFavoritesLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyFavoritesLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyFavoritesLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.55),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -151,6 +177,14 @@ final class MainController: UIViewController {
         loadFirstPage()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // Attach overlay to window once we have one
+        if let window = view.window {
+            MovieOverlayPanel.shared.attachToWindow(window)
+        }
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         baseGradientLayer.frame = view.bounds
@@ -160,13 +194,20 @@ final class MainController: UIViewController {
     // MARK: - Networking
 
     private func loadFirstPage() {
+        if isFavoritesTab {
+            loadFavorites()
+            return
+        }
+
         guard !isFetching else { return }
         isFetching = true
         errorLabel.isHidden  = true
         retryButton.isHidden = true
         loadingIndicator.startAnimating()
 
-        FilmixService.shared.fetchPage(url: nil) { [weak self] result in
+        let url = currentCategoryURL.flatMap { URL(string: $0) }
+
+        FilmixService.shared.fetchPage(url: url) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.isFetching = false
@@ -178,7 +219,7 @@ final class MainController: UIViewController {
                     self.nextPageURL = page.nextPageURL
                     self.movies = page.movies
                     self.collectionView.reloadData()
-                    self.refreshHeroForCurrentFocus()
+                    self.focusFirstCell()
 
                 case .failure(let error):
                     self.errorLabel.text = "Failed to load\n\(error.localizedDescription)"
@@ -189,8 +230,16 @@ final class MainController: UIViewController {
         }
     }
 
+    private func loadFavorites() {
+        hasLoadedFirstPage = true
+        movies = FavoritesStore.shared.all()
+        collectionView.reloadData()
+        emptyFavoritesLabel.isHidden = !movies.isEmpty
+        focusFirstCell()
+    }
+
     private func loadNextPage() {
-        guard !isFetching, let url = nextPageURL else { return }
+        guard !isFetching, !isFavoritesTab, let url = nextPageURL else { return }
         isFetching = true
 
         FilmixService.shared.fetchPage(url: url) { [weak self] result in
@@ -214,13 +263,31 @@ final class MainController: UIViewController {
                         self.collectionView.reloadData()
                     }
 
-                    self.refreshHeroForCurrentFocus()
-
                 case .failure:
                     break
                 }
             }
         }
+    }
+
+    private func switchCategory(url: String?, isFavorites: Bool = false) {
+        guard url != currentCategoryURL || isFavorites != isFavoritesTab else { return }
+        currentCategoryURL = url
+        isFavoritesTab = isFavorites
+
+        movies = []
+        nextPageURL = nil
+        currentFocusedMovieId = nil
+        hasLoadedFirstPage = false
+        emptyFavoritesLabel.isHidden = true
+        collectionView.reloadData()
+        MovieOverlayPanel.shared.hide(animated: false)
+
+        if collectionView.numberOfItems(inSection: 0) > 0 {
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
+        }
+
+        loadFirstPage()
     }
 
     @objc private func retryTapped() {
@@ -248,46 +315,39 @@ final class MainController: UIViewController {
         return CGSize(width: w, height: h)
     }
 
-    // MARK: - Hero Panel
+    // MARK: - Focus helpers
 
-    private func showHeroPanel(for movie: Movie) {
-        heroPanel.configure(with: movie)
-        UIView.transition(with: backdropImageView, duration: 0.55, options: .transitionCrossDissolve) {
-            self.backdropImageView.image = PlaceholderArt.generate(for: movie, size: CGSize(width: 1920, height: 1080))
+    private var preferredFocusCell: UICollectionViewCell? = nil
+
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        if let cell = preferredFocusCell {
+            return [cell]
         }
-        if heroPanel.alpha < 0.5 {
-            heroPanelHeightConstraint.constant = 320
-            heroPanel.transform = CGAffineTransform(translationX: 0, y: -20)
-            UIView.animate(withDuration: 0.40, delay: 0, options: .curveEaseOut) {
-                self.heroPanel.alpha     = 1
-                self.heroPanel.transform = .identity
-                self.backdropImageView.alpha = 0.22
-                self.backdropBlur.alpha      = 0.60
-                self.view.layoutIfNeeded()
-            }
-        } else {
-            UIView.animate(withDuration: 0.20) { self.heroPanel.alpha = 1 }
-        }
+        return super.preferredFocusEnvironments
     }
 
-    private func hideHeroPanel() {
-        UIView.animate(withDuration: 0.28, delay: 0, options: .curveEaseIn) {
-            self.heroPanel.alpha     = 0
-            self.heroPanel.transform = CGAffineTransform(translationX: 0, y: -10)
-            self.backdropImageView.alpha = 0
-            self.backdropBlur.alpha      = 0
-            self.heroPanelHeightConstraint.constant = 0
-            self.view.layoutIfNeeded()
-        } completion: { _ in
-            self.heroPanel.transform = .identity
-        }
-    }
+    private func focusFirstCell() {
+        guard !movies.isEmpty else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self else { return }
+            let ip = IndexPath(item: 0, section: 0)
+            guard let cell = self.collectionView.cellForItem(at: ip) else { return }
+            self.preferredFocusCell = cell
+            self.setNeedsFocusUpdate()
+            self.updateFocusIfNeeded()
+            self.preferredFocusCell = nil
 
-    private func refreshHeroForCurrentFocus() {
-        guard let focusedId = currentFocusedMovieId,
-              let movie = movies.first(where: { $0.id == focusedId })
-        else { return }
-        showHeroPanel(for: movie)
+            // Show overlay for first cell
+            let movie = self.movies[0]
+            self.currentFocusedMovieId = movie.id
+            let cellFrame = cell.convert(cell.bounds, to: nil)
+            MovieOverlayPanel.shared.show(
+                for: movie,
+                cellFrame: cellFrame,
+                screenWidth: UIScreen.main.bounds.width,
+                delay: 0
+            )
+        }
     }
 
     // MARK: - Focus
@@ -301,20 +361,70 @@ final class MainController: UIViewController {
             let movie = movies[ip.item]
             guard movie.id != currentFocusedMovieId else { return }
             currentFocusedMovieId = movie.id
-            detailDebounceTimer?.invalidate()
-            pendingMovie = movie
-            detailDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: false) { [weak self] _ in
-                guard let self, let m = self.pendingMovie else { return }
-                self.showHeroPanel(for: m)
-            }
+
+            // Convert cell frame to window coordinates
+            let cellFrameInWindow = cell.convert(cell.bounds, to: nil)
+            let screenWidth = UIScreen.main.bounds.width
+
+            MovieOverlayPanel.shared.show(
+                for: movie,
+                cellFrame: cellFrameInWindow,
+                screenWidth: screenWidth
+            )
+
         } else if !(context.nextFocusedItem is MovieCell) {
-            detailDebounceTimer?.invalidate()
-            pendingMovie          = nil
             currentFocusedMovieId = nil
-            hideHeroPanel()
+            MovieOverlayPanel.shared.hide()
         }
     }
 }
+
+// MARK: - CategoryTabBarDelegate
+
+extension MainController: CategoryTabBarDelegate {
+    func categoryTabBarDidSelectSettings(_ bar: CategoryTabBar) {
+        MovieOverlayPanel.shared.hide(animated: false)
+        let settingsVC = SettingsViewController()
+        settingsVC.modalPresentationStyle = .overFullScreen
+        settingsVC.modalTransitionStyle   = .crossDissolve
+        present(settingsVC, animated: true)
+    }
+    
+    func categoryTabBar(_ bar: CategoryTabBar, didSelect category: FilmixCategory) {
+        updateTabBarHeight(hasGenres: !category.genres.isEmpty)
+        if category.isFavorites {
+            switchCategory(url: nil, isFavorites: true)
+        } else {
+            switchCategory(url: category.url)
+        }
+    }
+
+    func categoryTabBar(_ bar: CategoryTabBar, didSelectGenre genre: FilmixGenre, in category: FilmixCategory) {
+        switchCategory(url: genre.url)
+    }
+
+    func categoryTabBarDidSelectSearch(_ bar: CategoryTabBar) {
+        MovieOverlayPanel.shared.hide(animated: false)
+        let searchVC = SearchViewController()
+        searchVC.modalPresentationStyle = .overFullScreen
+        searchVC.modalTransitionStyle   = .crossDissolve
+        present(searchVC, animated: true)
+    }
+
+    private func updateTabBarHeight(hasGenres: Bool) {
+        let target = hasGenres
+            ? CategoryTabBar.expandedHeight
+            : CategoryTabBar.collapsedHeight
+        guard tabBarHeightConstraint.constant != target else { return }
+        tabBarHeightConstraint.constant = target
+        UIView.animate(withDuration: 0.28, delay: 0,
+                       usingSpringWithDamping: 0.85, initialSpringVelocity: 0) {
+            self.view.layoutIfNeeded()
+        }
+    }
+}
+
+// MARK: - UICollectionViewDataSource
 
 extension MainController: UICollectionViewDataSource {
 
@@ -343,9 +453,17 @@ extension MainController: UICollectionViewDataSource {
     }
 }
 
+// MARK: - UICollectionViewDelegate
+
 extension MainController: UICollectionViewDelegate {
     func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
-        present(MovieDetailViewController(movie: movies[ip.item]), animated: true)
+        MovieOverlayPanel.shared.hide(animated: false)
+        let vc = BaseDetailViewController.make(movie: movies[ip.item])
+        vc.onDismiss = { [weak self] in
+            guard let self, self.isFavoritesTab else { return }
+            self.loadFavorites()
+        }
+        present(vc, animated: true)
     }
 
     func collectionView(_ cv: UICollectionView,
@@ -358,6 +476,8 @@ extension MainController: UICollectionViewDelegate {
     }
 }
 
+// MARK: - UICollectionViewDelegateFlowLayout
+
 extension MainController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ cv: UICollectionView,
@@ -369,7 +489,7 @@ extension MainController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ cv: UICollectionView,
                         layout: UICollectionViewLayout,
                         referenceSizeForFooterInSection section: Int) -> CGSize {
-        nextPageURL != nil
+        nextPageURL != nil && !isFavoritesTab
             ? CGSize(width: cv.bounds.width, height: 80)
             : .zero
     }

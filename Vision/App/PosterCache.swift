@@ -5,7 +5,9 @@ import UIKit
 final class PosterCache {
 
     static let shared = PosterCache()
-    private init() { try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true) }
+    private init() {
+        try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+    }
 
     // ~/Library/Caches/posters/
     private let cacheDir: URL = {
@@ -13,17 +15,27 @@ final class PosterCache {
         return caches.appendingPathComponent("posters", isDirectory: true)
     }()
 
-    // In-memory cache — не перегружаем диск повторными чтениями
+    // In-memory cache
     private let memCache = NSCache<NSString, UIImage>()
 
-    // Активные задачи — чтобы не запускать дубли для одного и того же URL
+    // Active tasks — avoid duplicate downloads
     private var activeTasks: [String: URLSessionDataTask] = [:]
     private let lock = NSLock()
 
+    // MARK: - Memory Limit
+
+    /// Call from CacheSettings whenever the user changes the slider.
+    func applyMemoryLimit(bytes: Int) {
+        if bytes == 0 {
+            // NSCache treats 0 as "no limit"
+            memCache.totalCostLimit = 0
+        } else {
+            memCache.totalCostLimit = bytes
+        }
+    }
+
     // MARK: - Public API
 
-    /// Возвращает закэшированное изображение мгновенно (nil если нет),
-    /// и асинхронно вызывает `completion` когда загрузка с диска/сети завершится.
     @discardableResult
     func image(for urlString: String,
                placeholder: UIImage?,
@@ -43,7 +55,9 @@ final class PosterCache {
             guard let self else { return }
             if let data = try? Data(contentsOf: diskURL),
                let image = UIImage(data: data) {
-                self.memCache.setObject(image, forKey: key as NSString)
+                // Store with approximate byte cost
+                let cost = data.count
+                self.memCache.setObject(image, forKey: key as NSString, cost: cost)
                 DispatchQueue.main.async { completion(image) }
                 return
             }
@@ -54,13 +68,11 @@ final class PosterCache {
         return nil
     }
 
-    /// Предзагрузка без колбэка (для prefetch).
     func prefetch(urlString: String) {
         guard !urlString.isEmpty else { return }
         image(for: urlString, placeholder: nil) { _ in }
     }
 
-    /// Отменить задачу для конкретного URL (вызывается при reuse ячейки).
     func cancelTask(for urlString: String) {
         let key = cacheKey(for: urlString)
         lock.lock()
@@ -71,11 +83,12 @@ final class PosterCache {
 
     // MARK: - Private
 
-    private func download(url: URL, key: String, diskURL: URL, completion: @escaping (UIImage) -> Void) {
+    private func download(url: URL, key: String, diskURL: URL,
+                          completion: @escaping (UIImage) -> Void) {
         lock.lock()
-        if activeTasks[key] != nil { lock.unlock(); return }   // уже качается
+        if activeTasks[key] != nil { lock.unlock(); return }
 
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             guard let self else { return }
 
             self.lock.lock()
@@ -85,9 +98,8 @@ final class PosterCache {
             guard let data, error == nil,
                   let image = UIImage(data: data) else { return }
 
-            // Сохраняем на диск
             try? data.write(to: diskURL, options: .atomic)
-            self.memCache.setObject(image, forKey: key as NSString)
+            self.memCache.setObject(image, forKey: key as NSString, cost: data.count)
 
             DispatchQueue.main.async { completion(image) }
         }
@@ -97,7 +109,6 @@ final class PosterCache {
         task.resume()
     }
 
-    /// MD5-lite: заменяем спецсимволы, берём последние 64 символа пути как имя файла.
     private func cacheKey(for urlString: String) -> String {
         let safe = urlString
             .replacingOccurrences(of: "/",  with: "_")
