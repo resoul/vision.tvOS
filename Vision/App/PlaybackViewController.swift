@@ -1,8 +1,6 @@
 import UIKit
 import AVKit
 
-// MARK: - PlaybackContext
-
 enum PlaybackContext {
     case movie(movieId: Int, studio: String, quality: String, streamURL: String)
     case episode(movieId: Int, season: Int, episode: Int,
@@ -10,11 +8,8 @@ enum PlaybackContext {
                  title: String)
 }
 
-// MARK: - PlaybackViewController
-
 final class PlaybackViewController: UIViewController {
 
-    /// Called when an episode ends / 95 %+ reached — series only
     var onRequestNextEpisode: (() -> Void)?
 
     private let context: PlaybackContext
@@ -24,9 +19,9 @@ final class PlaybackViewController: UIViewController {
     private var overlay: NextEpisodeOverlay?
     private var overlayShown = false
     private var saveTimer: Timer?
-
-    // Resume position injected before playback starts
     private var resumePosition: Double = 0
+    private var audioTrackObserver: NSKeyValueObservation?
+    private var didHandleAudioTracks = false
 
     init(context: PlaybackContext, resumePosition: Double = 0) {
         self.context        = context
@@ -35,8 +30,6 @@ final class PlaybackViewController: UIViewController {
         modalPresentationStyle = .fullScreen
     }
     required init?(coder: NSCoder) { fatalError() }
-
-    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,8 +41,6 @@ final class PlaybackViewController: UIViewController {
         saveProgress(final: true)
         tearDownObservers()
     }
-
-    // MARK: - Player Setup
 
     private func setupPlayer() {
         guard let url = URL(string: streamURL) else { return }
@@ -67,7 +58,6 @@ final class PlaybackViewController: UIViewController {
         playerVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         playerVC.didMove(toParent: self)
 
-        // Resume position
         if resumePosition > 5 {
             let time = CMTime(seconds: resumePosition, preferredTimescale: 600)
             player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
@@ -75,19 +65,82 @@ final class PlaybackViewController: UIViewController {
 
         player.play()
         setupObservers(player: player)
+        observeAudioTracks(item: item)
     }
 
-    // MARK: - Observers
+    private func observeAudioTracks(item: AVPlayerItem) {
+        audioTrackObserver = item.observe(\.status, options: [.new]) { [weak self] item, _ in
+            guard let self, !self.didHandleAudioTracks else { return }
+            guard item.status == .readyToPlay else { return }
+            self.didHandleAudioTracks = true
+            DispatchQueue.main.async { self.handleAudioTracks(item: item) }
+        }
+    }
+
+    private func handleAudioTracks(item: AVPlayerItem) {
+        if #available(tvOS 16, *) {
+            Task {
+                guard let group = try? await item.asset.loadMediaSelectionGroup(for: .audible) else { return }
+                await MainActor.run { self.applyAudioTrackSelection(item: item, group: group) }
+            }
+        } else {
+            guard let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) else { return }
+            applyAudioTrackSelection(item: item, group: group)
+        }
+    }
+
+    private func applyAudioTrackSelection(item: AVPlayerItem, group: AVMediaSelectionGroup) {
+        let options = group.options
+        guard options.count >= 2 else { return }
+
+        if options.count == 2 {
+            let isFirstRussian = languageCode(of: options[0]) == "ru"
+            if !isFirstRussian {
+                item.select(options[1], in: group)
+            }
+        } else {
+            showAudioTrackPicker(options: options, group: group, item: item)
+        }
+    }
+
+    private func languageCode(of option: AVMediaSelectionOption) -> String? {
+        if #available(tvOS 16, *) {
+            return option.locale?.language.languageCode?.identifier
+        } else {
+            return option.locale?.languageCode
+        }
+    }
+
+    private func showAudioTrackPicker(options: [AVMediaSelectionOption],
+                                      group: AVMediaSelectionGroup,
+                                      item: AVPlayerItem) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self else { return }
+
+            let alert = UIAlertController(
+                title: "Аудиодорожка",
+                message: "Выберите язык или дорожку",
+                preferredStyle: .actionSheet
+            )
+
+            for option in options {
+                alert.addAction(UIAlertAction(title: option.displayName, style: .default) { _ in
+                    item.select(option, in: group)
+                })
+            }
+
+            alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+            self.present(alert, animated: true)
+        }
+    }
 
     private func setupObservers(player: AVPlayer) {
-        // Периодически сохраняем каждые 5 сек
         let interval = CMTime(seconds: 5, preferredTimescale: 600)
         periodicObserver = player.addPeriodicTimeObserver(forInterval: interval,
                                                           queue: .main) { [weak self] _ in
             self?.onTick()
         }
 
-        // End of item
         NotificationCenter.default.addObserver(self,
             selector: #selector(playerDidFinish),
             name: .AVPlayerItemDidPlayToEndTime,
@@ -99,10 +152,10 @@ final class PlaybackViewController: UIViewController {
             player?.removeTimeObserver(obs)
             periodicObserver = nil
         }
+        audioTrackObserver?.invalidate()
+        audioTrackObserver = nil
         NotificationCenter.default.removeObserver(self)
     }
-
-    // MARK: - Tick (every 5 sec)
 
     private func onTick() {
         let position = currentPosition
@@ -113,27 +166,21 @@ final class PlaybackViewController: UIViewController {
 
         let fraction = position / duration
 
-        // Показать overlay при 95–99 % (только для серий, один раз)
         if case .episode = context, fraction >= 0.95, fraction < 1.0, !overlayShown {
             overlayShown = true
             showNextEpisodeOverlay()
         }
     }
-
-    // MARK: - Finish
-
+    
     @objc private func playerDidFinish() {
         saveProgress(final: true)
         overlay?.hide(animated: false)
     }
 
-    // MARK: - Progress Save
-
     private func saveProgress(final: Bool) {
-        let position = final ? currentPosition : currentPosition
         let duration = currentDuration
         guard duration > 0 else { return }
-        saveProgressValues(position: position, duration: duration)
+        saveProgressValues(position: currentPosition, duration: duration)
     }
 
     private func saveProgressValues(position: Double, duration: Double) {
@@ -152,12 +199,9 @@ final class PlaybackViewController: UIViewController {
         }
     }
 
-    // MARK: - Next Episode Overlay
-
     private func showNextEpisodeOverlay() {
         guard case let .episode(_, _, _, _, _, _, title) = context else { return }
 
-        // Try to derive "Episode N+1" for the title hint
         let nextTitle = nextEpisodeTitle(currentTitle: title)
 
         let ol = NextEpisodeOverlay(nextTitle: nextTitle, countdown: 10)
@@ -173,15 +217,12 @@ final class PlaybackViewController: UIViewController {
     }
 
     private func nextEpisodeTitle(currentTitle: String) -> String {
-        // Попытка вычленить номер из "E3 · Название" → "E4"
         if let match = currentTitle.firstMatch(of: #/E(\d+)/#),
            let n = Int(match.output.1) {
             return "Эпизод \(n + 1)"
         }
         return "Следующий эпизод"
     }
-
-    // MARK: - Helpers
 
     private var currentPosition: Double {
         guard let time = player?.currentTime(), time.isValid, time.isNumeric else { return 0 }
@@ -196,8 +237,8 @@ final class PlaybackViewController: UIViewController {
 
     private var streamURL: String {
         switch context {
-        case let .movie(_, _, _, url):    return url
-        case let .episode(_, _, _, _, _, url, _): return url
+        case let .movie(_, _, _, url):             return url
+        case let .episode(_, _, _, _, _, url, _):  return url
         }
     }
 
