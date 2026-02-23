@@ -78,14 +78,9 @@ final class PlaybackViewController: UIViewController {
     }
 
     private func handleAudioTracks(item: AVPlayerItem) {
-        if #available(tvOS 16, *) {
-            Task {
-                guard let group = try? await item.asset.loadMediaSelectionGroup(for: .audible) else { return }
-                await MainActor.run { self.applyAudioTrackSelection(item: item, group: group) }
-            }
-        } else {
-            guard let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) else { return }
-            applyAudioTrackSelection(item: item, group: group)
+        Task {
+            guard let group = try? await item.asset.loadMediaSelectionGroup(for: .audible) else { return }
+            await MainActor.run { self.applyAudioTrackSelection(item: item, group: group) }
         }
     }
 
