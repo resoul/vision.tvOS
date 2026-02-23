@@ -67,7 +67,53 @@ final class CoreDataStack {
         ])
         movieEntity.indexes = [movieIdx]
 
-        model.entities = [episodeEntity, movieEntity]
+        // ── SeriesLastPlayed ───────────────────────────────────────────────
+        let seriesEntity = NSEntityDescription()
+        seriesEntity.name = "SeriesLastPlayed"
+        seriesEntity.managedObjectClassName = NSStringFromClass(SeriesLastPlayed.self)
+        seriesEntity.properties = [
+            attr(.integer64AttributeType, name: "movieId"),
+            attr(.integer32AttributeType, name: "season"),
+            attr(.integer32AttributeType, name: "episode"),
+            attr(.stringAttributeType,    name: "quality",   optional: true),
+            attr(.stringAttributeType,    name: "studio",    optional: true),
+            attr(.dateAttributeType,      name: "updatedAt", optional: true),
+        ]
+        let seriesIdx = NSFetchIndexDescription(name: "byMovieIdSeries", elements: [
+            NSFetchIndexElementDescription(property: seriesEntity.propertiesByName["movieId"]!, collationType: .binary),
+        ])
+        seriesEntity.indexes = [seriesIdx]
+
+        // ── FavoriteMovie ──────────────────────────────────────────────────
+        let favoriteEntity = NSEntityDescription()
+        favoriteEntity.name = "FavoriteMovie"
+        favoriteEntity.managedObjectClassName = NSStringFromClass(FavoriteMovie.self)
+        favoriteEntity.properties = [
+            attr(.integer64AttributeType, name: "movieId"),
+            attr(.stringAttributeType,    name: "title"),
+            attr(.stringAttributeType,    name: "year",             optional: true),
+            attr(.stringAttributeType,    name: "movieDescription", optional: true),
+            attr(.stringAttributeType,    name: "imageName",        optional: true),
+            attr(.stringAttributeType,    name: "genre",            optional: true),
+            attr(.stringAttributeType,    name: "rating",           optional: true),
+            attr(.stringAttributeType,    name: "duration",         optional: true),
+            attr(.booleanAttributeType,   name: "isSeries"),
+            attr(.stringAttributeType,    name: "translate",        optional: true),
+            attr(.booleanAttributeType,   name: "isAdIn"),
+            attr(.stringAttributeType,    name: "movieURL",         optional: true),
+            attr(.stringAttributeType,    name: "posterURL",        optional: true),
+            attr(.stringAttributeType,    name: "actorsJSON",       optional: true),
+            attr(.stringAttributeType,    name: "directorsJSON",    optional: true),
+            attr(.stringAttributeType,    name: "genreListJSON",    optional: true),
+            attr(.stringAttributeType,    name: "lastAdded",        optional: true),
+            attr(.dateAttributeType,      name: "addedAt",          optional: true),
+        ]
+        let favoriteIdx = NSFetchIndexDescription(name: "byMovieIdFavorite", elements: [
+            NSFetchIndexElementDescription(property: favoriteEntity.propertiesByName["movieId"]!, collationType: .binary),
+        ])
+        favoriteEntity.indexes = [favoriteIdx]
+
+        model.entities = [episodeEntity, movieEntity, seriesEntity, favoriteEntity]
         return model
     }
 
@@ -84,24 +130,60 @@ final class CoreDataStack {
 
 @objc(WatchedEpisode)
 final class WatchedEpisode: NSManagedObject {
-    @NSManaged var movieId:          Int64
-    @NSManaged var season:           Int32
-    @NSManaged var episode:          Int32
-    @NSManaged var watched:          Bool
-    @NSManaged var positionSeconds:  Double
-    @NSManaged var durationSeconds:  Double
-    @NSManaged var updatedAt:        Date?
+    @NSManaged var movieId:         Int64
+    @NSManaged var season:          Int32
+    @NSManaged var episode:         Int32
+    @NSManaged var watched:         Bool
+    @NSManaged var positionSeconds: Double
+    @NSManaged var durationSeconds: Double
+    @NSManaged var updatedAt:       Date?
 }
 
 // MARK: - MovieProgress
 
 @objc(MovieProgress)
 final class MovieProgress: NSManagedObject {
+    @NSManaged var movieId:         Int64
+    @NSManaged var positionSeconds: Double
+    @NSManaged var durationSeconds: Double
+    @NSManaged var studio:          String?
+    @NSManaged var quality:         String?
+    @NSManaged var streamURL:       String?
+    @NSManaged var updatedAt:       Date?
+}
+
+// MARK: - SeriesLastPlayed
+
+@objc(SeriesLastPlayed)
+final class SeriesLastPlayed: NSManagedObject {
+    @NSManaged var movieId:   Int64
+    @NSManaged var season:    Int32
+    @NSManaged var episode:   Int32
+    @NSManaged var quality:   String?
+    @NSManaged var studio:    String?
+    @NSManaged var updatedAt: Date?
+}
+
+// MARK: - FavoriteMovie
+
+@objc(FavoriteMovie)
+final class FavoriteMovie: NSManagedObject {
     @NSManaged var movieId:          Int64
-    @NSManaged var positionSeconds:  Double
-    @NSManaged var durationSeconds:  Double
-    @NSManaged var studio:           String?
-    @NSManaged var quality:          String?
-    @NSManaged var streamURL:        String?
-    @NSManaged var updatedAt:        Date?
+    @NSManaged var title:            String
+    @NSManaged var year:             String?
+    @NSManaged var movieDescription: String?
+    @NSManaged var imageName:        String?
+    @NSManaged var genre:            String?
+    @NSManaged var rating:           String?
+    @NSManaged var duration:         String?
+    @NSManaged var isSeries:         Bool
+    @NSManaged var translate:        String?
+    @NSManaged var isAdIn:           Bool
+    @NSManaged var movieURL:         String?
+    @NSManaged var posterURL:        String?
+    @NSManaged var actorsJSON:       String?
+    @NSManaged var directorsJSON:    String?
+    @NSManaged var genreListJSON:    String?
+    @NSManaged var lastAdded:        String?
+    @NSManaged var addedAt:          Date?
 }

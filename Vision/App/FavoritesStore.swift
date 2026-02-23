@@ -1,94 +1,38 @@
 import UIKit
-
-// MARK: - CodableMovie (lightweight Codable wrapper for Movie)
-
-struct CodableMovie: Codable {
-    let id: Int
-    let title: String
-    let year: String
-    let description: String
-    let imageName: String
-    let genre: String
-    let rating: String
-    let duration: String
-    let isSeries: Bool
-    let translate: String
-    let isAdIn: Bool
-    let movieURL: String
-    let posterURL: String
-    let actors: [String]
-    let directors: [String]
-    let genreList: [String]
-    let lastAdded: String?
-
-    init(movie: Movie) {
-        id          = movie.id
-        title       = movie.title
-        year        = movie.year
-        description = movie.description
-        imageName   = movie.imageName
-        genre       = movie.genre
-        rating      = movie.rating
-        duration    = movie.duration
-        isSeries    = movie.type.isSeries
-        translate   = movie.translate
-        isAdIn      = movie.isAdIn
-        movieURL    = movie.movieURL
-        posterURL   = movie.posterURL
-        actors      = movie.actors
-        directors   = movie.directors
-        genreList   = movie.genreList
-        lastAdded   = movie.lastAdded
-    }
-
-    func toMovie() -> Movie {
-        Movie(
-            id: id, title: title, year: year,
-            description: description, imageName: imageName,
-            genre: genre, rating: rating, duration: duration,
-            type: isSeries ? .series(seasons: []) : .movie,
-            translate: translate, isAdIn: isAdIn,
-            movieURL: movieURL, posterURL: posterURL,
-            actors: actors, directors: directors,
-            genreList: genreList, lastAdded: lastAdded
-        )
-    }
-}
-
-// MARK: - FavoritesStore
+import CoreData
 
 final class FavoritesStore {
 
     static let shared = FavoritesStore()
+    private var ctx: NSManagedObjectContext { CoreDataStack.shared.context }
+
     private init() {}
-
-    private let key = "favorites_v1"
-    private let defaults = UserDefaults.standard
-
-    // In-memory cache to avoid repeated decodes
-    private var cache: [CodableMovie]? = nil
 
     // MARK: - Public API
 
     func all() -> [Movie] {
-        load().reversed().map { $0.toMovie() }   // newest first
+        let req = NSFetchRequest<FavoriteMovie>(entityName: "FavoriteMovie")
+        req.sortDescriptors = [NSSortDescriptor(key: "addedAt", ascending: false)]
+        let results = (try? ctx.fetch(req)) ?? []
+        return results.map { toMovie($0) }
     }
 
     func isFavorite(id: Int) -> Bool {
-        load().contains { $0.id == id }
+        fetch(id: id) != nil
     }
 
     func add(_ movie: Movie) {
-        var list = load()
-        guard !list.contains(where: { $0.id == movie.id }) else { return }
-        list.append(CodableMovie(movie: movie))
-        save(list)
+        guard fetch(id: movie.id) == nil else { return }
+        let entry = FavoriteMovie(context: ctx)
+        fill(entry, from: movie)
+        entry.addedAt = Date()
+        CoreDataStack.shared.save()
     }
 
     func remove(id: Int) {
-        var list = load()
-        list.removeAll { $0.id == id }
-        save(list)
+        guard let entry = fetch(id: id) else { return }
+        ctx.delete(entry)
+        CoreDataStack.shared.save()
     }
 
     func toggle(_ movie: Movie) {
@@ -97,20 +41,65 @@ final class FavoritesStore {
 
     // MARK: - Private
 
-    private func load() -> [CodableMovie] {
-        if let cached = cache { return cached }
-        guard
-            let data  = defaults.data(forKey: key),
-            let list  = try? JSONDecoder().decode([CodableMovie].self, from: data)
-        else { return [] }
-        cache = list
-        return list
+    private func fetch(id: Int) -> FavoriteMovie? {
+        let req = NSFetchRequest<FavoriteMovie>(entityName: "FavoriteMovie")
+        req.predicate  = NSPredicate(format: "movieId == %lld", Int64(id))
+        req.fetchLimit = 1
+        return try? ctx.fetch(req).first
     }
 
-    private func save(_ list: [CodableMovie]) {
-        cache = list
-        if let data = try? JSONEncoder().encode(list) {
-            defaults.set(data, forKey: key)
-        }
+    private func fill(_ entry: FavoriteMovie, from movie: Movie) {
+        entry.movieId          = Int64(movie.id)
+        entry.title            = movie.title
+        entry.year             = movie.year
+        entry.movieDescription = movie.description
+        entry.imageName        = movie.imageName
+        entry.genre            = movie.genre
+        entry.rating           = movie.rating
+        entry.duration         = movie.duration
+        entry.isSeries         = movie.type.isSeries
+        entry.translate        = movie.translate
+        entry.isAdIn           = movie.isAdIn
+        entry.movieURL         = movie.movieURL
+        entry.posterURL        = movie.posterURL
+        entry.lastAdded        = movie.lastAdded
+        entry.actorsJSON       = encode(movie.actors)
+        entry.directorsJSON    = encode(movie.directors)
+        entry.genreListJSON    = encode(movie.genreList)
+    }
+
+    private func toMovie(_ entry: FavoriteMovie) -> Movie {
+        Movie(
+            id:          Int(entry.movieId),
+            title:       entry.title,
+            year:        entry.year             ?? "—",
+            description: entry.movieDescription ?? "",
+            imageName:   entry.imageName        ?? "",
+            genre:       entry.genre            ?? "—",
+            rating:      entry.rating           ?? "—",
+            duration:    entry.duration         ?? "—",
+            type:        entry.isSeries ? .series(seasons: []) : .movie,
+            translate:   entry.translate        ?? "",
+            isAdIn:      entry.isAdIn,
+            movieURL:    entry.movieURL         ?? "",
+            posterURL:   entry.posterURL        ?? "",
+            actors:      decode(entry.actorsJSON),
+            directors:   decode(entry.directorsJSON),
+            genreList:   decode(entry.genreListJSON),
+            lastAdded:   entry.lastAdded
+        )
+    }
+
+    private func encode(_ array: [String]) -> String? {
+        guard let data = try? JSONEncoder().encode(array) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func decode(_ json: String?) -> [String] {
+        guard let json,
+              let data  = json.data(using: .utf8),
+              let array = try? JSONDecoder().decode([String].self, from: data)
+        else { return [] }
+        return array
     }
 }
