@@ -340,11 +340,9 @@ final class MainController: UIViewController {
             // Show overlay for first cell
             let movie = self.movies[0]
             self.currentFocusedMovieId = movie.id
-            let cellFrame = cell.convert(cell.bounds, to: nil)
             MovieOverlayPanel.shared.show(
                 for: movie,
-                cellFrame: cellFrame,
-                screenWidth: UIScreen.main.bounds.width,
+                cellSize: cellSize(),
                 delay: 0
             )
         }
@@ -362,16 +360,7 @@ final class MainController: UIViewController {
             guard movie.id != currentFocusedMovieId else { return }
             currentFocusedMovieId = movie.id
 
-            // Convert cell frame to window coordinates
-            let cellFrameInWindow = cell.convert(cell.bounds, to: nil)
-            let screenWidth = UIScreen.main.bounds.width
-
-            MovieOverlayPanel.shared.show(
-                for: movie,
-                cellFrame: cellFrameInWindow,
-                screenWidth: screenWidth
-            )
-
+            MovieOverlayPanel.shared.show(for: movie, cellSize: cellSize())
         } else if !(context.nextFocusedItem is MovieCell) {
             currentFocusedMovieId = nil
             MovieOverlayPanel.shared.hide()
@@ -437,7 +426,7 @@ extension MainController: UICollectionViewDataSource {
                         cellForItemAt ip: IndexPath) -> UICollectionViewCell {
         let cell = cv.dequeueReusableCell(withReuseIdentifier: MovieCell.reuseID,
                                           for: ip) as! MovieCell
-        cell.configure(with: movies[ip.item], rank: ip.item + 1)
+        cell.configure(with: movies[ip.item])
         return cell
     }
 

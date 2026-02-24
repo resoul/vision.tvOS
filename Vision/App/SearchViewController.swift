@@ -9,7 +9,6 @@ final class SearchViewController: UIViewController {
     // MARK: - State
 
     private var searchResults: [Movie] = []
-    private var searchDebounce: Timer?
     private var isShowingResults = false
 
     // MARK: - Background
@@ -199,12 +198,6 @@ final class SearchViewController: UIViewController {
             hideResults()
             return
         }
-
-        // Debounced search on every keystroke
-        searchDebounce?.invalidate()
-        searchDebounce = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            self?.loadResults(query: text)
-        }
     }
 
     @objc private func clearSearch() {
@@ -285,7 +278,7 @@ extension SearchViewController: UICollectionViewDataSource {
     }
     func collectionView(_ cv: UICollectionView, cellForItemAt ip: IndexPath) -> UICollectionViewCell {
         let cell = cv.dequeueReusableCell(withReuseIdentifier: MovieCell.reuseID, for: ip) as! MovieCell
-        cell.configure(with: searchResults[ip.item], rank: ip.item + 1)
+        cell.configure(with: searchResults[ip.item])
         return cell
     }
 }
@@ -308,7 +301,6 @@ extension SearchViewController: UITextFieldDelegate {
         let text = textField.text ?? ""
         guard !text.isEmpty else { return true }
         textField.resignFirstResponder()
-        searchDebounce?.invalidate()
         loadResults(query: text)
         return true
     }

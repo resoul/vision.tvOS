@@ -24,14 +24,6 @@ final class MovieCell: UICollectionViewCell {
         return l
     }()
 
-    private let rankLabel: UILabel = {
-        let l = UILabel()
-        l.font = UIFont.systemFont(ofSize: 22, weight: .heavy)
-        l.textColor = UIColor(white: 1, alpha: 0.50)
-        l.translatesAutoresizingMaskIntoConstraints = false
-        return l
-    }()
-
     private let adsBadge: UIView = {
         let v = UIView()
         v.backgroundColor = UIColor(red: 0.85, green: 0.20, blue: 0.20, alpha: 0.92)
@@ -98,7 +90,6 @@ final class MovieCell: UICollectionViewCell {
         contentView.addSubview(posterImageView)
         contentView.layer.addSublayer(scrimLayer)
         contentView.layer.addSublayer(focusGlowLayer)
-        contentView.addSubview(rankLabel)
         contentView.addSubview(adsBadge)
         adsBadge.addSubview(adsLabel)
         contentView.addSubview(seriesBadge)
@@ -110,9 +101,6 @@ final class MovieCell: UICollectionViewCell {
             posterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             posterImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             posterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-
-            rankLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
-            rankLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
 
             adsBadge.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             adsBadge.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
@@ -152,9 +140,7 @@ final class MovieCell: UICollectionViewCell {
 
     // MARK: - Configure
 
-    func configure(with movie: Movie, rank: Int) {
-        rankLabel.text = "#\(rank)"
-
+    func configure(with movie: Movie) {
         adsBadge.isHidden = !movie.isAdIn
 
         if case .series = movie.type {

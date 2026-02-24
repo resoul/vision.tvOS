@@ -5,9 +5,12 @@ final class MovieOverlayPanel: UIView {
     static let shared = MovieOverlayPanel()
 
     // MARK: - Constants
-    private let panelWidth:  CGFloat = 500
-    private let panelOffset: CGFloat = 16   // gap between cell and panel
+    private let panelOffset: CGFloat = 16
 
+    private var cellSize: CGSize = .zero
+    private var panelWidth:  CGFloat { cellSize.width * 2.5 + 28 }
+    private var panelHeight: CGFloat { cellSize.height * 0.5 }
+    
     // MARK: - Subviews
 
     private let blurView: UIVisualEffectView = {
@@ -78,7 +81,7 @@ final class MovieOverlayPanel: UIView {
     // MARK: - Init
 
     private init() {
-        super.init(frame: CGRect(x: 0, y: 0, width: panelWidth, height: 300))
+        super.init(frame: CGRect(x: 0, y: 0, width: 500, height: 300))
         // Must use frame-based layout for window positioning — do NOT set translatesAutoresizingMaskIntoConstraints = false
         alpha = 0
         layer.cornerRadius = 16
@@ -139,16 +142,16 @@ final class MovieOverlayPanel: UIView {
 
     // MARK: - Public API
 
-    /// Show panel next to a cell. Call from MainController's didUpdateFocus.
-    func show(for movie: Movie, cellFrame: CGRect, screenWidth: CGFloat, delay: TimeInterval = 0.15) {
+    func show(for movie: Movie, cellSize: CGSize, delay: TimeInterval = 0.15) {
         guard movie.id != currentMovieId else { return }
+        self.cellSize = cellSize
         currentMovieId = movie.id
 
         showTimer?.invalidate()
         showTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             guard let self else { return }
             self.configure(with: movie)
-            self.position(cellFrame: cellFrame, screenWidth: screenWidth)
+            self.position()
             self.animateIn()
         }
     }
@@ -179,7 +182,6 @@ final class MovieOverlayPanel: UIView {
         titleLabel.text = movie.title
         accentLine.backgroundColor = movie.accentColor.lighter(by: 0.55)
 
-        // Pills
         pillsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         pillsStack.addArrangedSubview(SmallPill(
             text: "★ \(movie.rating)",
@@ -196,11 +198,9 @@ final class MovieOverlayPanel: UIView {
             ))
         }
 
-        // Description
         descLabel.text = movie.description.isEmpty ? nil : movie.description
         descLabel.isHidden = movie.description.isEmpty
 
-        // Last added for series
         if let last = movie.lastAdded, !last.isEmpty {
             lastAddedLabel.text = "▸ \(last)"
             lastAddedLabel.isHidden = false
@@ -208,41 +208,21 @@ final class MovieOverlayPanel: UIView {
             lastAddedLabel.isHidden = true
         }
 
-        // Resize to fit content
-        let targetW = panelWidth
-        let fitSize = CGSize(width: targetW - 16 - 3 - 14 - 16, height: UIView.layoutFittingCompressedSize.height)
-        layoutIfNeeded()
-        let needed = systemLayoutSizeFitting(
-            CGSize(width: targetW, height: UIView.layoutFittingCompressedSize.height),
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel
-        )
-        _ = fitSize // suppress warning
-        frame.size = CGSize(width: targetW, height: max(needed.height, 120))
+        frame.size = CGSize(width: cellSize.width * 2.5 + 28, height: cellSize.height * 0.5)
     }
 
-    private func position(cellFrame: CGRect, screenWidth: CGFloat) {
-        let isRightEdge = cellFrame.maxX > screenWidth - panelWidth - panelOffset * 2
-        let x: CGFloat
-        if isRightEdge {
-            // panel goes to the LEFT of the cell
-            x = cellFrame.minX - panelWidth - panelOffset
-        } else {
-            // panel goes to the RIGHT of the cell
-            x = cellFrame.maxX + panelOffset
-        }
-
-        // Pin to bottom of screen with padding
-        let bottomPadding: CGFloat = 40
-        let y = UIScreen.main.bounds.height - frame.height - bottomPadding
-
+    private func position() {
+        let rightPadding: CGFloat = 30
+        let bottomPadding: CGFloat = 15
+        
+        let x = UIScreen.main.bounds.width - panelWidth - rightPadding
+        let y = UIScreen.main.bounds.height - panelHeight - bottomPadding
+        
         frame.origin = CGPoint(x: x, y: y)
     }
 
     private func animateIn() {
-        // Start slightly offset in the direction we came from
-        let startX = frame.origin.x
-        transform = CGAffineTransform(translationX: 0, y: 6).scaledBy(x: 0.96, y: 0.96)
+        transform = CGAffineTransform(scaleX: 0.96, y: 0.96)
 
         UIView.animate(
             withDuration: 0.28,
@@ -253,6 +233,5 @@ final class MovieOverlayPanel: UIView {
             self.alpha = 1
             self.transform = .identity
         }
-        _ = startX
     }
 }
