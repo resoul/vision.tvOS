@@ -161,6 +161,20 @@ final class FilmixService {
         }
 
         let isAdIn = !(try article.select("span.video-in").isEmpty())
+        
+        let isNotMovie = !(try article.select(".short .not-movie").isEmpty())
+
+        let frames: [FilmixFrame] = {
+            let base = "https://filmix.my"
+            return (try? article.select(".frames ul.frames-list li a").array().compactMap { el -> FilmixFrame? in
+                var full  = (try? el.attr("href")) ?? ""
+                var thumb = (try? el.select("img").attr("src")) ?? ""
+                guard !thumb.isEmpty else { return nil }
+                if !full.isEmpty  && !full.hasPrefix("http")  { full  = "\(base)\(full)" }
+                if !thumb.hasPrefix("http") { thumb = "\(base)\(thumb)" }
+                return FilmixFrame(thumbURL: thumb, fullURL: full)
+            }) ?? []
+        }()
 
         let directors = personNames(in: article, selector: ".item.directors .item-content span")
         let actors    = actorNames(in: article)
@@ -226,6 +240,8 @@ final class FilmixService {
             genres: genres, countries: countries,
             translate: translate,
             description: description, isAdIn: isAdIn,
+            isNotMovie: isNotMovie,
+            frames: frames,
             kinopoiskRating: kpRating, kinopoiskVotes: kpVotes,
             imdbRating: imdbRating, imdbVotes: imdbVotes,
             userPositivePercent: userPositive,

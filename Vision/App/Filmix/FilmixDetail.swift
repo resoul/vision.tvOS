@@ -1,5 +1,10 @@
 import Foundation
 
+struct FilmixFrame {
+    let thumbURL: String
+    let fullURL: String
+}
+
 struct FilmixDetail {
     let id: Int
     let movieURL: String
@@ -26,6 +31,9 @@ struct FilmixDetail {
     let translate: String
     let description: String
     let isAdIn: Bool
+    /// true when `.not-movie` is present — no video/seasons to fetch
+    let isNotMovie: Bool
+    let frames: [FilmixFrame]
     let kinopoiskRating: String
     let kinopoiskVotes: String
     let imdbRating: String

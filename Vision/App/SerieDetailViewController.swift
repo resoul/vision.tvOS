@@ -72,7 +72,7 @@ final class SerieDetailViewController: BaseDetailViewController {
         buildSerieLayout()
         episodesStack.clipsToBounds = false
         qualityButton.configure(quality: SeriesPickerStore.shared.globalPreferredQuality ?? "Авто")
-        fetchTranslations()
+//        fetchTranslations()
     }
 
     // Обновить progress bar'ы после возврата из плеера
@@ -131,8 +131,16 @@ final class SerieDetailViewController: BaseDetailViewController {
             emptyLabel.topAnchor.constraint(equalTo: tabSeparator.bottomAnchor, constant: 60),
         ])
     }
-
-    // MARK: - Fetch Translations
+    
+    override func onDetailLoaded(_ detail: FilmixDetail) {
+        if detail.isNotMovie {
+//            translationsSpinner.stopAnimating()
+//            emptyLabel.text = "Видео недоступно"
+//            emptyLabel.isHidden = false
+        } else {
+            fetchTranslations()
+        }
+    }
 
     private func fetchTranslations() {
         guard movie.id > 0 else { return }

@@ -63,7 +63,7 @@ final class MovieDetailViewController: BaseDetailViewController {
         super.viewDidLoad()
         buildMovieLayout()
         qualityButton.configure(quality: SeriesPickerStore.shared.globalPreferredQuality)
-        fetchTranslations()
+//        fetchTranslations()
     }
 
     // MARK: - Layout
@@ -112,8 +112,16 @@ final class MovieDetailViewController: BaseDetailViewController {
             emptyLabel.topAnchor.constraint(equalTo: tabSeparator.bottomAnchor, constant: 60),
         ])
     }
-
-    // MARK: - Fetch
+    
+    override func onDetailLoaded(_ detail: FilmixDetail) {
+        if detail.isNotMovie {
+            translationsSpinner.stopAnimating()
+            emptyLabel.text = "Видео недоступно"
+            emptyLabel.isHidden = false
+        } else {
+            fetchTranslations()
+        }
+    }
 
     private func fetchTranslations() {
         guard movie.id > 0 else { emptyLabel.isHidden = false; return }
