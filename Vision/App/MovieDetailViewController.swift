@@ -6,7 +6,7 @@ final class MovieDetailViewController: BaseDetailViewController {
     private var activeTranslation: FilmixTranslation?
     private var translationRowViews: [MovieTranslationRow] = []
 
-    // MARK: - Panel views (same structure as SerieDetailViewController)
+    // MARK: - Panel views
 
     private let panelDivider: UIView = {
         let v = UIView(); v.backgroundColor = UIColor(white: 1, alpha: 0.08)
@@ -62,11 +62,11 @@ final class MovieDetailViewController: BaseDetailViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         buildMovieLayout()
-        qualityButton.configure(quality: SeriesPickerStore.shared.globalPreferredQuality ?? "Авто")
+        qualityButton.configure(quality: SeriesPickerStore.shared.globalPreferredQuality)
         fetchTranslations()
     }
 
-    // MARK: - Layout (mirrors SerieDetailViewController.buildSerieLayout)
+    // MARK: - Layout
 
     private func buildMovieLayout() {
         contentView.addSubview(panelDivider)
@@ -128,12 +128,50 @@ final class MovieDetailViewController: BaseDetailViewController {
                     self.translations = list
                     self.activeTranslation = list.first
                     self.studioPicker.configure(studio: list.first?.studio ?? "")
-                    self.buildTranslationRows()
+                    self.buildRows()
                 default:
                     self.emptyLabel.isHidden = false
                 }
             }
         }
+    }
+
+    // MARK: - Build rows
+
+    /// Если выбрано конкретное качество — одна строка на озвучку (сразу играет).
+    /// Если Авто (nil) — все доступные качества отдельными строками.
+    private func buildRows() {
+        translationsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        translationRowViews.removeAll()
+        emptyLabel.isHidden = true
+
+        guard let t = activeTranslation else { emptyLabel.isHidden = false; return }
+
+        let preferredQuality = SeriesPickerStore.shared.globalPreferredQuality
+        let order = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
+
+        if let preferred = preferredQuality, let url = t.streams[preferred] {
+            // Качество выбрано — одна строка, сразу играет
+            addRow(studio: t.studio, quality: preferred, url: url, accentColor: movie.accentColor.lighter(by: 0.5))
+        } else {
+            // Авто — все доступные качества
+            let qualities = order.filter { t.streams[$0] != nil }
+            if qualities.isEmpty { emptyLabel.isHidden = false; return }
+            for quality in qualities {
+                guard let url = t.streams[quality] else { continue }
+                addRow(studio: t.studio, quality: quality, url: url, accentColor: movie.accentColor.lighter(by: 0.5))
+            }
+        }
+    }
+
+    private func addRow(studio: String, quality: String, url: String, accentColor: UIColor) {
+        let row = MovieTranslationRow(studio: studio, quality: quality, accentColor: accentColor)
+        row.onPlay = { [weak self] in
+            self?.playMovie(url: url, title: self?.movie.title ?? "",
+                            studio: studio, quality: quality)
+        }
+        translationsStack.addArrangedSubview(row)
+        translationRowViews.append(row)
     }
 
     // MARK: - Studio Picker
@@ -149,40 +187,9 @@ final class MovieDetailViewController: BaseDetailViewController {
             guard let self else { return }
             self.activeTranslation = translation
             self.studioPicker.configure(studio: translation.studio)
-            self.buildTranslationRows()
+            self.buildRows()
         }
         present(picker, animated: true)
-    }
-
-    // MARK: - Build rows (one row per quality, like episodes)
-
-    private func buildTranslationRows() {
-        translationsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        translationRowViews.removeAll()
-        emptyLabel.isHidden = true
-
-        guard let t = activeTranslation else { emptyLabel.isHidden = false; return }
-
-        let order = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
-        let qualities = order.filter { t.streams[$0] != nil }
-
-        if qualities.isEmpty { emptyLabel.isHidden = false; return }
-
-        for quality in qualities {
-            guard let url = t.streams[quality] else { continue }
-            let row = MovieTranslationRow(
-                studio: t.studio,
-                quality: quality,
-                url: url,
-                accentColor: movie.accentColor.lighter(by: 0.5)
-            )
-            row.onPlay = { [weak self] in
-                self?.playMovie(url: url, title: self?.movie.title ?? "",
-                                studio: t.studio, quality: quality)
-            }
-            translationsStack.addArrangedSubview(row)
-            translationRowViews.append(row)
-        }
     }
 
     // MARK: - Quality Picker
@@ -194,20 +201,21 @@ final class MovieDetailViewController: BaseDetailViewController {
             current: SeriesPickerStore.shared.globalPreferredQuality
         )
         picker.onSelect = { [weak self] quality in
+            guard let self else { return }
             SeriesPickerStore.shared.globalPreferredQuality = quality
-            self?.qualityButton.configure(quality: quality ?? "Авто")
+            self.qualityButton.configure(quality: quality)
+            // Перестраиваем строки — количество изменится
+            self.buildRows()
         }
         present(picker, animated: true)
     }
 }
 
 // MARK: - MovieTranslationRow
-// Выглядит и ведёт себя как EpisodeMainControl — одна строка = один вариант качества
 
 final class MovieTranslationRow: UIView {
 
     var onPlay: (() -> Void)?
-
     private let accentColor: UIColor
 
     private let bg: UIView = {
@@ -246,7 +254,7 @@ final class MovieTranslationRow: UIView {
         l.translatesAutoresizingMaskIntoConstraints = false; return l
     }()
 
-    init(studio: String, quality: String, url: String, accentColor: UIColor) {
+    init(studio: String, quality: String, accentColor: UIColor) {
         self.accentColor = accentColor
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
