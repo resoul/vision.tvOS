@@ -10,6 +10,7 @@ final class RootController: UIViewController {
     private var hasLoadedFirstPage = false
     private var currentCategoryURL: String? = nil
     private var isFavoritesTab = false
+    private var isWatchHistoryTab = false
     private var tabBarHeightConstraint: NSLayoutConstraint!
 
     private lazy var backdropImageView: UIImageView = {
@@ -68,9 +69,8 @@ final class RootController: UIViewController {
         return cv
     }()
 
-    private lazy var emptyFavoritesLabel: UILabel = {
+    private lazy var emptyLabel: UILabel = {
         let l = UILabel()
-        l.text = "Нет избранных фильмов\nНажмите «+ Добавить в избранное» на странице фильма"
         l.font = UIFont.systemFont(ofSize: 28, weight: .medium)
         l.textColor = UIColor(white: 0.4, alpha: 1)
         l.textAlignment = .center
@@ -105,9 +105,9 @@ final class RootController: UIViewController {
         b.addTarget(self, action: #selector(retryTapped), for: .primaryActionTriggered)
         return b
     }()
-    
+
     private let videoPreviewPresenter = VideoPreviewPresenter()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         additionalSafeAreaInsets = .zero
@@ -118,11 +118,11 @@ final class RootController: UIViewController {
         view.addSubview(backdropBlur)
         view.addSubview(categoryTabBar)
         view.addSubview(collectionView)
-        view.addSubview(emptyFavoritesLabel)
+        view.addSubview(emptyLabel)
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
         view.addSubview(retryButton)
-        
+
         videoPreviewPresenter.attach(to: view)
 
         NSLayoutConstraint.activate([
@@ -139,7 +139,7 @@ final class RootController: UIViewController {
             categoryTabBar.topAnchor.constraint(equalTo: view.topAnchor),
             categoryTabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             categoryTabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-           
+
             {
                 let c = categoryTabBar.heightAnchor.constraint(equalToConstant: CategoryTabBar.collapsedHeight)
                 tabBarHeightConstraint = c
@@ -151,9 +151,9 @@ final class RootController: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            emptyFavoritesLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyFavoritesLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            emptyFavoritesLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.55),
+            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.55),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -175,7 +175,15 @@ final class RootController: UIViewController {
         vignetteLayer.frame     = view.bounds
     }
 
+    // MARK: - Loading
+
     private func loadFirstPage() {
+        // NEW: история просмотра — локальные данные, без сети
+        if isWatchHistoryTab {
+            loadWatchHistory()
+            return
+        }
+
         if isFavoritesTab {
             loadFavorites()
             return
@@ -216,12 +224,22 @@ final class RootController: UIViewController {
         hasLoadedFirstPage = true
         movies = FavoritesStore.shared.all()
         collectionView.reloadData()
-        emptyFavoritesLabel.isHidden = !movies.isEmpty
+        emptyLabel.text = "Нет избранных фильмов\nНажмите «+ Добавить в избранное» на странице фильма"
+        emptyLabel.isHidden = !movies.isEmpty
+        focusFirstCell()
+    }
+
+    private func loadWatchHistory() {
+        hasLoadedFirstPage = true
+        movies = WatchHistoryStore.shared.active()
+        collectionView.reloadData()
+        emptyLabel.text = "Нет незавершённых фильмов или сериалов"
+        emptyLabel.isHidden = !movies.isEmpty
         focusFirstCell()
     }
 
     private func loadNextPage() {
-        guard !isFetching, !isFavoritesTab, let url = nextPageURL else { return }
+        guard !isFetching, !isFavoritesTab, !isWatchHistoryTab, let url = nextPageURL else { return }
         isFetching = true
 
         FilmixService.shared.fetchPage(url: url) { [weak self] result in
@@ -252,16 +270,21 @@ final class RootController: UIViewController {
         }
     }
 
-    private func switchCategory(url: String?, isFavorites: Bool = false) {
-        guard url != currentCategoryURL || isFavorites != isFavoritesTab else { return }
-        currentCategoryURL = url
-        isFavoritesTab = isFavorites
+    private func switchCategory(url: String?, isFavorites: Bool = false, isWatchHistory: Bool = false) {
+        guard url != currentCategoryURL
+           || isFavorites != isFavoritesTab
+           || isWatchHistory != isWatchHistoryTab
+        else { return }
+
+        currentCategoryURL   = url
+        isFavoritesTab       = isFavorites
+        isWatchHistoryTab    = isWatchHistory
 
         movies = []
         nextPageURL = nil
         currentFocusedMovieId = nil
         hasLoadedFirstPage = false
-        emptyFavoritesLabel.isHidden = true
+        emptyLabel.isHidden = true
         collectionView.reloadData()
         videoPreviewPresenter.hide()
 
@@ -298,9 +321,7 @@ final class RootController: UIViewController {
     private var preferredFocusCell: UICollectionViewCell? = nil
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        if let cell = preferredFocusCell {
-            return [cell]
-        }
+        if let cell = preferredFocusCell { return [cell] }
         return super.preferredFocusEnvironments
     }
 
@@ -338,7 +359,10 @@ final class RootController: UIViewController {
     }
 }
 
+// MARK: - CategoryTabBarDelegate
+
 extension RootController: CategoryTabBarDelegate {
+
     func categoryTabBarDidSelectSettings(_ bar: CategoryTabBar) {
         videoPreviewPresenter.hide()
         let settingsVC = SettingsViewController()
@@ -346,10 +370,12 @@ extension RootController: CategoryTabBarDelegate {
         settingsVC.modalTransitionStyle   = .crossDissolve
         present(settingsVC, animated: true)
     }
-    
+
     func categoryTabBar(_ bar: CategoryTabBar, didSelect category: FilmixCategory) {
         updateTabBarHeight(hasGenres: !category.genres.isEmpty)
-        if category.isFavorites {
+        if category.isWatchHistory {                                    // NEW
+            switchCategory(url: nil, isWatchHistory: true)
+        } else if category.isFavorites {
             switchCategory(url: nil, isFavorites: true)
         } else {
             switchCategory(url: category.url)
@@ -369,9 +395,7 @@ extension RootController: CategoryTabBarDelegate {
     }
 
     private func updateTabBarHeight(hasGenres: Bool) {
-        let target = hasGenres
-            ? CategoryTabBar.expandedHeight
-            : CategoryTabBar.collapsedHeight
+        let target = hasGenres ? CategoryTabBar.expandedHeight : CategoryTabBar.collapsedHeight
         guard tabBarHeightConstraint.constant != target else { return }
         tabBarHeightConstraint.constant = target
         UIView.animate(withDuration: 0.28, delay: 0,
@@ -381,12 +405,12 @@ extension RootController: CategoryTabBarDelegate {
     }
 }
 
+// MARK: - UICollectionViewDataSource
+
 extension RootController: UICollectionViewDataSource {
 
     func collectionView(_ cv: UICollectionView,
-                        numberOfItemsInSection s: Int) -> Int {
-        movies.count
-    }
+                        numberOfItemsInSection s: Int) -> Int { movies.count }
 
     func collectionView(_ cv: UICollectionView,
                         cellForItemAt ip: IndexPath) -> UICollectionViewCell {
@@ -408,13 +432,17 @@ extension RootController: UICollectionViewDataSource {
     }
 }
 
+// MARK: - UICollectionViewDelegate
+
 extension RootController: UICollectionViewDelegate {
+
     func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
         videoPreviewPresenter.hide()
         let vc = BaseDetailViewController.make(movie: movies[ip.item])
         vc.onDismiss = { [weak self] in
-            guard let self, self.isFavoritesTab else { return }
-            self.loadFavorites()
+            guard let self else { return }
+            if self.isFavoritesTab          { self.loadFavorites() }
+            else if self.isWatchHistoryTab  { self.loadWatchHistory() }  // NEW
         }
         present(vc, animated: true)
     }
@@ -423,27 +451,22 @@ extension RootController: UICollectionViewDelegate {
                         willDisplay cell: UICollectionViewCell,
                         forItemAt ip: IndexPath) {
         let threshold = max(0, movies.count - 10)
-        if ip.item >= threshold {
-            loadNextPage()
-        }
+        if ip.item >= threshold { loadNextPage() }
     }
 }
 
-extension RootController: UICollectionViewDelegateFlowLayout {
-    func collectionView(
-        _ cv: UICollectionView,
-        layout: UICollectionViewLayout,
-        sizeForItemAt ip: IndexPath
-    ) -> CGSize {
-        cellSize()
-    }
+// MARK: - UICollectionViewDelegateFlowLayout
 
-    func collectionView(
-        _ cv: UICollectionView,
-        layout: UICollectionViewLayout,
-        referenceSizeForFooterInSection section: Int
-    ) -> CGSize {
-        nextPageURL != nil && !isFavoritesTab
+extension RootController: UICollectionViewDelegateFlowLayout {
+
+    func collectionView(_ cv: UICollectionView,
+                        layout: UICollectionViewLayout,
+                        sizeForItemAt ip: IndexPath) -> CGSize { cellSize() }
+
+    func collectionView(_ cv: UICollectionView,
+                        layout: UICollectionViewLayout,
+                        referenceSizeForFooterInSection section: Int) -> CGSize {
+        nextPageURL != nil && !isFavoritesTab && !isWatchHistoryTab
             ? CGSize(width: cv.bounds.width, height: 80)
             : .zero
     }

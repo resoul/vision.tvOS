@@ -5,6 +5,7 @@ struct FilmixCategory {
     let url: String
     let icon: String
     var isFavorites: Bool = false
+    var isWatchHistory: Bool = false
     var genres: [FilmixGenre] = []
 
     static let all: [FilmixCategory] = [
@@ -13,6 +14,7 @@ struct FilmixCategory {
         FilmixCategory(title: "Сериалы",     url: "https://filmix.my/seria/",   icon: "tv.fill",            genres: FilmixGenre.series),
         FilmixCategory(title: "Мультфильмы", url: "https://filmix.my/mults/",   icon: "sparkles.tv.fill",   genres: FilmixGenre.cartoons),
         FilmixCategory(title: "Избранное",   url: "",                           icon: "star.fill", isFavorites: true),
+        FilmixCategory(title: "Смотрю",      url: "",                           icon: "play.circle.fill", isWatchHistory: true),
     ]
 }
 

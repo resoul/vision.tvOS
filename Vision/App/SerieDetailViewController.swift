@@ -72,10 +72,8 @@ final class SerieDetailViewController: BaseDetailViewController {
         buildSerieLayout()
         episodesStack.clipsToBounds = false
         qualityButton.configure(quality: SeriesPickerStore.shared.globalPreferredQuality ?? "Авто")
-//        fetchTranslations()
     }
 
-    // Обновить progress bar'ы после возврата из плеера
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         refreshEpisodeProgress()
@@ -272,7 +270,6 @@ final class SerieDetailViewController: BaseDetailViewController {
         }
     }
 
-    /// Обновить только progress bar'ы без полной перестройки
     private func refreshEpisodeProgress() {
         guard let translation = activeTranslation,
               let season = translation.seasons[safe: activeSeasonIndex] else { return }
@@ -281,7 +278,7 @@ final class SerieDetailViewController: BaseDetailViewController {
             guard let episodeRow = row as? EpisodeRow else { continue }
             let seasonNum  = activeSeasonIndex + 1
             let episodeNum = i + 1
-            _ = season   // suppress warning
+            _ = season
 
             let watched  = PlaybackStore.shared.isEpisodeWatched(
                 movieId: movie.id, season: seasonNum, episode: episodeNum)
@@ -331,17 +328,14 @@ final class SerieDetailViewController: BaseDetailViewController {
         let nextEpisodeIndex = episodeIndex + 1
 
         if let season, nextEpisodeIndex < season.folder.count {
-            // Следующий эпизод в том же сезоне
             let folder = season.folder[nextEpisodeIndex]
             playEpisode(folder: folder, seasonIndex: seasonIndex, episodeIndex: nextEpisodeIndex)
-            // Переключить активный сезон если надо
             if activeSeasonIndex != seasonIndex {
                 activeSeasonIndex = seasonIndex
                 rebuildSeasonTabs()
                 rebuildEpisodes(animated: false)
             }
         } else {
-            // Переход к следующему сезону
             let nextSeasonIndex = seasonIndex + 1
             guard nextSeasonIndex < translation.seasons.count,
                   let nextSeason = translation.seasons[safe: nextSeasonIndex],
@@ -357,9 +351,7 @@ final class SerieDetailViewController: BaseDetailViewController {
         }
     }
 
-    /// Вызывается когда пользователь нажал "Следующая серия" в оверлее
     private func handleNextEpisodeRequest(seasonIndex: Int, episodeIndex: Int) {
-        // Обновляем активный сезон если нужно
         if activeSeasonIndex != seasonIndex {
             activeSeasonIndex = seasonIndex
             rebuildSeasonTabs()
@@ -372,15 +364,6 @@ final class SerieDetailViewController: BaseDetailViewController {
 
         playEpisode(folder: folder, seasonIndex: seasonIndex, episodeIndex: episodeIndex)
     }
-}
-import UIKit
-
-// MARK: - Вставить вместо существующих методов playEpisode, finishPlay, showEpisodeQualityFallback, playNextEpisode
-// в SerieDetailViewController
-
-extension SerieDetailViewController {
-
-    // MARK: - playEpisode (entry point)
 
     func playEpisode(folder: _FilmixPlayerFolder, seasonIndex: Int, episodeIndex: Int) {
         let streams = folder.streams
@@ -420,7 +403,6 @@ extension SerieDetailViewController {
             .episodeProgress(movieId: movie.id, season: seasonNum, episode: episodeNum)?
             .positionSeconds ?? 0
 
-        // Строим nextItem через TranslationReachabilityChecker
         let nextItem = buildNextItem(
             currentSeasonIndex: seasonIndex,
             currentEpisodeIndex: episodeIndex,
@@ -441,8 +423,6 @@ extension SerieDetailViewController {
 
         let playerVC = PlaybackViewController(context: ctx, resumePosition: resumePos)
 
-        // Для AVQueuePlayer колбэк используется только для синхронизации UI —
-        // сам переход уже совершён внутри плеера
         playerVC.onRequestNextEpisode = { [weak self] seasonIndex, episodeIndex in
             self?.syncUIToEpisode(seasonIndex: seasonIndex, episodeIndex: episodeIndex)
         }
@@ -451,10 +431,11 @@ extension SerieDetailViewController {
             self?.handleTranslationEnded()
         }
 
-        // Провайдер актуального translation — для подгрузки следующего-следующего item
         playerVC.translationProvider = { [weak self] in
             self?.activeTranslation
         }
+        
+        WatchHistoryStore.shared.touch(movie)
 
         present(playerVC, animated: true)
     }
@@ -489,21 +470,18 @@ extension SerieDetailViewController {
 
     // MARK: - Callbacks from PlaybackViewController
 
-    /// Вызывается когда AVQueuePlayer перешёл к следующему item.
-    /// Плеер уже воспроизводит новый эпизод — обновляем только UI.
     func syncUIToEpisode(seasonIndex: Int, episodeIndex: Int) {
         if activeSeasonIndex != seasonIndex {
             activeSeasonIndex = seasonIndex
             rebuildSeasonTabs()
             rebuildEpisodes(animated: false)
         }
-        // Скроллим к нужной EpisodeRow в episodesStack
+        
         guard let row = episodesStack.arrangedSubviews[safe: episodeIndex] else { return }
         let rowFrame = row.convert(row.bounds, to: scrollView)
         scrollView.scrollRectToVisible(rowFrame, animated: true)
     }
 
-    /// Вызывается когда озвучка закончилась — показываем попап смены озвучки
     private func handleTranslationEnded() {
         let alert = NoTranslationAlert()
         alert.onSwitchTranslation = { [weak self] in

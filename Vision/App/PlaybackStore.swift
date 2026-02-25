@@ -16,8 +16,6 @@ struct PlaybackProgress {
     }
 
     var isCompleted: Bool { fraction >= 0.88 }
-
-    /// 95–99 % → пора предложить следующую серию
     var shouldSuggestNext: Bool { fraction >= 0.95 && fraction < 1.0 }
     var hasProgress: Bool { positionSeconds > 5 && !isCompleted }
 }
@@ -96,13 +94,19 @@ final class PlaybackStore {
         )
     }
 
+    func isMovieWatched(movieId: Int) -> Bool {
+        fetchMovie(movieId: movieId)?.watched ?? false
+    }
+
     func saveMovieProgress(movieId: Int,
                             position: Double, duration: Double,
                             studio: String, quality: String, streamURL: String) {
         let entry = fetchMovie(movieId: movieId) ?? MovieProgress(context: ctx)
+        let isWatched = duration > 0 && position / duration >= 0.88
         entry.movieId         = Int64(movieId)
         entry.positionSeconds = position
         entry.durationSeconds = duration
+        entry.watched         = isWatched
         entry.studio          = studio
         entry.quality         = quality
         entry.streamURL       = streamURL

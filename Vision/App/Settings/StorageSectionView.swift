@@ -90,7 +90,7 @@ final class StorageSectionView: UIView {
             rowsStack.addArrangedSubview(v)
         }
 
-        let watchedCount   = WatchStore.shared.totalCount()
+        let watchedCount   = PlaybackStore.shared.totalEpisodeCount()
         let favoritesCount = FavoritesStore.shared.all().count
 
         rowsStack.addArrangedSubview(StorageRowView(
@@ -145,7 +145,7 @@ final class StorageSectionView: UIView {
 
     private func clearWatched() {
         confirm("Сбросить историю просмотров?\nЭто действие нельзя отменить.") {
-            WatchStore.shared.clearAll()
+            PlaybackStore.shared.clearAllEpisodes()
             self.reload()
         }
     }

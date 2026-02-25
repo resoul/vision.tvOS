@@ -4,12 +4,7 @@ import AVKit
 class BaseDetailViewController: UIViewController {
 
     let movie: Movie
-
-    /// Called after the VC is dismissed — used by MainController to refresh favorites
     var onDismiss: (() -> Void)?
-
-    // MARK: - State
-
     var detail: FilmixDetail?
 
     // MARK: - Background
@@ -397,7 +392,6 @@ class BaseDetailViewController: UIViewController {
 
     // MARK: - Playback (Movie)
 
-    /// Запустить фильм. Если есть сохранённый прогресс — продолжить с него.
     func playMovie(url: String, title: String, studio: String, quality: String) {
         let resumePos = PlaybackStore.shared.movieProgress(movieId: movie.id)?.positionSeconds ?? 0
         let ctx = PlaybackContext.movie(
@@ -406,6 +400,7 @@ class BaseDetailViewController: UIViewController {
             quality:   quality,
             streamURL: url
         )
+        WatchHistoryStore.shared.touch(movie)
         let vc = PlaybackViewController(context: ctx, resumePosition: resumePos)
         present(vc, animated: true)
     }
