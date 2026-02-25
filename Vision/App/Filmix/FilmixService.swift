@@ -81,7 +81,7 @@ final class FilmixService {
         let genreList = try article.select("div.full .item.category a").array().map { try $0.text() }
         let quality   = (try? article.select("div.full div.title-one-line div.top-date div.quality").text()) ?? ""
         let movieURL  = (try? article.select("div.short a.watch").attr("href")) ?? ""
-        let isSeries  = movieURL.contains("/seria/")
+        let isSeries = detectIsSeries(movieURL: movieURL)
         let translate = (try? article.select(".item.translate .item-content").text()) ?? ""
 
         let up    = Double((try? article.select("span.counter span.hand-up span").text()) ?? "") ?? 0
@@ -162,7 +162,7 @@ final class FilmixService {
 
         let isAdIn = !(try article.select("span.video-in").isEmpty())
         
-        let isNotMovie = !(try article.select(".short .not-movie").isEmpty())
+        let isNotMovie = !(try article.select(".short span.not-movie").isEmpty())
 
         let frames: [FilmixFrame] = {
             let base = "https://filmix.my"
@@ -312,5 +312,10 @@ final class FilmixService {
         ) ?? []
         names.append(contentsOf: plain)
         return names
+    }
+    
+    private static func detectIsSeries(movieURL: String) -> Bool {
+        let seriesPaths = ["/seria/", "/multser/"]
+        return seriesPaths.contains(where: { movieURL.contains($0) })
     }
 }

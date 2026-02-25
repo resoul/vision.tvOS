@@ -3,10 +3,11 @@ import UIKit
 // MARK: - StorageColors
 
 enum StorageColors {
-    static let posters   = UIColor(red: 0.27, green: 0.55, blue: 0.95, alpha: 1)  // синий
-    static let watched   = UIColor(red: 0.25, green: 0.78, blue: 0.52, alpha: 1)  // зелёный
-    static let coredata  = UIColor(red: 0.38, green: 0.82, blue: 0.90, alpha: 1)  // циан
-    static let prefs     = UIColor(red: 0.75, green: 0.45, blue: 0.95, alpha: 1)  // фиолетовый
+    static let posters   = UIColor(red: 0.27, green: 0.55, blue: 0.95, alpha: 1)
+    static let watched   = UIColor(red: 0.25, green: 0.78, blue: 0.52, alpha: 1)
+    static let coredata  = UIColor(red: 0.38, green: 0.82, blue: 0.90, alpha: 1)
+    static let prefs     = UIColor(red: 0.75, green: 0.45, blue: 0.95, alpha: 1)
+    static let favorites = UIColor(red: 1.0, green: 0.60, blue: 0.20, alpha: 1)
 }
 
 // MARK: - StorageDonutView
@@ -294,6 +295,7 @@ final class StorageSectionView: UIView {
         donut.update(segments: [
             .init(fraction: info.fraction(of: info.postersDisk),  color: StorageColors.posters),
             .init(fraction: info.fraction(of: info.watchedDB),    color: StorageColors.watched),
+            .init(fraction: info.fraction(of: info.favoritesDB),  color: StorageColors.favorites),
             .init(fraction: info.fraction(of: info.coreDataFile), color: StorageColors.coredata),
             .init(fraction: info.fraction(of: info.userDefaults), color: StorageColors.prefs),
         ], totalLabel: totalStr)
@@ -306,7 +308,8 @@ final class StorageSectionView: UIView {
             rowsStack.addArrangedSubview(v)
         }
 
-        let watchedCount = WatchStore.shared.totalCount()
+        let watchedCount   = WatchStore.shared.totalCount()
+        let favoritesCount = FavoritesStore.shared.all().count
 
         rowsStack.addArrangedSubview(StorageRowView(
             color: StorageColors.posters, title: "Постеры",
@@ -318,9 +321,17 @@ final class StorageSectionView: UIView {
 
         rowsStack.addArrangedSubview(StorageRowView(
             color: StorageColors.watched, title: "История просмотров",
-            subtitle: "\(watchedCount) эпизодов",
+            subtitle: "\(watchedCount) эпизодов · \(StorageInfo.format(info.watchedDB))",
             size: StorageInfo.format(info.watchedDB), canClear: true
         ) { [weak self] in self?.clearWatched() })
+
+        sep()
+
+        rowsStack.addArrangedSubview(StorageRowView(
+            color: StorageColors.favorites, title: "Избранное",
+            subtitle: "\(favoritesCount) фильмов · \(StorageInfo.format(info.favoritesDB))",
+            size: StorageInfo.format(info.favoritesDB), canClear: false
+        ))
 
         sep()
 
@@ -338,8 +349,6 @@ final class StorageSectionView: UIView {
             size: StorageInfo.format(info.userDefaults), canClear: false
         ))
     }
-
-    // MARK: - Actions
 
     private func clearPosters() {
         confirm("Очистить кэш постеров?") {
