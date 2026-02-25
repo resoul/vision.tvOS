@@ -10,18 +10,15 @@ struct PlaybackProgress {
     let quality:   String?
     let streamURL: String?
 
-    /// 0.0 … 1.0
     var fraction: Double {
         guard durationSeconds > 0 else { return 0 }
         return min(positionSeconds / durationSeconds, 1.0)
     }
 
-    /// >= 93 % → считаем просмотренным
-    var isCompleted: Bool { fraction >= 0.93 }
+    var isCompleted: Bool { fraction >= 0.88 }
 
     /// 95–99 % → пора предложить следующую серию
     var shouldSuggestNext: Bool { fraction >= 0.95 && fraction < 1.0 }
-
     var hasProgress: Bool { positionSeconds > 5 && !isCompleted }
 }
 

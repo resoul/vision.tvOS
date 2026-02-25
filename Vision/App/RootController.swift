@@ -1,6 +1,7 @@
 import UIKit
+import AsyncDisplayKit
 
-final class MainController: UIViewController {
+final class RootController: UIViewController {
     private var movies: [Movie] = []
     private var currentFocusedMovieId: Int? = nil
 
@@ -104,7 +105,9 @@ final class MainController: UIViewController {
         b.addTarget(self, action: #selector(retryTapped), for: .primaryActionTriggered)
         return b
     }()
-
+    
+    private let videoPreviewPresenter = VideoPreviewPresenter()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         additionalSafeAreaInsets = .zero
@@ -119,6 +122,8 @@ final class MainController: UIViewController {
         view.addSubview(loadingIndicator)
         view.addSubview(errorLabel)
         view.addSubview(retryButton)
+        
+        videoPreviewPresenter.attach(to: view)
 
         NSLayoutConstraint.activate([
             backdropImageView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -162,13 +167,6 @@ final class MainController: UIViewController {
         ])
 
         loadFirstPage()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if let window = view.window {
-            MovieOverlayPanel.shared.attachToWindow(window)
-        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -265,7 +263,7 @@ final class MainController: UIViewController {
         hasLoadedFirstPage = false
         emptyFavoritesLabel.isHidden = true
         collectionView.reloadData()
-        MovieOverlayPanel.shared.hide(animated: false)
+        videoPreviewPresenter.hide()
 
         if collectionView.numberOfItems(inSection: 0) > 0 {
             collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
@@ -319,11 +317,7 @@ final class MainController: UIViewController {
 
             let movie = self.movies[0]
             self.currentFocusedMovieId = movie.id
-            MovieOverlayPanel.shared.show(
-                for: movie,
-                cellSize: cellSize(),
-                delay: 0
-            )
+            videoPreviewPresenter.show(for: movie, cellSize: cellSize())
         }
     }
 
@@ -336,18 +330,17 @@ final class MainController: UIViewController {
             let movie = movies[ip.item]
             guard movie.id != currentFocusedMovieId else { return }
             currentFocusedMovieId = movie.id
-
-            MovieOverlayPanel.shared.show(for: movie, cellSize: cellSize())
+            videoPreviewPresenter.show(for: movie, cellSize: cellSize())
         } else if !(context.nextFocusedItem is MovieCell) {
             currentFocusedMovieId = nil
-            MovieOverlayPanel.shared.hide()
+            videoPreviewPresenter.hide()
         }
     }
 }
 
-extension MainController: CategoryTabBarDelegate {
+extension RootController: CategoryTabBarDelegate {
     func categoryTabBarDidSelectSettings(_ bar: CategoryTabBar) {
-        MovieOverlayPanel.shared.hide(animated: false)
+        videoPreviewPresenter.hide()
         let settingsVC = SettingsViewController()
         settingsVC.modalPresentationStyle = .overFullScreen
         settingsVC.modalTransitionStyle   = .crossDissolve
@@ -368,7 +361,7 @@ extension MainController: CategoryTabBarDelegate {
     }
 
     func categoryTabBarDidSelectSearch(_ bar: CategoryTabBar) {
-        MovieOverlayPanel.shared.hide(animated: false)
+        videoPreviewPresenter.hide()
         let searchVC = SearchViewController()
         searchVC.modalPresentationStyle = .overFullScreen
         searchVC.modalTransitionStyle   = .crossDissolve
@@ -388,7 +381,7 @@ extension MainController: CategoryTabBarDelegate {
     }
 }
 
-extension MainController: UICollectionViewDataSource {
+extension RootController: UICollectionViewDataSource {
 
     func collectionView(_ cv: UICollectionView,
                         numberOfItemsInSection s: Int) -> Int {
@@ -415,9 +408,9 @@ extension MainController: UICollectionViewDataSource {
     }
 }
 
-extension MainController: UICollectionViewDelegate {
+extension RootController: UICollectionViewDelegate {
     func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
-        MovieOverlayPanel.shared.hide(animated: false)
+        videoPreviewPresenter.hide()
         let vc = BaseDetailViewController.make(movie: movies[ip.item])
         vc.onDismiss = { [weak self] in
             guard let self, self.isFavoritesTab else { return }
@@ -436,7 +429,7 @@ extension MainController: UICollectionViewDelegate {
     }
 }
 
-extension MainController: UICollectionViewDelegateFlowLayout {
+extension RootController: UICollectionViewDelegateFlowLayout {
     func collectionView(
         _ cv: UICollectionView,
         layout: UICollectionViewLayout,

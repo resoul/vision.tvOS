@@ -356,21 +356,21 @@ class BaseDetailViewController: UIViewController {
         metaRow.arrangedSubviews.forEach { $0.removeFromSuperview() }
         let yt = isSeries ? "\(year)–" : year
         if !year.isEmpty && year != "—" {
-            metaRow.addArrangedSubview(MetaPill(text: yt, color: UIColor(white: 0.28, alpha: 1)))
+            metaRow.addArrangedSubview(Pill(text: yt, color: UIColor(white: 0.28, alpha: 1)))
         }
         for (i, g) in genres.prefix(3).enumerated() where !g.isEmpty && g != "—" {
             let a: CGFloat = [0.90, 0.70, 0.55][i]
-            metaRow.addArrangedSubview(MetaPill(text: g, color: movie.accentColor.withAlphaComponent(a)))
+            metaRow.addArrangedSubview(Pill(text: g, color: movie.accentColor.withAlphaComponent(a)))
         }
         if !duration.isEmpty && duration != "—" {
-            metaRow.addArrangedSubview(MetaPill(text: duration, color: UIColor(white: 0.20, alpha: 1)))
+            metaRow.addArrangedSubview(Pill(text: duration, color: UIColor(white: 0.20, alpha: 1)))
         }
         if !quality.isEmpty {
-            metaRow.addArrangedSubview(MetaPill(text: quality,
+            metaRow.addArrangedSubview(Pill(text: quality,
                 color: UIColor(red: 0.12, green: 0.42, blue: 0.22, alpha: 0.9)))
         }
         if !mpaa.isEmpty {
-            metaRow.addArrangedSubview(MetaPill(text: mpaa,
+            metaRow.addArrangedSubview(Pill(text: mpaa,
                 color: UIColor(red: 0.55, green: 0.10, blue: 0.10, alpha: 0.85)))
         }
     }

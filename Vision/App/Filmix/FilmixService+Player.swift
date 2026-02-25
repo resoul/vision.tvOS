@@ -6,7 +6,7 @@ import Alamofire
 extension FilmixService {
     private static let playerHeaders: HTTPHeaders = [
         "x-requested-with": "XMLHttpRequest",
-        "Cookie": "x-a-key=sinatra; minotaurs=WAeThQWgnpYqm287TO84UQ%2BRHWGlEVrIuzxgE42xIDQ%3D; FILMIXNET=eriurkv36fs65t4ekqsc68rd55; _listView=line; ishimura=fef06ce407e0bc6fa90ba5196af2d24933239a90; alora=WAeThQWgnpYqm287TO84UQ%2BRHWGlEVrIuzxgE42xIDQ%3D",
+        "Cookie": "x-a-key=sinatra; minotaurs=BwKTqYFEI7IajQ1K2DgBpfd6Jj068gqXgjCpjnvSvyo=; FILMIXNET=n6ikd2devj8nsp4h0js1uiajbp; ishimura=5bde72cd5cfdf26fe5bfb00504602fd178ebb3f4; alora=BwKTqYFEI7IajQ1K2DgBpfd6Jj068gqXgjCpjnvSvyo=",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
     ]
 

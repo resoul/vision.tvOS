@@ -11,8 +11,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         _ = CoreDataStack.shared
         CacheSettings.shared.apply()
+        
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = MainController()
+        window.rootViewController = RootController()
         window.makeKeyAndVisible()
         self.window = window
 
