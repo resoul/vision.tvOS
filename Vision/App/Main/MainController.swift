@@ -11,8 +11,6 @@ final class MainController: UIViewController {
     private var isFavoritesTab = false
     private var tabBarHeightConstraint: NSLayoutConstraint!
 
-    // MARK: - Background
-
     private lazy var backdropImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
@@ -47,16 +45,12 @@ final class MainController: UIViewController {
         return l
     }()
 
-    // MARK: - Category Tab Bar
-
     private lazy var categoryTabBar: CategoryTabBar = {
         let bar = CategoryTabBar()
         bar.delegate = self
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
     }()
-
-    // MARK: - Collection View
 
     private lazy var collectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeFlowLayout())
@@ -73,8 +67,6 @@ final class MainController: UIViewController {
         return cv
     }()
 
-    // MARK: - Empty favorites
-
     private lazy var emptyFavoritesLabel: UILabel = {
         let l = UILabel()
         l.text = "Нет избранных фильмов\nНажмите «+ Добавить в избранное» на странице фильма"
@@ -86,8 +78,6 @@ final class MainController: UIViewController {
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
-
-    // MARK: - Loading / Error views
 
     private let loadingIndicator: UIActivityIndicatorView = {
         let v = UIActivityIndicatorView(style: .large)
@@ -114,8 +104,6 @@ final class MainController: UIViewController {
         b.addTarget(self, action: #selector(retryTapped), for: .primaryActionTriggered)
         return b
     }()
-
-    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -153,7 +141,6 @@ final class MainController: UIViewController {
                 return c
             }(),
 
-            // CollectionView теперь занимает всё пространство под табом
             collectionView.topAnchor.constraint(equalTo: categoryTabBar.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -179,7 +166,6 @@ final class MainController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // Attach overlay to window once we have one
         if let window = view.window {
             MovieOverlayPanel.shared.attachToWindow(window)
         }
@@ -190,8 +176,6 @@ final class MainController: UIViewController {
         baseGradientLayer.frame = view.bounds
         vignetteLayer.frame     = view.bounds
     }
-
-    // MARK: - Networking
 
     private func loadFirstPage() {
         if isFavoritesTab {
@@ -294,8 +278,6 @@ final class MainController: UIViewController {
         loadFirstPage()
     }
 
-    // MARK: - Layout helpers
-
     private func makeFlowLayout() -> UICollectionViewFlowLayout {
         let l = UICollectionViewFlowLayout()
         l.scrollDirection         = .vertical
@@ -314,8 +296,6 @@ final class MainController: UIViewController {
         let h = floor(w * 313 / 220)
         return CGSize(width: w, height: h)
     }
-
-    // MARK: - Focus helpers
 
     private var preferredFocusCell: UICollectionViewCell? = nil
 
@@ -337,7 +317,6 @@ final class MainController: UIViewController {
             self.updateFocusIfNeeded()
             self.preferredFocusCell = nil
 
-            // Show overlay for first cell
             let movie = self.movies[0]
             self.currentFocusedMovieId = movie.id
             MovieOverlayPanel.shared.show(
@@ -347,8 +326,6 @@ final class MainController: UIViewController {
             )
         }
     }
-
-    // MARK: - Focus
 
     override func didUpdateFocus(in context: UIFocusUpdateContext,
                                  with coordinator: UIFocusAnimationCoordinator) {
@@ -367,8 +344,6 @@ final class MainController: UIViewController {
         }
     }
 }
-
-// MARK: - CategoryTabBarDelegate
 
 extension MainController: CategoryTabBarDelegate {
     func categoryTabBarDidSelectSettings(_ bar: CategoryTabBar) {
@@ -413,8 +388,6 @@ extension MainController: CategoryTabBarDelegate {
     }
 }
 
-// MARK: - UICollectionViewDataSource
-
 extension MainController: UICollectionViewDataSource {
 
     func collectionView(_ cv: UICollectionView,
@@ -442,8 +415,6 @@ extension MainController: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewDelegate
-
 extension MainController: UICollectionViewDelegate {
     func collectionView(_ cv: UICollectionView, didSelectItemAt ip: IndexPath) {
         MovieOverlayPanel.shared.hide(animated: false)
@@ -465,19 +436,20 @@ extension MainController: UICollectionViewDelegate {
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
-
 extension MainController: UICollectionViewDelegateFlowLayout {
-
-    func collectionView(_ cv: UICollectionView,
-                        layout: UICollectionViewLayout,
-                        sizeForItemAt ip: IndexPath) -> CGSize {
+    func collectionView(
+        _ cv: UICollectionView,
+        layout: UICollectionViewLayout,
+        sizeForItemAt ip: IndexPath
+    ) -> CGSize {
         cellSize()
     }
 
-    func collectionView(_ cv: UICollectionView,
-                        layout: UICollectionViewLayout,
-                        referenceSizeForFooterInSection section: Int) -> CGSize {
+    func collectionView(
+        _ cv: UICollectionView,
+        layout: UICollectionViewLayout,
+        referenceSizeForFooterInSection section: Int
+    ) -> CGSize {
         nextPageURL != nil && !isFavoritesTab
             ? CGSize(width: cv.bounds.width, height: 80)
             : .zero

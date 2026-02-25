@@ -1,19 +1,8 @@
 import UIKit
 
-// MARK: - NextEpisodeOverlay
-//
-// Показывается в правом нижнем углу экрана когда эпизод подходит к концу.
-// НЕ переключает эпизод автоматически — пользователь нажимает кнопку сам.
-// Кнопка "Следующая серия" вызывает onNext.
-// Кнопка "✕" или нажатие Menu — скрывает оверлей, вызывает onDismiss.
-
 final class NextEpisodeOverlay: UIView {
-
-    // MARK: - Callbacks
     var onNext: (() -> Void)?
     var onDismiss: (() -> Void)?
-
-    // MARK: - UI
 
     private let blurView: UIVisualEffectView = {
         let blur = UIBlurEffect(style: .dark)
@@ -51,15 +40,15 @@ final class NextEpisodeOverlay: UIView {
         return l
     }()
 
-    private(set) lazy var nextButton: _OverlayButton = {
-        let b = _OverlayButton()
+    private(set) lazy var nextButton: OverlayButton = {
+        let b = OverlayButton()
         b.setTitle("Смотреть", for: .normal)
         b.translatesAutoresizingMaskIntoConstraints = false
         return b
     }()
 
-    private let dismissButton: _OverlayDismissButton = {
-        let b = _OverlayDismissButton()
+    private let dismissButton: OverlayDismissButton = {
+        let b = OverlayDismissButton()
         b.translatesAutoresizingMaskIntoConstraints = false
         return b
     }()
@@ -130,8 +119,6 @@ final class NextEpisodeOverlay: UIView {
         dismissButton.addTarget(self, action: #selector(dismissTapped), for: .primaryActionTriggered)
     }
 
-    // MARK: - Actions
-
     @objc private func nextTapped() {
         hide(animated: true)
         onNext?()
@@ -141,8 +128,6 @@ final class NextEpisodeOverlay: UIView {
         hide(animated: true)
         onDismiss?()
     }
-
-    // MARK: - Show / Hide
 
     func show(in parentView: UIView, focusedIn viewController: UIViewController? = nil) {
         parentView.addSubview(self)
@@ -166,7 +151,6 @@ final class NextEpisodeOverlay: UIView {
             self.alpha     = 1
             self.transform = .identity
         } completion: { _ in
-            // Явно перемещаем фокус на кнопку "Смотреть"
             let vc = viewController ?? parentView.window?.rootViewController
             vc?.setNeedsFocusUpdate()
             vc?.updateFocusIfNeeded()
@@ -186,92 +170,6 @@ final class NextEpisodeOverlay: UIView {
         }
     }
 
-    // MARK: - Focus
-
     override var canBecomeFocused: Bool { false }
-
     override var preferredFocusEnvironments: [UIFocusEnvironment] { [nextButton] }
-}
-
-// MARK: - _OverlayButton
-
-final class _OverlayButton: UIButton {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    private func setup() {
-        configuration = makeConfig(focused: false)
-        layer.cornerRadius = 14
-        layer.cornerCurve  = .continuous
-    }
-
-    private func makeConfig(focused: Bool) -> UIButton.Configuration {
-        var c = UIButton.Configuration.filled()
-        c.baseBackgroundColor = focused
-            ? UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1)   // золотистый акцент при фокусе
-            : UIColor(white: 1.0, alpha: 0.18)
-        c.baseForegroundColor = focused ? .black : .white
-        c.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 28, bottom: 14, trailing: 28)
-        c.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attr in
-            var a = attr
-            a.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
-            return a
-        }
-        return c
-    }
-
-    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
-        super.didUpdateFocus(in: context, with: coordinator)
-        coordinator.addCoordinatedAnimations {
-            let focused = self.isFocused
-            self.configuration = self.makeConfig(focused: focused)
-            self.transform = focused
-                ? CGAffineTransform(scaleX: 1.06, y: 1.06)
-                : .identity
-        }
-    }
-
-    override var canBecomeFocused: Bool { true }
-}
-
-// MARK: - _OverlayDismissButton
-
-final class _OverlayDismissButton: UIButton {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    private func setup() {
-        configuration = makeConfig(focused: false)
-    }
-
-    private func makeConfig(focused: Bool) -> UIButton.Configuration {
-        var c = UIButton.Configuration.plain()
-        c.image = UIImage(systemName: "xmark.circle.fill",
-                          withConfiguration: UIImage.SymbolConfiguration(pointSize: 28, weight: .medium))
-        c.baseForegroundColor = focused
-            ? UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1)
-            : UIColor(white: 1.0, alpha: 0.45)
-        c.contentInsets = .zero
-        return c
-    }
-
-    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
-        super.didUpdateFocus(in: context, with: coordinator)
-        coordinator.addCoordinatedAnimations {
-            self.configuration = self.makeConfig(focused: self.isFocused)
-            self.transform = self.isFocused
-                ? CGAffineTransform(scaleX: 1.15, y: 1.15)
-                : .identity
-        }
-    }
-
-    override var canBecomeFocused: Bool { true }
 }

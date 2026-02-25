@@ -1,18 +1,13 @@
 import UIKit
 
-// MARK: - SearchViewController
-
 final class SearchViewController: UIViewController {
 
     var onMovieSelected: ((Movie) -> Void)?
-
-    // MARK: - State
-
     private var searchResults: [Movie] = []
     private var isShowingResults = false
-
-    // MARK: - Background
-
+    private let searchBarTopInset: CGFloat = 80
+    private let hInset: CGFloat = 120
+    
     private lazy var backdropBlur: UIVisualEffectView = {
         let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         v.translatesAutoresizingMaskIntoConstraints = false
@@ -25,8 +20,6 @@ final class SearchViewController: UIViewController {
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
-
-    // MARK: - Search field
 
     private let searchContainer: UIView = {
         let v = UIView()
@@ -74,8 +67,6 @@ final class SearchViewController: UIViewController {
         return b
     }()
 
-    // MARK: - Results grid
-
     private lazy var resultsCollectionView: UICollectionView = {
         let l = UICollectionViewFlowLayout()
         l.scrollDirection = .vertical
@@ -111,13 +102,6 @@ final class SearchViewController: UIViewController {
         return l
     }()
 
-    // MARK: - Layout constants
-
-    private let searchBarTopInset: CGFloat = 80
-    private let hInset: CGFloat = 120
-
-    // MARK: - Lifecycle
-
     override func viewDidLoad() {
         super.viewDidLoad()
         buildLayout()
@@ -129,8 +113,6 @@ final class SearchViewController: UIViewController {
         super.viewDidAppear(animated)
         searchTextField.becomeFirstResponder()
     }
-
-    // MARK: - Layout
 
     private func buildLayout() {
         view.addSubview(backdropBlur)
@@ -154,7 +136,6 @@ final class SearchViewController: UIViewController {
             dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // Search bar
             searchContainer.topAnchor.constraint(equalTo: view.topAnchor, constant: searchBarTopInset),
             searchContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: hInset),
             searchContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -hInset),
@@ -174,7 +155,6 @@ final class SearchViewController: UIViewController {
             clearButton.widthAnchor.constraint(equalToConstant: 36),
             clearButton.heightAnchor.constraint(equalToConstant: 36),
 
-            // Results
             resultsCollectionView.topAnchor.constraint(equalTo: searchContainer.bottomAnchor, constant: 24),
             resultsCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             resultsCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -187,8 +167,6 @@ final class SearchViewController: UIViewController {
             emptyLabel.topAnchor.constraint(equalTo: searchContainer.bottomAnchor, constant: 80),
         ])
     }
-
-    // MARK: - Actions
 
     @objc private func textChanged() {
         let text = searchTextField.text ?? ""
@@ -205,8 +183,6 @@ final class SearchViewController: UIViewController {
         clearButton.isHidden = true
         hideResults()
     }
-
-    // MARK: - Search
 
     private func loadResults(query: String) {
         guard !query.isEmpty else { return }
@@ -248,8 +224,6 @@ final class SearchViewController: UIViewController {
         emptyLabel.isHidden = true
     }
 
-    // MARK: - Cell sizing
-
     private func cellSize() -> CGSize {
         let width = view.bounds.width
         let padding = 80.0 * 2
@@ -259,8 +233,6 @@ final class SearchViewController: UIViewController {
         return CGSize(width: w, height: h)
     }
 
-    // MARK: - Menu to dismiss
-
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if presses.contains(where: { $0.type == .menu }) {
             dismiss(animated: true)
@@ -269,8 +241,6 @@ final class SearchViewController: UIViewController {
         }
     }
 }
-
-// MARK: - UICollectionView DataSource / Delegate
 
 extension SearchViewController: UICollectionViewDataSource {
     func collectionView(_ cv: UICollectionView, numberOfItemsInSection s: Int) -> Int {
@@ -293,8 +263,6 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ cv: UICollectionView, layout: UICollectionViewLayout,
                         sizeForItemAt ip: IndexPath) -> CGSize { cellSize() }
 }
-
-// MARK: - UITextField Delegate
 
 extension SearchViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {

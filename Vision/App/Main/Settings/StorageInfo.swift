@@ -1,23 +1,16 @@
 import Foundation
 import CoreData
 
-// MARK: - StorageInfo
-
 struct StorageInfo {
-    let postersDisk:  Int64   // ~/Library/Caches/posters/
-    let watchedDB:    Int64   // WatchedEpisode + MovieProgress + SeriesLastPlayed — реальный объём данных
-    let favoritesDB:  Int64   // FavoriteMovie — реальный объём данных
-    let coreDataFile: Int64   // весь .sqlite на диске (wal + shm включены)
-    let userDefaults: Int64   // .plist настройки
+    let postersDisk:  Int64
+    let watchedDB:    Int64
+    let favoritesDB:  Int64
+    let coreDataFile: Int64
+    let userDefaults: Int64
 
-    // watchedDB и favoritesDB — логические срезы coreDataFile,
-    // поэтому в total они не суммируются дважды
     var total: Int64 { postersDisk + coreDataFile + userDefaults }
 
-    // MARK: - Async load
-
     static func load() async -> StorageInfo {
-        // Работаем на MainActor — NSManagedObjectContext не thread-safe
         await MainActor.run { calculate() }
     }
 
@@ -28,21 +21,16 @@ struct StorageInfo {
         let caches     = fm.urls(for: .cachesDirectory,             in: .userDomainMask)[0]
         let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
 
-        // 1. Постеры на диске
         let postersDisk = directorySize(at: caches.appendingPathComponent("posters"))
-
-        // 2. CoreData — реальные файлы на диске
         var coreDataFile: Int64 = 0
         for ext in ["sqlite", "sqlite-wal", "sqlite-shm"] {
             coreDataFile += fileSize(at: appSupport.appendingPathComponent("VisionData.\(ext)"))
         }
 
-        // 3. Реальный объём данных строк по сущностям
         let ctx = CoreDataStack.shared.context
         let watchedDB   = rowBytes(ctx: ctx, entities: ["WatchedEpisode", "MovieProgress", "SeriesLastPlayed"])
         let favoritesDB = rowBytes(ctx: ctx, entities: ["FavoriteMovie"])
 
-        // 4. UserDefaults .plist
         let bundleId     = Bundle.main.bundleIdentifier ?? ""
         let userDefaults = fileSize(at: lib.appendingPathComponent("Preferences/\(bundleId).plist"))
 
@@ -55,11 +43,6 @@ struct StorageInfo {
         )
     }
 
-    // MARK: - Row bytes
-    //
-    // Итерируем реальные значения атрибутов объектов и суммируем их байтовые размеры.
-    // Это не точный размер SQLite-страниц, но отражает реальный объём хранимых данных
-    // в отличие от грубой оценки "count × N".
     @MainActor
     private static func rowBytes(ctx: NSManagedObjectContext, entities: [String]) -> Int64 {
         var total: Int64 = 0
@@ -73,7 +56,7 @@ struct StorageInfo {
                         total += attributeBytes(value: value, type: attr.attributeType)
                     }
                 }
-                total += 40 // overhead: objectID, versionStamp, row pointer, meta
+                total += 40
             }
         }
         return total
@@ -96,8 +79,6 @@ struct StorageInfo {
             return 8
         }
     }
-
-    // MARK: - File helpers
 
     static func directorySize(at url: URL) -> Int64 {
         guard let enumerator = FileManager.default.enumerator(

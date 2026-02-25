@@ -1,20 +1,12 @@
 import UIKit
 
-// MARK: - CacheSliderRow
-// A custom focusable row that shows a step-based slider for memory limit selection.
-// Left/Right on the Siri Remote moves between steps.
-
 final class CacheSliderRow: UIView {
-
-    var onChange: ((Int) -> Void)?   // called with new stepIndex
-
+    
+    var onChange: ((Int) -> Void)?
+    private let steps = CacheSettings.steps
     private var currentStep: Int {
         didSet { updateUI() }
     }
-
-    private let steps = CacheSettings.steps
-
-    // MARK: - Subviews
 
     private let iconView: UIImageView = {
         let iv = UIImageView()
@@ -43,7 +35,6 @@ final class CacheSliderRow: UIView {
         return l
     }()
 
-    // Track bar
     private let trackBg: UIView = {
         let v = UIView()
         v.backgroundColor = UIColor(white: 1, alpha: 0.10)
@@ -62,7 +53,6 @@ final class CacheSliderRow: UIView {
 
     private var trackFillWidthConstraint: NSLayoutConstraint!
 
-    // Step dots
     private let dotsStack: UIStackView = {
         let sv = UIStackView()
         sv.axis = .horizontal
@@ -72,7 +62,6 @@ final class CacheSliderRow: UIView {
         return sv
     }()
 
-    // Background
     private let bg: UIView = {
         let v = UIView()
         v.layer.cornerRadius = 14
@@ -81,8 +70,6 @@ final class CacheSliderRow: UIView {
         v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
-
-    // MARK: - Init
 
     init(stepIndex: Int) {
         self.currentStep = stepIndex
@@ -94,8 +81,6 @@ final class CacheSliderRow: UIView {
     }
     required init?(coder: NSCoder) { fatalError() }
 
-    // MARK: - Build
-
     private func build() {
         addSubview(bg)
         addSubview(iconView)
@@ -105,7 +90,6 @@ final class CacheSliderRow: UIView {
         trackBg.addSubview(trackFill)
         addSubview(dotsStack)
 
-        // Build dot views
         for i in 0..<steps.count {
             let dot = DotView()
             dot.tag = i
@@ -131,7 +115,6 @@ final class CacheSliderRow: UIView {
             valueLabel.trailingAnchor.constraint(equalTo: bg.trailingAnchor, constant: -24),
             valueLabel.centerYAnchor.constraint(equalTo: iconView.centerYAnchor),
 
-            // Track bar — bottom half
             trackBg.leadingAnchor.constraint(equalTo: bg.leadingAnchor, constant: 24),
             trackBg.trailingAnchor.constraint(equalTo: bg.trailingAnchor, constant: -24),
             trackBg.bottomAnchor.constraint(equalTo: bg.bottomAnchor, constant: -22),
@@ -142,20 +125,16 @@ final class CacheSliderRow: UIView {
             trackFill.bottomAnchor.constraint(equalTo: trackBg.bottomAnchor),
             trackFillWidthConstraint,
 
-            // Dots aligned with track
             dotsStack.leadingAnchor.constraint(equalTo: trackBg.leadingAnchor),
             dotsStack.trailingAnchor.constraint(equalTo: trackBg.trailingAnchor),
             dotsStack.centerYAnchor.constraint(equalTo: trackBg.centerYAnchor),
         ])
     }
 
-    // MARK: - UI Update
-
     private func updateUI() {
         let step = steps[currentStep]
         valueLabel.text = step.label
 
-        // Animate fill width
         layoutIfNeeded()
         let totalW = trackBg.bounds.width
         let fraction: CGFloat = steps.count > 1
@@ -168,23 +147,18 @@ final class CacheSliderRow: UIView {
             self.layoutIfNeeded()
         }
 
-        // Update dot colors
         for (i, dotView) in dotsStack.arrangedSubviews.enumerated() {
             guard let dot = dotView as? DotView else { continue }
             dot.setActive(i <= currentStep, isCurrent: i == currentStep)
         }
 
-        // Label color — highlight "Без лимита" differently
         let isUnlimited = step.bytes == 0
         valueLabel.textColor = isUnlimited
             ? UIColor(red: 0.4, green: 0.85, blue: 0.55, alpha: 1)
             : UIColor(white: 0.55, alpha: 1)
     }
 
-    // MARK: - Focus
-
     override var canBecomeFocused: Bool { true }
-
     override func didUpdateFocus(in ctx: UIFocusUpdateContext,
                                  with coordinator: UIFocusAnimationCoordinator) {
         coordinator.addCoordinatedAnimations({
@@ -196,8 +170,6 @@ final class CacheSliderRow: UIView {
                 ? CGAffineTransform(scaleX: 1.02, y: 1.02) : .identity
         }, completion: nil)
     }
-
-    // MARK: - Remote control — Left / Right to change step
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var handled = false
@@ -223,7 +195,6 @@ final class CacheSliderRow: UIView {
     }
 
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        // Absorb left/right so parent doesn't navigate away
         let arrows = presses.filter { $0.type == .leftArrow || $0.type == .rightArrow }
         if arrows.isEmpty { super.pressesEnded(presses, with: event) }
     }
@@ -231,46 +202,5 @@ final class CacheSliderRow: UIView {
     override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         let arrows = presses.filter { $0.type == .leftArrow || $0.type == .rightArrow }
         if arrows.isEmpty { super.pressesCancelled(presses, with: event) }
-    }
-}
-
-// MARK: - DotView
-
-private final class DotView: UIView {
-
-    private let circle: UIView = {
-        let v = UIView()
-        v.layer.cornerRadius = 5
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        translatesAutoresizingMaskIntoConstraints = false
-        addSubview(circle)
-        NSLayoutConstraint.activate([
-            circle.widthAnchor.constraint(equalToConstant: 10),
-            circle.heightAnchor.constraint(equalToConstant: 10),
-            circle.centerXAnchor.constraint(equalTo: centerXAnchor),
-            circle.centerYAnchor.constraint(equalTo: centerYAnchor),
-            widthAnchor.constraint(equalToConstant: 10),
-            heightAnchor.constraint(equalToConstant: 10),
-        ])
-        setActive(false, isCurrent: false)
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    func setActive(_ active: Bool, isCurrent: Bool) {
-        if isCurrent {
-            circle.backgroundColor = .white
-            circle.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
-        } else if active {
-            circle.backgroundColor = UIColor(white: 0.75, alpha: 1)
-            circle.transform = .identity
-        } else {
-            circle.backgroundColor = UIColor(white: 0.25, alpha: 1)
-            circle.transform = .identity
-        }
     }
 }
