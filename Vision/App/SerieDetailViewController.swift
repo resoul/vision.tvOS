@@ -302,21 +302,26 @@ final class SerieDetailViewController: BaseDetailViewController {
         }
     }
 
-    // MARK: - Quality Preference
-
     private func showQualityPicker() {
-        let allQualities = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
-        let picker = GlobalQualityPickerViewController(
-            qualities: allQualities,
-            current: SeriesPickerStore.shared.globalPreferredQuality
-        )
-        picker.onSelect = { [weak self] quality in
-            SeriesPickerStore.shared.globalPreferredQuality = quality
-            self?.qualityButton.configure(quality: quality ?? "Авто")
+        let qualities = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
+        let current = SeriesPickerStore.shared.globalPreferredQuality
+
+        var items: [PickerViewController.Item] = [
+            .init(primary: "Авто", secondary: "Лучшее доступное", isSelected: current == nil)
+        ]
+        items += qualities.map { q in
+            .init(primary: q, secondary: nil, isSelected: q == current)
+        }
+
+        let picker = PickerViewController(title: "Качество по умолчанию", items: items)
+        picker.onSelect = { [weak self] index in
+            guard let self else { return }
+            let selected = index == 0 ? nil : qualities[index - 1]
+            SeriesPickerStore.shared.globalPreferredQuality = selected
+            self.qualityButton.configure(quality: selected ?? "Авто")
         }
         present(picker, animated: true)
     }
-
 
 
     // MARK: - Next Episode
@@ -491,21 +496,26 @@ final class SerieDetailViewController: BaseDetailViewController {
         alert.modalTransitionStyle   = .crossDissolve
         present(alert, animated: true)
     }
-
-    // MARK: - Quality fallback
-
+    
     func showEpisodeQualityFallback(streams: [String: String],
-                                    folder: _FilmixPlayerFolder,
-                                    seasonIndex: Int, episodeIndex: Int, studio: String) {
+                                        folder: _FilmixPlayerFolder,
+                                        seasonIndex: Int, episodeIndex: Int, studio: String) {
         let available = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
             .filter { streams[$0] != nil }
-        let picker = GlobalQualityPickerViewController(
-            qualities: available, current: nil,
+
+        let items = available.map { q in
+            PickerViewController.Item(primary: q, secondary: nil, isSelected: false)
+        }
+
+        let picker = PickerViewController(
             title: "Качество недоступно",
-            subtitle: "Предпочитаемое качество отсутствует. Выберите из доступных:"
+            subtitle: "Предпочитаемое качество отсутствует. Выберите из доступных:",
+            items: items
         )
-        picker.onSelect = { [weak self] quality in
-            guard let self, let key = quality, let url = streams[key] else { return }
+        picker.onSelect = { [weak self] index in
+            guard let self else { return }
+            let key = available[index]
+            guard let url = streams[key] else { return }
             self.finishPlay(url: url, quality: key, folder: folder,
                             seasonIndex: seasonIndex, episodeIndex: episodeIndex, studio: studio)
         }

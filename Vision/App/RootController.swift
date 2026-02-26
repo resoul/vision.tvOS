@@ -178,7 +178,6 @@ final class RootController: UIViewController {
     // MARK: - Loading
 
     private func loadFirstPage() {
-        // NEW: история просмотра — локальные данные, без сети
         if isWatchHistoryTab {
             loadWatchHistory()
             return

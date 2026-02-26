@@ -1,9 +1,5 @@
 import UIKit
 
-// MARK: - PlaybackProgressBar
-// Тонкая линия прогресса под строкой эпизода.
-// Голубой цвет (#3A9EF5), отображается только если есть незавершённый прогресс.
-
 final class PlaybackProgressBar: UIView {
 
     private let trackView: UIView = {
@@ -50,7 +46,6 @@ final class PlaybackProgressBar: UIView {
     }
     required init?(coder: NSCoder) { fatalError() }
 
-    /// fraction: 0.0 … 1.0  |  nil → скрыть бар
     func setFraction(_ fraction: Double?) {
         guard let fraction, fraction > 0.02, fraction < 0.99 else {
             alpha = 0

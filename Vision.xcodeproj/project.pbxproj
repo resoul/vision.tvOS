@@ -10,6 +10,9 @@
 		895D76BF2F4F9F8400E4CA86 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 895D76BE2F4F9F8400E4CA86 /* SwiftSoup */; };
 		895D76C22F4F9FA700E4CA86 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 895D76C12F4F9FA700E4CA86 /* Alamofire */; };
 		895D76E02F4FA09700E4CA86 /* AsyncDisplayKit in Frameworks */ = {isa = PBXBuildFile; productRef = 895D76DF2F4FA09700E4CA86 /* AsyncDisplayKit */; };
+		898DA8582F50961B00CA6849 /* IGListDiffKit in Frameworks */ = {isa = PBXBuildFile; productRef = 898DA8572F50961B00CA6849 /* IGListDiffKit */; };
+		898DA85A2F50961B00CA6849 /* IGListKit in Frameworks */ = {isa = PBXBuildFile; productRef = 898DA8592F50961B00CA6849 /* IGListKit */; };
+		898DA85C2F50961B00CA6849 /* IGListSwiftKit in Frameworks */ = {isa = PBXBuildFile; productRef = 898DA85B2F50961B00CA6849 /* IGListSwiftKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,7 +34,10 @@
 			files = (
 				895D76E02F4FA09700E4CA86 /* AsyncDisplayKit in Frameworks */,
 				895D76BF2F4F9F8400E4CA86 /* SwiftSoup in Frameworks */,
+				898DA8582F50961B00CA6849 /* IGListDiffKit in Frameworks */,
 				895D76C22F4F9FA700E4CA86 /* Alamofire in Frameworks */,
+				898DA85A2F50961B00CA6849 /* IGListKit in Frameworks */,
+				898DA85C2F50961B00CA6849 /* IGListSwiftKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +83,9 @@
 				895D76BE2F4F9F8400E4CA86 /* SwiftSoup */,
 				895D76C12F4F9FA700E4CA86 /* Alamofire */,
 				895D76DF2F4FA09700E4CA86 /* AsyncDisplayKit */,
+				898DA8572F50961B00CA6849 /* IGListDiffKit */,
+				898DA8592F50961B00CA6849 /* IGListKit */,
+				898DA85B2F50961B00CA6849 /* IGListSwiftKit */,
 			);
 			productName = Vision;
 			productReference = 895D766C2F4F921700E4CA86 /* Vision.app */;
@@ -117,6 +126,7 @@
 				895D76BD2F4F9F8400E4CA86 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				895D76C02F4F9FA700E4CA86 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				895D76DE2F4FA09700E4CA86 /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */,
+				898DA8562F50961B00CA6849 /* XCRemoteSwiftPackageReference "IGListKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 895D766D2F4F921700E4CA86 /* Products */;
@@ -378,6 +388,14 @@
 				minimumVersion = 3.2.0;
 			};
 		};
+		898DA8562F50961B00CA6849 /* XCRemoteSwiftPackageReference "IGListKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Instagram/IGListKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -395,6 +413,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 895D76DE2F4FA09700E4CA86 /* XCRemoteSwiftPackageReference "AsyncDisplayKit.tvOS" */;
 			productName = AsyncDisplayKit;
+		};
+		898DA8572F50961B00CA6849 /* IGListDiffKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 898DA8562F50961B00CA6849 /* XCRemoteSwiftPackageReference "IGListKit" */;
+			productName = IGListDiffKit;
+		};
+		898DA8592F50961B00CA6849 /* IGListKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 898DA8562F50961B00CA6849 /* XCRemoteSwiftPackageReference "IGListKit" */;
+			productName = IGListKit;
+		};
+		898DA85B2F50961B00CA6849 /* IGListSwiftKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 898DA8562F50961B00CA6849 /* XCRemoteSwiftPackageReference "IGListKit" */;
+			productName = IGListSwiftKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

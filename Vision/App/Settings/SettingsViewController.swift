@@ -3,6 +3,7 @@ import UIKit
 final class SettingsViewController: UIViewController {
     
     private var storageSectionView: StorageSectionView?
+    private var languageRow: SettingsValueRow?
 
     private lazy var backdropBlur: UIVisualEffectView = {
         let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
@@ -101,6 +102,17 @@ final class SettingsViewController: UIViewController {
             self?.showQualityPicker(row: row)
         })
         mainStack.addArrangedSubview(playSection)
+        
+        let currentLanguageName = currentLanguageDisplayName()
+        let langRow = SettingsValueRow(
+            title: "Язык интерфейса",
+            value: currentLanguageName,
+            icon: "globe"
+        ) { [weak self] row in
+            self?.showLanguagePicker(row: row)
+        }
+        languageRow = langRow
+        playSection.addRow(langRow)
 
         let memSection = SettingsSection(title: "Память")
         let slider = CacheSliderRow(stepIndex: CacheSettings.shared.stepIndex)
@@ -127,15 +139,62 @@ final class SettingsViewController: UIViewController {
 
     private func showQualityPicker(row: SettingsValueRow) {
         let qualities = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
-        let picker = GlobalQualityPickerViewController(
-            qualities: qualities,
-            current: SeriesPickerStore.shared.globalPreferredQuality
-        )
-        picker.onSelect = { [weak row] quality in
-            SeriesPickerStore.shared.globalPreferredQuality = quality
-            row?.updateValue(quality ?? "Авто")
+        var items: [PickerViewController.Item] = [
+            .init(primary: "Авто", secondary: "Лучшее доступное", isSelected: SeriesPickerStore.shared.globalPreferredQuality == nil)
+        ]
+        items += qualities.map { q in
+            .init(primary: q, secondary: nil, isSelected: q == SeriesPickerStore.shared.globalPreferredQuality)
+        }
+
+        let picker = PickerViewController(title: "Качество по умолчанию", items: items)
+        picker.onSelect = { index in
+            let selected = index == 0 ? nil : qualities[index - 1]
+            SeriesPickerStore.shared.globalPreferredQuality = selected
+            row.updateValue(selected ?? "Авто")
         }
         present(picker, animated: true)
+    }
+    
+    private func showLanguagePicker(row: SettingsValueRow) {
+        let languages: [(code: String, name: String)] = [
+            ("en", "English"), ("ru", "Русский"), ("uk", "Українська"),
+            ("pl", "Polski"),  ("ro", "Română"),  ("fr", "Français"),
+            ("es", "Español"), ("it", "Italiano"),
+        ]
+
+        let currentCode = UserDefaults.standard.string(forKey: "AppLanguageCode") ?? "en"
+
+        let items = languages.map { lang in
+            PickerViewController.Item(
+                primary:    lang.name,
+                secondary:  nil,
+                isSelected: lang.code == currentCode
+            )
+        }
+        
+        let picker = PickerViewController(
+            title: "Язык интерфейса",
+            subtitle: "Вступит в силу при следующем запуске",
+            items: items,
+            config: PickerConfig(widthFraction: 0.5, heightFraction: 0.5, overlayAlpha: 0.75)
+        )
+
+        picker.onSelect = { [weak row] index in
+            let lang = languages[index]
+            UserDefaults.standard.set(lang.code, forKey: "AppLanguageCode")
+            row?.updateValue(lang.name)
+        }
+        present(picker, animated: true)
+    }
+
+    private func currentLanguageDisplayName() -> String {
+        let code = UserDefaults.standard.string(forKey: "AppLanguageCode") ?? "en"
+        let names: [String: String] = [
+            "en": "English", "ru": "Русский", "uk": "Українська",
+            "pl": "Polski",  "ro": "Română",  "fr": "Français",
+            "es": "Español", "it": "Italiano"
+        ]
+        return names[code] ?? "English"
     }
 
     private func appVersion() -> String {

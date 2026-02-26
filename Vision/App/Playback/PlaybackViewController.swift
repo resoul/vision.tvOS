@@ -5,15 +5,8 @@ final class PlaybackViewController: UIViewController {
 
     // MARK: - Callbacks
 
-    /// Вызывается когда нужно перейти к следующему эпизоду (0-based индексы).
-    /// Используется только для обновления UI в SerieDetailViewController,
-    /// сам переход уже совершён AVQueuePlayer'ом.
     var onRequestNextEpisode: ((Int, Int) -> Void)?
-
-    /// Вызывается когда озвучка закончилась (следующего эпизода нет ни в одной озвучке)
     var onTranslationEnded: (() -> Void)?
-
-    /// Провайдер актуального translation — нужен для подгрузки следующего-следующего item
     var translationProvider: (() -> FilmixTranslation?)?
 
     // MARK: - Private
@@ -69,7 +62,6 @@ final class PlaybackViewController: UIViewController {
         items.append(firstItem)
         currentItem = firstItem
 
-        // Сразу кладём следующий item в очередь — AVQueuePlayer начнёт буферизацию заранее
         if let next = context.nextItem,
            let stream = next.streamURL(preferredQuality: SeriesPickerStore.shared.globalPreferredQuality),
            let nextURL = URL(string: stream.url) {
@@ -144,28 +136,20 @@ final class PlaybackViewController: UIViewController {
               newItem !== currentItem
         else { return }
 
-        saveProgress() // сохраняем прогресс предыдущего
-
-        // Сдвигаем контекст
+        saveProgress()
+        
         guard let nextCtx = currentContext.advancedContext() else { return }
         currentContext = nextCtx
         currentItem    = newItem
-
-        // Обновляем плеер
         playerVC.title = nextCtx.displayTitle
         overlayShown   = false
 
-        // Подписываемся на конец нового item
         subscribeToItemEnd(item: newItem)
-
-        // Уведомляем SerieDetailViewController чтобы он обновил UI (подсветку эпизода и т.п.)
         if case let .episode(_, _, _, _, _, _, _, nextItem) = nextCtx, let next = nextItem {
             onRequestNextEpisode?(next.seasonIndex, next.episodeIndex)
-            // Сразу подгружаем следующий-следующий эпизод в очередь
             enqueueItemAfter(next)
         }
 
-        // Resume position из CoreData если есть
         if case let .episode(movieId, season, episode, _, _, _, _, _) = nextCtx {
             let saved = PlaybackStore.shared
                 .episodeProgress(movieId: movieId, season: season, episode: episode)?
@@ -178,12 +162,10 @@ final class PlaybackViewController: UIViewController {
             }
         }
 
-        // Аудиодорожки для нового item
         didHandleAudioTracks = false
         observeAudioTracks(item: newItem)
     }
 
-    /// Подгружает item через один от текущего — чтобы буферизация шла на два эпизода вперёд
     private func enqueueItemAfter(_ nextItem: NextEpisodeItem) {
         guard let translation = translationProvider?() else { return }
 
@@ -231,7 +213,6 @@ final class PlaybackViewController: UIViewController {
         guard case let .episode(_, _, _, _, _, _, _, nextItem) = currentContext else { return }
 
         guard let next = nextItem else {
-            // Озвучка закончилась — уходим и показываем попап в SerieDetailViewController
             dismiss(animated: true) { [weak self] in self?.onTranslationEnded?() }
             return
         }
@@ -329,7 +310,6 @@ final class PlaybackViewController: UIViewController {
     // MARK: - Focus
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        // Когда оверлей видим — направляем фокус в него
         if let ol = overlay, ol.superview != nil {
             return [ol.nextButton]
         }
