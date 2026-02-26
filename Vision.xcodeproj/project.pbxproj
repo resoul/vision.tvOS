@@ -103,6 +103,13 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
+				it,
+				ro,
+				pl,
+				es,
+				ru,
+				uk,
 			);
 			mainGroup = 895D76632F4F921700E4CA86;
 			minimizedProjectReferenceProxies = 1;
@@ -200,6 +207,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = appletvos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				TVOS_DEPLOYMENT_TARGET = 26.2;
 			};
@@ -256,6 +264,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = appletvos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				TVOS_DEPLOYMENT_TARGET = 26.2;
 				VALIDATE_PRODUCT = YES;
 			};

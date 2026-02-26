@@ -19,7 +19,7 @@ final class CacheSliderRow: UIView {
 
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.text = "Лимит кэша в памяти"
+        l.text = String(localized: "settings.memory_cache_limit")
         l.font = UIFont.systemFont(ofSize: 28, weight: .medium)
         l.textColor = .white
         l.translatesAutoresizingMaskIntoConstraints = false

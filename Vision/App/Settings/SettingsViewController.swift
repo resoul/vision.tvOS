@@ -30,7 +30,7 @@ final class SettingsViewController: UIViewController {
 
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.text = "Настройки"
+        l.text = String(localized: "settings.settings")
         l.font = UIFont.systemFont(ofSize: 52, weight: .heavy)
         l.textColor = .white
         l.translatesAutoresizingMaskIntoConstraints = false
