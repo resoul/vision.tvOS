@@ -2,9 +2,6 @@ import Combine
 import Foundation
 
 final class SettingsViewModel: ObservableObject {
-
-    // MARK: - State
-
     enum State {
         case idle
         case loading
@@ -16,7 +13,6 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var currentTheme: Theme = .dark
     @Published private(set) var currentStyle: ThemeStyle = Theme.dark.style
     @Published private(set) var currentLanguage: AppLanguage = .russian
-    @Published private(set) var currentFont: FontFamily = .amazon
     @Published private(set) var storageData: SettingsStorageData = .empty
     @Published private(set) var storageError: String?
 
@@ -25,7 +21,6 @@ final class SettingsViewModel: ObservableObject {
     private let settingsUseCase: SettingsUseCaseProtocol
     private let themeManager: ThemeManagerProtocol
     private let languageManager: LanguageManagerProtocol
-    private let fontSettingsManager: FontSettingsManagerProtocol
     private var cancellables = Set<AnyCancellable>()
     private var currentSettingsData = SettingsData(
         isAutoplayEnabled: true,
@@ -33,16 +28,10 @@ final class SettingsViewModel: ObservableObject {
         cacheSizeStep: 3
     )
 
-    init(
-        settingsUseCase: SettingsUseCaseProtocol,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(settingsUseCase: SettingsUseCaseProtocol, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.settingsUseCase = settingsUseCase
         self.themeManager = themeManager
         self.languageManager = languageManager
-        self.fontSettingsManager = fontSettingsManager
         bindUseCase()
         bindManagers()
     }
@@ -79,10 +68,6 @@ final class SettingsViewModel: ObservableObject {
 
     func didSelectLanguage(_ language: AppLanguage) {
         languageManager.select(language)
-    }
-
-    func didSelectFont(_ family: FontFamily) {
-        fontSettingsManager.apply(family)
     }
     
     func getCacheSteps() -> [String] {
@@ -151,9 +136,5 @@ final class SettingsViewModel: ObservableObject {
         languageManager.currentLanguage
             .receive(on: DispatchQueue.main)
             .assign(to: &$currentLanguage)
-
-        fontSettingsManager.currentFamily
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$currentFont)
     }
 }

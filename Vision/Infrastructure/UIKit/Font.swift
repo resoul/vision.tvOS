@@ -1,7 +1,6 @@
 import UIKit
 
-public extension UIFont {
-
+extension UIFont {
     static func amazon(_ style: Fonts.Amazon, size: CGFloat) -> UIFont? {
         return UIFont(name: style.rawValue, size: size)
     }

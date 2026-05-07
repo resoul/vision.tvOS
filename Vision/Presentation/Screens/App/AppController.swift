@@ -3,34 +3,17 @@ import Combine
 
 final class AppController: BaseViewController {
     var viewModel: AppViewModel
-    private let tabBarView = TabBarView(configuration: TabBarConfiguration(items: []), searchTitle: L10n.Tab.search)
-    private var tabBarHeightConstraint: NSLayoutConstraint!
-
-    private let contentView: UIView = {
-        let v = UIView()
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
-    }()
-
     private var currentChildVC: UIViewController?
+    private var tabBarHeightConstraint: NSLayoutConstraint!
+    private let contentView = UIView()
+    private let tabBarView = TabBarView(configuration: TabBarConfiguration(items: []), searchTitle: L10n.Tab.search)
     
-    init(
-        viewModel: AppViewModel,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(viewModel: AppViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
-        super.init(
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontSettingsManager: fontSettingsManager
-        )
+        super.init(themeManager: themeManager, languageManager: languageManager)
     }
     
     required init?(coder: NSCoder) { fatalError() }
-
-    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,8 +26,6 @@ final class AppController: BaseViewController {
         [tabBarView]
     }
 
-    // MARK: - Menu button (tvOS remote)
-
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         guard presses.contains(where: { $0.type == .menu }),
               let modal = presentedViewController else {
@@ -56,31 +37,15 @@ final class AppController: BaseViewController {
         }
     }
 
-    // MARK: - Layout
-
     private func setupLayout() {
-        view.addSubview(contentView)
-        view.addSubview(tabBarView)
+        view.addSubviews(contentView, tabBarView)
         tabBarView.delegate = self
 
-        tabBarHeightConstraint = tabBarView.heightAnchor.constraint(
-            equalToConstant: tabBarView.collapsedHeight
-        )
-
-        NSLayoutConstraint.activate([
-            tabBarView.topAnchor.constraint(equalTo: view.topAnchor),
-            tabBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tabBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tabBarHeightConstraint,
-
-            contentView.topAnchor.constraint(equalTo: view.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-        ])
+        tabBarHeightConstraint = tabBarView.heightAnchor.constraint(equalToConstant: tabBarView.collapsedHeight)
+        tabBarView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: nil, trailing: view.trailingAnchor)
+        contentView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        tabBarHeightConstraint.isActive = true
     }
-
-    // MARK: - Child VC swap (crossfade)
 
     private func swapContent(to newVC: UIViewController, animated: Bool) {
         let oldVC = currentChildVC
@@ -107,8 +72,6 @@ final class AppController: BaseViewController {
         currentChildVC = newVC
     }
 
-    // MARK: - Theme
-
     override func applyStyle(_ style: ThemeStyle) {
         super.applyStyle(style)
         contentView.backgroundColor = style.background
@@ -119,8 +82,6 @@ final class AppController: BaseViewController {
         tabBarView.apply(configuration: newConfig)
     }
 
-    // MARK: - Bindings
-
     private func bindViewModelIfNeeded() {
         viewModel.onConfigureTabBar = { [weak self] configuration in
             self?.tabBarView.apply(configuration: configuration)
@@ -129,8 +90,6 @@ final class AppController: BaseViewController {
             self?.updateTabBarHeight(hasGenres: hasGenres)
         }
     }
-
-    // MARK: - Helpers
 
     private func updateTabBarHeight(hasGenres: Bool) {
         let target: CGFloat = hasGenres

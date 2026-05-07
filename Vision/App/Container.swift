@@ -3,7 +3,6 @@ protocol ContainerProtocol {
     var settingsUseCase: SettingsUseCaseProtocol { get }
     var themeManager: ThemeManagerProtocol { get }
     var languageManager: LanguageManagerProtocol { get }
-    var fontSettingsManager: FontSettingsManagerProtocol { get }
     var filmixClient: FilmixNetworkClient { get }
     var filmixRepository: FilmixMovieRepositoryProtocol { get }
     var imageRepository: ImageRepositoryProtocol { get }
@@ -31,7 +30,6 @@ final class Container: ContainerProtocol {
     )
     lazy var themeManager: ThemeManagerProtocol = ThemeManager()
     lazy var languageManager: LanguageManagerProtocol = LanguageManager()
-    lazy var fontSettingsManager: FontSettingsManagerProtocol = FontSettingsManager()
     
     lazy var filmixClient: FilmixNetworkClient = FilmixNetworkClient()
     lazy var filmixRepository: FilmixMovieRepositoryProtocol = FilmixMovieRepository(client: filmixClient)

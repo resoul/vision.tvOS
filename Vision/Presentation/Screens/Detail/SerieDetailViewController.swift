@@ -42,8 +42,7 @@ final class SerieDetailViewController: BaseDetailViewController {
     init(
         viewModel: SerieDetailViewModel,
         themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontManager: FontSettingsManagerProtocol
+        languageManager: LanguageManagerProtocol
     ) {
         self.viewModel = viewModel
         super.init(
@@ -54,8 +53,7 @@ final class SerieDetailViewController: BaseDetailViewController {
                 actors: [], directors: [], genreList: [], lastAdded: nil
             ),
             themeManager: themeManager,
-            languageManager: languageManager,
-            fontManager: fontManager
+            languageManager: languageManager
         )
     }
 

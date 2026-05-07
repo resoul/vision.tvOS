@@ -46,18 +46,9 @@ final class SettingsViewController: BaseViewController {
     private var storageSectionView: SettingsStorageSectionView?
     private var versionRow: SettingsInfoRow?
     
-    init(
-        viewModel: SettingsViewModel,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(viewModel: SettingsViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
-        super.init(
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontSettingsManager: fontSettingsManager
-        )
+        super.init(themeManager: themeManager, languageManager: languageManager)
     }
     
     required init?(coder: NSCoder) { fatalError() }
@@ -74,29 +65,12 @@ final class SettingsViewController: BaseViewController {
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(stackView)
-        
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 80),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 120),
-            
-            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 48),
-            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 120),
-            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -120),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -80)
-        ])
+        contentView.addSubviews(titleLabel, stackView)
+        scrollView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        contentView.constraints(top: scrollView.topAnchor, leading: scrollView.leadingAnchor, bottom: scrollView.bottomAnchor, trailing: scrollView.trailingAnchor)
+        contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
+        titleLabel.constraints(top: contentView.topAnchor, leading: contentView.leadingAnchor, bottom: nil, trailing: nil, padding: .init(top: 80, left: 120, bottom: 0, right: 0))
+        stackView.constraints(top: titleLabel.bottomAnchor, leading: contentView.leadingAnchor, bottom: contentView.bottomAnchor, trailing: contentView.trailingAnchor, padding: .init(top: 48, left: 120, bottom: 80, right: 120))
         
         buildSections()
     }
@@ -124,11 +98,6 @@ final class SettingsViewController: BaseViewController {
         languageRow?.onSelect = { [weak self] in self?.showLanguagePicker() }
         stackView.addArrangedSubview(languageRow!)
         
-        fontRow = SettingsValueRow(title: L10n.Settings.Font.title, icon: "textformat")
-        fontRow?.onSelect = { [weak self] in self?.showFontPicker() }
-        stackView.addArrangedSubview(fontRow!)
-        
-        // --- Memory Section ---
         addSectionHeader(L10n.Settings.Section.memory)
         
         cacheSlider = SettingsSliderRow(
@@ -190,11 +159,6 @@ final class SettingsViewController: BaseViewController {
         viewModel.$currentLanguage
             .receive(on: DispatchQueue.main)
             .sink { [weak self] lang in self?.languageRow?.updateValue(lang.displayName) }
-            .store(in: &cancellables)
-            
-        viewModel.$currentFont
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] font in self?.fontRow?.updateValue(font.displayName) }
             .store(in: &cancellables)
         
         viewModel.$storageData
@@ -271,17 +235,6 @@ final class SettingsViewController: BaseViewController {
         let picker = PickerViewController(title: L10n.Settings.Language.title, items: items)
         picker.onSelect = { [weak self] index in
             self?.viewModel.didSelectLanguage(AppLanguage.allCases[index])
-        }
-        present(picker, animated: true)
-    }
-    
-    private func showFontPicker() {
-        let items = FontFamily.allCases.map { font in
-            PickerViewController.Item(primary: font.displayName, isSelected: font == viewModel.currentFont)
-        }
-        let picker = PickerViewController(title: L10n.Settings.Font.title, items: items)
-        picker.onSelect = { [weak self] index in
-            self?.viewModel.didSelectFont(FontFamily.allCases[index])
         }
         present(picker, animated: true)
     }

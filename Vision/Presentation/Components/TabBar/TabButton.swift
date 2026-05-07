@@ -19,7 +19,7 @@ final class TabButton: TVFocusControl {
         iconView.image = UIImage(systemName: item.icon)
         iconView.tintColor = config.inactiveColor
         label.text = item.title
-        label.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
+        label.font = .montserrat(.semiBold, size: 24)
         accentDot.backgroundColor = .white
         accentDot.layer.cornerRadius = 3
         addSubview(iconView)

@@ -18,18 +18,9 @@ final class VideoPlayerViewController: BaseViewController {
     private var seekState: SeekState = .idle
     private var seekHoldCount = 0
 
-    init(
-        viewModel: PlayerViewModel,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(viewModel: PlayerViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
-        super.init(
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontSettingsManager: fontSettingsManager
-        )
+        super.init(themeManager: themeManager, languageManager: languageManager)
         modalPresentationStyle = .fullScreen
     }
 

@@ -18,9 +18,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let container = Container()
         let module = ModuleFactory(container: container, windowScene: windowScene)
-        let coordinator = module.makeApp()
         window = module.window
-        coordinator.start()
+//        module.makeApp().start()
+        
+        window?.rootViewController = module.makeVideoModule()
+        window?.makeKeyAndVisible()
+
         return true
     }
 

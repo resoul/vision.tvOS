@@ -2,7 +2,6 @@ import UIKit
 import Combine
 
 final class MovieDetailViewController: BaseDetailViewController {
-
     private let viewModel: MovieDetailViewModel
 
     private let translationsStack: UIStackView = {
@@ -20,22 +19,15 @@ final class MovieDetailViewController: BaseDetailViewController {
         movie: ContentItem,
         viewModel: MovieDetailViewModel,
         themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontManager: FontSettingsManagerProtocol
+        languageManager: LanguageManagerProtocol
     ) {
-        self.init(
-            viewModel: viewModel,
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontManager: fontManager
-        )
+        self.init(viewModel: viewModel, themeManager: themeManager, languageManager: languageManager)
     }
 
     init(
         viewModel: MovieDetailViewModel,
         themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontManager: FontSettingsManagerProtocol
+        languageManager: LanguageManagerProtocol
     ) {
         self.viewModel = viewModel
         super.init(
@@ -46,8 +38,7 @@ final class MovieDetailViewController: BaseDetailViewController {
                 actors: [], directors: [], genreList: [], lastAdded: nil
             ),
             themeManager: themeManager,
-            languageManager: languageManager,
-            fontManager: fontManager
+            languageManager: languageManager
         )
     }
 

@@ -12,12 +12,11 @@ final class MoviesController: BaseViewController {
         static let posterAspectRatio = 313.0 / 220.0
     }
 
-    private var viewModel: any ContentListViewModelProtocol
+    private var viewModel: ContentListViewModelProtocol
 
     private var movies: [ContentItem] = []
     private var moviesByID: [Int: ContentItem] = [:]
     private var preferredIndexPath: IndexPath = IndexPath(item: 0, section: 0)
-    private let videoPreviewPresenter = VideoPreviewPresenter()
 
     private let baseGradientLayer = CAGradientLayer()
 
@@ -69,22 +68,15 @@ final class MoviesController: BaseViewController {
     }()
 
     init(
-        viewModel: any ContentListViewModelProtocol,
+        viewModel: ContentListViewModelProtocol,
         themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
+        languageManager: LanguageManagerProtocol
     ) {
         self.viewModel = viewModel
-
         let layout = Self.makeLayout()
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-
-        super.init(
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontSettingsManager: fontSettingsManager
-        )
+        super.init(themeManager: themeManager, languageManager: languageManager)
 
         collectionView.delegate = self
         collectionView.remembersLastFocusedIndexPath = true
@@ -102,7 +94,6 @@ final class MoviesController: BaseViewController {
         configureDataSource()
         bindViewModel()
         viewModel.onViewDidLoad()
-        videoPreviewPresenter.attach(to: view)
     }
 
     override func viewDidLayoutSubviews() {
@@ -192,8 +183,6 @@ final class MoviesController: BaseViewController {
             UIColor.clear.cgColor,
             style.background.withAlphaComponent(0.85).cgColor
         ]
-
-        videoPreviewPresenter.updateStyle(style)
     }
 
     private func bindViewModel() {
@@ -275,7 +264,6 @@ final class MoviesController: BaseViewController {
 
 extension MoviesController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        videoPreviewPresenter.hide()
         viewModel.didSelectItem(at: indexPath.item)
     }
 
@@ -303,14 +291,10 @@ extension MoviesController: UICollectionViewDelegate {
         if let next = context.nextFocusedIndexPath, movies.indices.contains(next.item) {
             let movie = movies[next.item]
             preferredIndexPath = next
-            videoPreviewPresenter.show(for: movie, cellSize: cellSize())
-            
-            // Premium backdrop update with transition
             UIView.transition(with: backdropImageView, duration: 0.4, options: .transitionCrossDissolve) {
                 self.backdropImageView.setPoster(url: movie.posterURL, placeholder: nil)
             }
         } else {
-            videoPreviewPresenter.hide()
             UIView.transition(with: backdropImageView, duration: 0.3, options: .transitionCrossDissolve) {
                 self.backdropImageView.image = nil
             }

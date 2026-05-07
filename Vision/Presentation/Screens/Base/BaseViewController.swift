@@ -6,16 +6,10 @@ class BaseViewController: UIViewController {
     
     let themeManager: ThemeManagerProtocol
     let languageManager: LanguageManagerProtocol
-    let fontSettingsManager: FontSettingsManagerProtocol
     
-    init(
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.themeManager = themeManager
         self.languageManager = languageManager
-        self.fontSettingsManager = fontSettingsManager
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -42,13 +36,6 @@ class BaseViewController: UIViewController {
                 self?.applyLanguage(language)
             }
             .store(in: &cancellables)
-            
-        fontSettingsManager.currentFamily
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] family in
-                self?.applyFont(family)
-            }
-            .store(in: &cancellables)
     }
     
     func applyStyle(_ style: ThemeStyle) {
@@ -57,9 +44,5 @@ class BaseViewController: UIViewController {
     
     func applyLanguage(_ language: AppLanguage) {
         // Overridden by subclasses to update localized strings
-    }
-    
-    func applyFont(_ family: FontFamily) {
-        // Overridden by subclasses to update typography
     }
 }

@@ -38,8 +38,6 @@ final class AppViewModel {
         coordinator.showSettings()
     }
 
-    // MARK: - Private
-
     private func tabBarConfig(from categories: [Category]) -> TabBarConfiguration {
         let items = categories.map { category in
             TabItem(
@@ -49,6 +47,7 @@ final class AppViewModel {
                 genres: category.genres.map { GenreItem(id: $0.url, title: $0.title) }
             )
         }
+        
         return TabBarConfiguration(items: items)
     }
 
@@ -65,6 +64,6 @@ final class AppViewModel {
     }
 
     private func category(forItemID id: String) -> Category? {
-        categories.first { $0.id == id }   // ищем по category.id, не по url
+        categories.first { $0.id == id }
     }
 }

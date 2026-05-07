@@ -21,11 +21,7 @@ final class AppCoordinator: CoordinatorProtocol {
     private weak var appController: AppController?
     private var cancellables = Set<AnyCancellable>()
 
-    init(
-        window: UIWindow,
-        factory: FactoryProtocol,
-        languageManager: LanguageManagerProtocol
-    ) {
+    init(window: UIWindow, factory: FactoryProtocol, languageManager: LanguageManagerProtocol) {
         self.window = window
         self.factory = factory
         self.languageManager = languageManager
@@ -35,8 +31,6 @@ final class AppCoordinator: CoordinatorProtocol {
         bindLanguage()
         buildApp()
     }
-
-    // MARK: - Private
 
     private func buildApp() {
         let controller = factory.makeAppController(coordinator: self)

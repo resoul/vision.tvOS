@@ -54,23 +54,14 @@ final class SearchViewController: BaseViewController {
         return l
     }()
     
-    init(
-        viewModel: SearchViewModel,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontSettingsManager: FontSettingsManagerProtocol
-    ) {
+    init(viewModel: SearchViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
         
         let layout = Self.makeLayout()
         self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         self.collectionView.translatesAutoresizingMaskIntoConstraints = false
         
-        super.init(
-            themeManager: themeManager,
-            languageManager: languageManager,
-            fontSettingsManager: fontSettingsManager
-        )
+        super.init(themeManager: themeManager, languageManager: languageManager)
     }
     
     required init?(coder: NSCoder) { fatalError() }
@@ -84,14 +75,9 @@ final class SearchViewController: BaseViewController {
     
     private func setupUI() {
         view.backgroundColor = .black.withAlphaComponent(0.9)
-        
-        view.addSubview(searchContainer)
-        searchContainer.addSubview(searchIcon)
-        searchContainer.addSubview(searchTextField)
-        view.addSubview(collectionView)
-        view.addSubview(loadingIndicator)
-        view.addSubview(emptyLabel)
-        
+        view.addSubviews(searchContainer, collectionView, loadingIndicator, emptyLabel)
+        searchContainer.addSubviews(searchIcon, searchTextField)
+
         NSLayoutConstraint.activate([
             searchContainer.topAnchor.constraint(equalTo: view.topAnchor, constant: 80),
             searchContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),

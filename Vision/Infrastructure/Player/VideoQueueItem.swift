@@ -1,5 +1,3 @@
-import Foundation
-
 struct VideoQueueItem: Hashable {
     let id: Int
     let title: String

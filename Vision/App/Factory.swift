@@ -8,6 +8,7 @@ protocol FactoryProtocol {
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeSearchModule(coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext?) -> UIViewController
+    func makeVideoModule() -> UIViewController
 }
 
 final class ModuleFactory: FactoryProtocol {
@@ -34,12 +35,7 @@ final class ModuleFactory: FactoryProtocol {
     }
     
     func makeAppController(coordinator: AppCoordinatorProtocol) -> AppController {
-        AppController(
-            viewModel: AppViewModel(coordinator: coordinator),
-            themeManager: container.themeManager,
-            languageManager: container.languageManager,
-            fontSettingsManager: container.fontSettingsManager
-        )
+        AppController(viewModel: AppViewModel(coordinator: coordinator), themeManager: container.themeManager, languageManager: container.languageManager)
     }
     
     func makeContentModule(for destination: TabDestination, coordinator: AppCoordinatorProtocol) -> UIViewController {
@@ -52,12 +48,8 @@ final class ModuleFactory: FactoryProtocol {
             viewModel.onDetailRequested = { [weak coordinator] item in
                 coordinator?.showDetail(for: item)
             }
-            return MoviesController(
-                viewModel: viewModel,
-                themeManager: self.container.themeManager,
-                languageManager: self.container.languageManager,
-                fontSettingsManager: self.container.fontSettingsManager
-            )
+            
+            return MoviesController(viewModel: viewModel, themeManager: self.container.themeManager, languageManager: self.container.languageManager)
         }
 
         switch destination {
@@ -74,23 +66,15 @@ final class ModuleFactory: FactoryProtocol {
             viewModel.onDetailRequested = { [weak coordinator] item in
                 coordinator?.showDetail(for: item)
             }
-            return MoviesController(
-                viewModel: viewModel,
-                themeManager: self.container.themeManager,
-                languageManager: self.container.languageManager,
-                fontSettingsManager: self.container.fontSettingsManager
-            )
+            
+            return MoviesController(viewModel: viewModel, themeManager: self.container.themeManager, languageManager: self.container.languageManager)
         case .watchHistory:
             let viewModel = WatchHistoryViewModel(watchHistoryUseCase: container.watchHistoryUseCase)
             viewModel.onDetailRequested = { [weak coordinator] item in
                 coordinator?.showDetail(for: item)
             }
-            return MoviesController(
-                viewModel: viewModel,
-                themeManager: self.container.themeManager,
-                languageManager: self.container.languageManager,
-                fontSettingsManager: self.container.fontSettingsManager
-            )
+            
+            return MoviesController(viewModel: viewModel, themeManager: self.container.themeManager, languageManager: self.container.languageManager)
         }
     }
     
@@ -98,19 +82,18 @@ final class ModuleFactory: FactoryProtocol {
         let viewModel = SettingsViewModel(
             settingsUseCase: container.settingsUseCase,
             themeManager: container.themeManager,
-            languageManager: container.languageManager,
-            fontSettingsManager: container.fontSettingsManager
+            languageManager: container.languageManager
         )
         return SettingsViewController(
             viewModel: viewModel,
             themeManager: container.themeManager,
-            languageManager: container.languageManager,
-            fontSettingsManager: container.fontSettingsManager
+            languageManager: container.languageManager
         )
     }
 
 
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController {
+        print("makeDetailModule", item)
         if item.type.isSeries {
             let vm = SerieDetailViewModel(
                 movie: item,
@@ -122,12 +105,8 @@ final class ModuleFactory: FactoryProtocol {
             vm.onPlayRequested = { [weak coordinator] context in
                 coordinator?.showPlayer(queue: [item], startIndex: 0, initialContext: context)
             }
-            return SerieDetailViewController(
-                viewModel: vm,
-                themeManager: container.themeManager,
-                languageManager: container.languageManager,
-                fontManager: container.fontSettingsManager
-            )
+            
+            return SerieDetailViewController(viewModel: vm, themeManager: container.themeManager, languageManager: container.languageManager)
         } else {
             let vm = MovieDetailViewModel(
                 movie: item,
@@ -139,13 +118,8 @@ final class ModuleFactory: FactoryProtocol {
             vm.onPlayRequested = { [weak coordinator] _, url in
                 coordinator?.showPlayer(queue: [item], startIndex: 0, initialContext: nil)
             }
-            return MovieDetailViewController(
-                movie: item,
-                viewModel: vm,
-                themeManager: container.themeManager,
-                languageManager: container.languageManager,
-                fontManager: container.fontSettingsManager
-            )
+            
+            return MovieDetailViewController(movie: item, viewModel: vm, themeManager: container.themeManager, languageManager: container.languageManager)
         }
     }
     
@@ -154,15 +128,13 @@ final class ModuleFactory: FactoryProtocol {
         viewModel.onDetailRequested = { [weak coordinator] item in
             coordinator?.showDetail(for: item)
         }
-        return SearchViewController(
-            viewModel: viewModel,
-            themeManager: container.themeManager,
-            languageManager: container.languageManager,
-            fontSettingsManager: container.fontSettingsManager
-        )
+        
+        return SearchViewController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
     }
 
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) -> UIViewController {
+        print("makeVideoPlayerModule", queue)
+        
         let viewModel = PlayerViewModel(
             queue: queue,
             startIndex: startIndex,
@@ -173,12 +145,11 @@ final class ModuleFactory: FactoryProtocol {
             settingsUseCase: container.settingsUseCase
         )
         
-        return VideoPlayerViewController(
-            viewModel: viewModel,
-            themeManager: container.themeManager,
-            languageManager: container.languageManager,
-            fontSettingsManager: container.fontSettingsManager
-        )
+        return VideoPlayerViewController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
     }
-
+    
+    func makeVideoModule() -> UIViewController {
+        let viewModel = VideoViewModel()
+        return VideoController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
+    }
 }

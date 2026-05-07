@@ -1,14 +1,8 @@
 import UIKit
 
 class BaseDetailViewController: BaseViewController {
-    
-    // MARK: - Properties
-    
     let movie: ContentItem
     var detail: ContentDetail?
-    
-    // MARK: - Views
-    
     let backdropIV = UIImageView()
     let backdropBlur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     let vignetteView = UIView()
@@ -105,11 +99,10 @@ class BaseDetailViewController: BaseViewController {
     init(
         movie: ContentItem,
         themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol,
-        fontManager: FontSettingsManagerProtocol
+        languageManager: LanguageManagerProtocol
     ) {
         self.movie = movie
-        super.init(themeManager: themeManager, languageManager: languageManager, fontSettingsManager: fontManager)
+        super.init(themeManager: themeManager, languageManager: languageManager)
     }
     
     required init?(coder: NSCoder) { fatalError() }
