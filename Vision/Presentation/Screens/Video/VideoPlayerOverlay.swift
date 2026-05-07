@@ -1,13 +1,28 @@
 import UIKit
 
+// MARK: - Delegate
+
 protocol VideoPlayerOverlayDelegate: AnyObject {
     func overlayDidSeek(to time: Double)
     func overlayDidTogglePlayPause()
     func overlayDidRequestDismiss()
+    func overlayDidRequestSkipBackward()
+    func overlayDidRequestSkipForward()
+    func overlayDidRequestSubtitles()
+    func overlayDidRequestTranslations()
 }
 
+// MARK: - VideoPlayerOverlay
+
 final class VideoPlayerOverlay: UIView {
+
     weak var delegate: VideoPlayerOverlayDelegate?
+
+    // MARK: Public state
+
+    var videoTitle: String = "" {
+        didSet { titleLabel.text = videoTitle }
+    }
 
     var totalDuration: Double = 0 {
         didSet {
@@ -28,13 +43,88 @@ final class VideoPlayerOverlay: UIView {
     }
 
     var isPlaying: Bool = false {
-        didSet {
-            let icon = isPlaying ? "pause.fill" : "play.fill"
-            playPauseButton.setImage(UIImage(systemName: icon), for: .normal)
-        }
+        didSet { updatePlayPauseIcon() }
     }
 
-    // MARK: - UI
+    // MARK: - UI: gradient
+
+    private let gradientLayer: CAGradientLayer = {
+        let g = CAGradientLayer()
+        g.colors = [
+            UIColor.clear.cgColor,
+            UIColor.black.withAlphaComponent(0.3).cgColor,
+            UIColor.black.withAlphaComponent(0.85).cgColor
+        ]
+        g.locations = [0.0, 0.5, 1.0]
+        return g
+    }()
+
+    // MARK: - UI: title
+
+    private let titleLabel: UILabel = {
+        let l = UILabel()
+        l.font = .systemFont(ofSize: 38, weight: .semibold)
+        l.textColor = .white
+        l.numberOfLines = 1
+        return l
+    }()
+
+    // MARK: - UI: playback controls (center row)
+
+    private let skipBackwardButton: UIButton = {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        b.setImage(UIImage(systemName: "gobackward.10", withConfiguration: config), for: .normal)
+        b.tintColor = .white
+        return b
+    }()
+
+    private let playPauseButton: UIButton = {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 34, weight: .medium)
+        b.setImage(UIImage(systemName: "pause.fill", withConfiguration: config), for: .normal)
+        b.tintColor = .white
+        return b
+    }()
+
+    private let skipForwardButton: UIButton = {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        b.setImage(UIImage(systemName: "goforward.10", withConfiguration: config), for: .normal)
+        b.tintColor = .white
+        return b
+    }()
+
+    // Stack that holds the three playback buttons
+    private lazy var playbackControlsStack: UIStackView = {
+        let s = UIStackView(arrangedSubviews: [skipBackwardButton, playPauseButton, skipForwardButton])
+        s.axis = .horizontal
+        s.alignment = .center
+        s.spacing = 48
+        return s
+    }()
+
+    // MARK: - UI: right menu buttons
+
+    private let subtitlesButton: UIButton = makeMenuButton(
+        icon: "captions.bubble.fill",
+        title: "Subtitles"
+    )
+
+    private let translationsButton: UIButton = makeMenuButton(
+        icon: "character.bubble.fill",
+        title: "Audio"
+    )
+
+    private lazy var rightMenuStack: UIStackView = {
+        let s = UIStackView(arrangedSubviews: [subtitlesButton, translationsButton])
+        s.axis = .horizontal
+        s.alignment = .center
+        s.spacing = 24
+        return s
+    }()
+
+    // MARK: - UI: slider row
 
     private let slider = VideoSliderControl.youtubeStyle()
 
@@ -49,23 +139,9 @@ final class VideoPlayerOverlay: UIView {
     private let totalTimeLabel: UILabel = {
         let l = UILabel()
         l.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
-        l.textColor = UIColor.white.withAlphaComponent(0.6)
+        l.textColor = UIColor.white.withAlphaComponent(0.55)
         l.text = "0:00"
         return l
-    }()
-
-    private let playPauseButton: UIButton = {
-        let b = UIButton(type: .system)
-        b.setImage(UIImage(systemName: "pause.fill"), for: .normal)
-        b.tintColor = .white
-        return b
-    }()
-
-    private let gradientLayer: CAGradientLayer = {
-        let g = CAGradientLayer()
-        g.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.8).cgColor]
-        g.locations = [0.0, 1.0]
-        return g
     }()
 
     // MARK: - Init
@@ -80,35 +156,100 @@ final class VideoPlayerOverlay: UIView {
         setup()
     }
 
+    // MARK: - Setup
+
     private func setup() {
         isHidden = true
         alpha = 0
+        clipsToBounds = false
+
         layer.addSublayer(gradientLayer)
 
-        addSubviews(slider, currentTimeLabel, totalTimeLabel, playPauseButton)
-        playPauseButton.constraints(top: nil, leading: nil, bottom: slider.topAnchor, trailing: nil, padding: .init(top: 0, left: 0, bottom: 20, right: 0), size: .init(width: 60, height: 60))
-        playPauseButton.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        slider.constraints(top: nil, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor, padding: .init(top: 0, left: 60, bottom: 80, right: 60), size: .init(width: 0, height: 40))
-        currentTimeLabel.constraints(top: slider.bottomAnchor, leading: slider.leadingAnchor, bottom: nil, trailing: nil, padding: .init(top: 8, left: 0, bottom: 0, right: 0))
-        totalTimeLabel.constraints(top: slider.bottomAnchor, leading: nil, bottom: nil, trailing: slider.trailingAnchor, padding: .init(top: 8, left: 0, bottom: 0, right: 0))
+        addSubviews(
+            titleLabel,
+            playbackControlsStack,
+            rightMenuStack,
+            slider,
+            currentTimeLabel,
+            totalTimeLabel
+        )
 
-        slider.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
-        playPauseButton.addTarget(self, action: #selector(playPauseTapped), for: .primaryActionTriggered)
+        setupConstraints()
+        setupActions()
+        updatePlayPauseIcon()
     }
+
+    private func setupConstraints() {
+        // Title — bottom-left, above slider area
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        playbackControlsStack.translatesAutoresizingMaskIntoConstraints = false
+        rightMenuStack.translatesAutoresizingMaskIntoConstraints = false
+        slider.translatesAutoresizingMaskIntoConstraints = false
+        currentTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+        totalTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            // Slider — anchored to bottom
+            slider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 60),
+            slider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -60),
+            slider.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -80),
+            slider.heightAnchor.constraint(equalToConstant: 40),
+
+            // Time labels below slider
+            currentTimeLabel.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 8),
+            currentTimeLabel.leadingAnchor.constraint(equalTo: slider.leadingAnchor),
+
+            totalTimeLabel.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 8),
+            totalTimeLabel.trailingAnchor.constraint(equalTo: slider.trailingAnchor),
+
+            // Title — left-aligned, above slider
+            titleLabel.leadingAnchor.constraint(equalTo: slider.leadingAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: slider.topAnchor, constant: -24),
+            titleLabel.trailingAnchor.constraint(equalTo: playbackControlsStack.leadingAnchor, constant: -20),
+
+            // Playback controls — centered horizontally, same vertical as title
+            playbackControlsStack.centerXAnchor.constraint(equalTo: centerXAnchor),
+            playbackControlsStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+
+            // Right menu — right-aligned, same vertical as title
+            rightMenuStack.trailingAnchor.constraint(equalTo: slider.trailingAnchor),
+            rightMenuStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+
+            // Button sizes
+            skipBackwardButton.widthAnchor.constraint(equalToConstant: 60),
+            skipBackwardButton.heightAnchor.constraint(equalToConstant: 60),
+            playPauseButton.widthAnchor.constraint(equalToConstant: 60),
+            playPauseButton.heightAnchor.constraint(equalToConstant: 60),
+            skipForwardButton.widthAnchor.constraint(equalToConstant: 60),
+            skipForwardButton.heightAnchor.constraint(equalToConstant: 60),
+        ])
+    }
+
+    private func setupActions() {
+        playPauseButton.addTarget(self, action: #selector(playPauseTapped), for: .primaryActionTriggered)
+        skipBackwardButton.addTarget(self, action: #selector(skipBackwardTapped), for: .primaryActionTriggered)
+        skipForwardButton.addTarget(self, action: #selector(skipForwardTapped), for: .primaryActionTriggered)
+        subtitlesButton.addTarget(self, action: #selector(subtitlesTapped), for: .primaryActionTriggered)
+        translationsButton.addTarget(self, action: #selector(translationsTapped), for: .primaryActionTriggered)
+        slider.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
+    }
+
+    // MARK: - Layout
 
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = bounds
     }
 
+    // MARK: - Focus
+
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
         [slider]
     }
 
-    // MARK: - pressesBegan — ВСЯ логика пульта здесь
+    // MARK: - Remote press routing (called from VideoController)
 
-    // Оверлей должен быть первым responder или
-    // VideoController пробрасывает сюда нажатия
+    /// Returns true if the press was handled
     func handlePress(_ press: UIPress) -> Bool {
         switch press.type {
         case .playPause:
@@ -141,6 +282,22 @@ final class VideoPlayerOverlay: UIView {
         delegate?.overlayDidTogglePlayPause()
     }
 
+    @objc private func skipBackwardTapped() {
+        delegate?.overlayDidRequestSkipBackward()
+    }
+
+    @objc private func skipForwardTapped() {
+        delegate?.overlayDidRequestSkipForward()
+    }
+
+    @objc private func subtitlesTapped() {
+        delegate?.overlayDidRequestSubtitles()
+    }
+
+    @objc private func translationsTapped() {
+        delegate?.overlayDidRequestTranslations()
+    }
+
     // MARK: - Show / Hide
 
     func show(animated: Bool = true) {
@@ -150,26 +307,22 @@ final class VideoPlayerOverlay: UIView {
             self.setNeedsFocusUpdate()
             self.updateFocusIfNeeded()
         }
-        guard animated else {
-            alpha = 1
-            finish()
-            return
-        }
-        UIView.animate(withDuration: 0.25) {
-            self.alpha = 1
-        } completion: { _ in
-            finish()
-        }
+        guard animated else { alpha = 1; finish(); return }
+        UIView.animate(withDuration: 0.25) { self.alpha = 1 } completion: { _ in finish() }
     }
 
     func hide(animated: Bool = true) {
         guard animated else { isHidden = true; return }
-        UIView.animate(withDuration: 0.25) { self.alpha = 0 } completion: { _ in
-            self.isHidden = true
-        }
+        UIView.animate(withDuration: 0.25) { self.alpha = 0 } completion: { _ in self.isHidden = true }
     }
 
     // MARK: - Helpers
+
+    private func updatePlayPauseIcon() {
+        let name = isPlaying ? "pause.fill" : "play.fill"
+        let config = UIImage.SymbolConfiguration(pointSize: 34, weight: .medium)
+        playPauseButton.setImage(UIImage(systemName: name, withConfiguration: config), for: .normal)
+    }
 
     private func formatTime(_ seconds: Double) -> String {
         let s = Int(seconds)
@@ -179,5 +332,33 @@ final class VideoPlayerOverlay: UIView {
         return h > 0
             ? String(format: "%d:%02d:%02d", h, m, sec)
             : String(format: "%d:%02d", m, sec)
+    }
+
+    private static func makeMenuButton(icon: String, title: String) -> UIButton {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        b.setImage(UIImage(systemName: icon, withConfiguration: config), for: .normal)
+        b.tintColor = .white
+
+        // Stack icon + label vertically inside button using a manual layout approach
+        // For tvOS the standard UIButton with .vertical layout works on iOS 15+
+        if #available(tvOS 15.0, *) {
+            var btnConfig = UIButton.Configuration.plain()
+            btnConfig.image = UIImage(systemName: icon, withConfiguration: config)
+            btnConfig.title = title
+            btnConfig.imagePlacement = .top
+            btnConfig.imagePadding = 6
+            btnConfig.baseForegroundColor = .white
+            btnConfig.attributedTitle = AttributedString(
+                title,
+                attributes: AttributeContainer([
+                    .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+                    .foregroundColor: UIColor.white
+                ])
+            )
+            b.configuration = btnConfig
+        }
+
+        return b
     }
 }
