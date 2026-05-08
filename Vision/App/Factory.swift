@@ -8,7 +8,7 @@ protocol FactoryProtocol {
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeSearchModule(coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext?) -> UIViewController
-    func makeVideoModule() -> UIViewController
+    func makeVideoModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext?) -> UIViewController
 }
 
 final class ModuleFactory: FactoryProtocol {
@@ -133,8 +133,6 @@ final class ModuleFactory: FactoryProtocol {
     }
 
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) -> UIViewController {
-        print("makeVideoPlayerModule", queue)
-        
         let viewModel = PlayerViewModel(
             queue: queue,
             startIndex: startIndex,
@@ -148,8 +146,16 @@ final class ModuleFactory: FactoryProtocol {
         return VideoPlayerViewController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
     }
     
-    func makeVideoModule() -> UIViewController {
-        let viewModel = VideoViewModel()
+    func makeVideoModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) -> UIViewController {
+        let viewModel = VideoViewModel(
+            queue: queue,
+            currentIndex: startIndex,
+            initialContext: initialContext,
+            playerUseCase: container.playerUseCase,
+            watchHistoryUseCase: container.watchHistoryUseCase,
+            progressManager: container.progressManager
+        )
+        
         return VideoController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
     }
 }

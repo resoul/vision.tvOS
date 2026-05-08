@@ -1,6 +1,6 @@
 import UIKit
-
-// MARK: - Mock data models
+import Combine
+import AVFoundation
 
 struct SubtitleOption {
     let language: String
@@ -17,6 +17,7 @@ struct AudioOption {
 
 class VideoController: BaseViewController {
     let viewModel: VideoViewModel
+    private let loadingView = UIActivityIndicatorView(style: .large)
     private let playerView = QueueVideoPlayerLayerView()
     private let playerEngine = QueueVideoPlayerEngine()
     private let overlayView = VideoPlayerOverlay()
@@ -47,6 +48,7 @@ class VideoController: BaseViewController {
     init(viewModel: VideoViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
         super.init(themeManager: themeManager, languageManager: languageManager)
+        modalPresentationStyle = .fullScreen
     }
 
     // MARK: - Lifecycle
@@ -55,13 +57,24 @@ class VideoController: BaseViewController {
         super.viewDidLoad()
         setupUI()
         viewModel.viewDidLoad()
+        bindViewModel()
+        bindPlayerEngine()
+        
+        Task {
+            await viewModel.loadCurrent()
+        }
     }
-
-    // MARK: - Setup
-
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        playerEngine.player.pause()
+    }
+    
     private func setupUI() {
         view.backgroundColor = .black
         playerView.player = playerEngine.player
+        loadingView.hidesWhenStopped = true
+        overlayView.isSeries = false
 
         overlayView.delegate = self
         overlayView.videoTitle = "The Elephant Queen"
@@ -70,22 +83,76 @@ class VideoController: BaseViewController {
         overlayView.bufferedTime = 60 * 12
         overlayView.isPlaying = isPlaying
 
-        view.addSubviews(playerView, overlayView)
-        playerView.constraints(
-            top: view.topAnchor,
-            leading: view.leadingAnchor,
-            bottom: view.bottomAnchor,
-            trailing: view.trailingAnchor
-        )
-        overlayView.constraints(
-            top: view.topAnchor,
-            leading: view.leadingAnchor,
-            bottom: view.bottomAnchor,
-            trailing: view.trailingAnchor
-        )
+        view.addSubviews(playerView, overlayView, loadingView)
+        playerView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        overlayView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        loadingView.constraintToCenter(in: view)
+        
+        updateSubtitlesMenu()
+        updateAudioMenu()
     }
+    
+    private func bindViewModel() {
+        viewModel.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                if isLoading {
+                    self?.loadingView.startAnimating()
+                } else {
+                    self?.loadingView.stopAnimating()
+                }
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$currentContext
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] context in
+                self?.handleNewContext(context)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func bindPlayerEngine() {}
+    
+    private func handleNewContext(_ context: PlaybackContext) {
+        print(context)
+        guard let url = URL(string: context.streamURL) else { return }
+        
+        print(url)
 
-    // MARK: - Remote control
+//        if viewModel.isAwaitingResumeDecision {
+//            playerEngine.prepare(url: url)
+//        } else {
+//            playerEngine.play(url: url)
+//            if let resumeTime = viewModel.consumeAutoResumeTime() {
+//                playerEngine.seek(seconds: resumeTime)
+//            }
+//        }
+//
+//        let info = VideoQueueItem(
+//            id: context.movieId,
+//            title: title(for: context),
+//            subtitle: subtitle(for: context),
+//            viewsText: "",
+//            addedText: "",
+//            posterURL: ""
+//        )
+//        overlayView.updateInfo(item: info)
+//        Task { [weak self] in
+//            guard let self else { return }
+//            let items = await self.viewModel.buildEpisodeBrowseItems()
+//            await MainActor.run {
+//                self.overlayView.configureEpisodeBrowse(
+//                    items: items,
+//                    currentSeason: self.viewModel.currentSeasonIndex,
+//                    currentEpisode: self.viewModel.currentEpisodeIndex,
+//                    isSeries: self.viewModel.isSeries
+//                )
+//                self.showOverlayTemporarily()
+//            }
+//        }
+    }
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if !overlayView.isHidden {
@@ -107,12 +174,15 @@ class VideoController: BaseViewController {
         }
 
         if presses.contains(where: { $0.type == .playPause }) {
-            showOverlay()
+            overlayView.show()
             return
         }
 
         if presses.contains(where: { $0.type == .select }) {
-            showOverlay()
+            if overlayView.isHidden {
+                overlayView.show()
+            }
+            
             return
         }
 
@@ -127,44 +197,40 @@ class VideoController: BaseViewController {
         super.pressesBegan(presses, with: event)
     }
 
-    // MARK: - Overlay
-
-    private func showOverlay() {
-        overlayView.show()
-        setNeedsFocusUpdate()
-        updateFocusIfNeeded()
-    }
-
-    // MARK: - Subtitles / Audio menus
-
-    private func showSubtitlesMenu() {
-        let alert = UIAlertController(title: "SUBTITLES", message: nil, preferredStyle: .actionSheet)
-        for (index, option) in subtitles.enumerated() {
-            let title = option.isSelected ? "✓  \(option.language)" : "    \(option.language)"
-            alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in
+    private func updateSubtitlesMenu() {
+        let actions = subtitles.enumerated().map { (index, option) in
+            UIAction(
+                title: option.language,
+                state: option.isSelected ? .on : .off
+            ) { [weak self] _ in
                 guard let self else { return }
                 for i in self.subtitles.indices { self.subtitles[i].isSelected = false }
                 self.subtitles[index].isSelected = true
+                self.updateSubtitlesMenu()   // обновляем checkmark
                 print("Subtitle selected:", option.language)
-            })
+            }
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+
+        overlayView.subtitlesButton.menu = UIMenu(title: "SUBTITLES", children: actions)
+        overlayView.subtitlesButton.showsMenuAsPrimaryAction = true
     }
 
-    private func showTranslationsMenu() {
-        let alert = UIAlertController(title: "AUDIO", message: nil, preferredStyle: .actionSheet)
-        for (index, option) in audioTracks.enumerated() {
-            let title = option.isSelected ? "✓  \(option.language)" : "    \(option.language)"
-            alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in
+    private func updateAudioMenu() {
+        let actions = audioTracks.enumerated().map { (index, option) in
+            UIAction(
+                title: option.language,
+                state: option.isSelected ? .on : .off
+            ) { [weak self] _ in
                 guard let self else { return }
                 for i in self.audioTracks.indices { self.audioTracks[i].isSelected = false }
                 self.audioTracks[index].isSelected = true
+                self.updateAudioMenu()       // обновляем checkmark
                 print("Audio track selected:", option.language)
-            })
+            }
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+
+        overlayView.translationsButton.menu = UIMenu(title: "AUDIO", children: actions)
+        overlayView.translationsButton.showsMenuAsPrimaryAction = true
     }
 
     required init?(coder: NSCoder) {
@@ -201,12 +267,14 @@ extension VideoController: VideoPlayerOverlayDelegate {
         overlayView.currentTime = newTime
         // playerEngine.seek(to: newTime)
     }
-
-    func overlayDidRequestSubtitles() {
-        showSubtitlesMenu()
+    
+    func overlayDidRequestPreviousEpisode() {
+        print("Previous episode tapped")
+        // Ваша логика перехода к предыдущему эпизоду
     }
 
-    func overlayDidRequestTranslations() {
-        showTranslationsMenu()
+    func overlayDidRequestNextEpisode() {
+        print("Next episode tapped")
+        // Ваша логика перехода к следующему эпизоду
     }
 }

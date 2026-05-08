@@ -1,18 +1,14 @@
 import UIKit
 
-// MARK: - Delegate
-
 protocol VideoPlayerOverlayDelegate: AnyObject {
     func overlayDidSeek(to time: Double)
     func overlayDidTogglePlayPause()
     func overlayDidRequestDismiss()
     func overlayDidRequestSkipBackward()
     func overlayDidRequestSkipForward()
-    func overlayDidRequestSubtitles()
-    func overlayDidRequestTranslations()
+    func overlayDidRequestPreviousEpisode()
+    func overlayDidRequestNextEpisode()
 }
-
-// MARK: - VideoPlayerOverlay
 
 final class VideoPlayerOverlay: UIView {
 
@@ -45,6 +41,10 @@ final class VideoPlayerOverlay: UIView {
     var isPlaying: Bool = false {
         didSet { updatePlayPauseIcon() }
     }
+    
+    var isSeries: Bool = false {
+        didSet { updateSeriesButtons() }
+    }
 
     // MARK: - UI: gradient
 
@@ -71,47 +71,78 @@ final class VideoPlayerOverlay: UIView {
 
     // MARK: - UI: playback controls (center row)
 
+    private let previousEpisodeButton: UIButton = {  // NEW
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.baseForegroundColor = .white
+        btnConfig.image = UIImage(systemName: "backward.end.fill", withConfiguration: config)
+        b.configuration = btnConfig
+        b.isHidden = true
+        return b
+    }()
+
     private let skipBackwardButton: UIButton = {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
-        b.setImage(UIImage(systemName: "gobackward.10", withConfiguration: config), for: .normal)
-        b.tintColor = .white
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.baseForegroundColor = .white
+        btnConfig.image = UIImage(systemName: "gobackward.10", withConfiguration: config)
+        b.configuration = btnConfig
         return b
     }()
 
     private let playPauseButton: UIButton = {
         let b = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 34, weight: .medium)
-        b.setImage(UIImage(systemName: "pause.fill", withConfiguration: config), for: .normal)
-        b.tintColor = .white
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.baseForegroundColor = .white
+        btnConfig.image = UIImage(systemName: "pause.fill", withConfiguration: config)
+        b.configuration = btnConfig
         return b
     }()
 
     private let skipForwardButton: UIButton = {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
-        b.setImage(UIImage(systemName: "goforward.10", withConfiguration: config), for: .normal)
-        b.tintColor = .white
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.baseForegroundColor = .white
+        btnConfig.image = UIImage(systemName: "goforward.10", withConfiguration: config)
+        b.configuration = btnConfig
         return b
     }()
 
-    // Stack that holds the three playback buttons
+    private let nextEpisodeButton: UIButton = {  // NEW
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.baseForegroundColor = .white
+        btnConfig.image = UIImage(systemName: "forward.end.fill", withConfiguration: config)
+        b.configuration = btnConfig
+        b.isHidden = true
+        return b
+    }()
+
     private lazy var playbackControlsStack: UIStackView = {
-        let s = UIStackView(arrangedSubviews: [skipBackwardButton, playPauseButton, skipForwardButton])
+        let s = UIStackView(arrangedSubviews: [
+            previousEpisodeButton,  // NEW
+            skipBackwardButton,
+            playPauseButton,
+            skipForwardButton,
+            nextEpisodeButton       // NEW
+        ])
         s.axis = .horizontal
         s.alignment = .center
         s.spacing = 48
         return s
     }()
-
-    // MARK: - UI: right menu buttons
-
-    private let subtitlesButton: UIButton = makeMenuButton(
+    
+    let subtitlesButton: UIButton = makeMenuButton(
         icon: "captions.bubble.fill",
         title: "Subtitles"
     )
-
-    private let translationsButton: UIButton = makeMenuButton(
+    
+    let translationsButton: UIButton = makeMenuButton(
         icon: "character.bubble.fill",
         title: "Audio"
     )
@@ -180,7 +211,6 @@ final class VideoPlayerOverlay: UIView {
     }
 
     private func setupConstraints() {
-        // Title — bottom-left, above slider area
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         playbackControlsStack.translatesAutoresizingMaskIntoConstraints = false
         rightMenuStack.translatesAutoresizingMaskIntoConstraints = false
@@ -189,39 +219,39 @@ final class VideoPlayerOverlay: UIView {
         totalTimeLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            // Slider — anchored to bottom
             slider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 60),
             slider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -60),
             slider.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -80),
             slider.heightAnchor.constraint(equalToConstant: 40),
 
-            // Time labels below slider
             currentTimeLabel.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 8),
             currentTimeLabel.leadingAnchor.constraint(equalTo: slider.leadingAnchor),
 
             totalTimeLabel.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 8),
             totalTimeLabel.trailingAnchor.constraint(equalTo: slider.trailingAnchor),
 
-            // Title — left-aligned, above slider
             titleLabel.leadingAnchor.constraint(equalTo: slider.leadingAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: slider.topAnchor, constant: -24),
             titleLabel.trailingAnchor.constraint(equalTo: playbackControlsStack.leadingAnchor, constant: -20),
 
-            // Playback controls — centered horizontally, same vertical as title
             playbackControlsStack.centerXAnchor.constraint(equalTo: centerXAnchor),
             playbackControlsStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
 
-            // Right menu — right-aligned, same vertical as title
             rightMenuStack.trailingAnchor.constraint(equalTo: slider.trailingAnchor),
             rightMenuStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
 
-            // Button sizes
             skipBackwardButton.widthAnchor.constraint(equalToConstant: 60),
             skipBackwardButton.heightAnchor.constraint(equalToConstant: 60),
             playPauseButton.widthAnchor.constraint(equalToConstant: 60),
             playPauseButton.heightAnchor.constraint(equalToConstant: 60),
             skipForwardButton.widthAnchor.constraint(equalToConstant: 60),
             skipForwardButton.heightAnchor.constraint(equalToConstant: 60),
+
+            // NEW — episode buttons
+            previousEpisodeButton.widthAnchor.constraint(equalToConstant: 60),
+            previousEpisodeButton.heightAnchor.constraint(equalToConstant: 60),
+            nextEpisodeButton.widthAnchor.constraint(equalToConstant: 60),
+            nextEpisodeButton.heightAnchor.constraint(equalToConstant: 60),
         ])
     }
 
@@ -229,9 +259,11 @@ final class VideoPlayerOverlay: UIView {
         playPauseButton.addTarget(self, action: #selector(playPauseTapped), for: .primaryActionTriggered)
         skipBackwardButton.addTarget(self, action: #selector(skipBackwardTapped), for: .primaryActionTriggered)
         skipForwardButton.addTarget(self, action: #selector(skipForwardTapped), for: .primaryActionTriggered)
-        subtitlesButton.addTarget(self, action: #selector(subtitlesTapped), for: .primaryActionTriggered)
-        translationsButton.addTarget(self, action: #selector(translationsTapped), for: .primaryActionTriggered)
         slider.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
+
+        // NEW
+        previousEpisodeButton.addTarget(self, action: #selector(previousEpisodeTapped), for: .primaryActionTriggered)
+        nextEpisodeButton.addTarget(self, action: #selector(nextEpisodeTapped), for: .primaryActionTriggered)
     }
 
     // MARK: - Layout
@@ -241,15 +273,25 @@ final class VideoPlayerOverlay: UIView {
         gradientLayer.frame = bounds
     }
 
-    // MARK: - Focus
+    private weak var lastFocusedView: UIView?
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
-        [slider]
+        [lastFocusedView ?? slider]
     }
 
-    // MARK: - Remote press routing (called from VideoController)
+    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+        super.didUpdateFocus(in: context, with: coordinator)
+        guard let next = context.nextFocusedView else { return }
+        let tracked: [UIView] = [
+            slider, subtitlesButton, translationsButton,
+            playPauseButton, skipBackwardButton, skipForwardButton,
+            previousEpisodeButton, nextEpisodeButton  // NEW
+        ]
+        if tracked.contains(where: { $0 === next }) {
+            lastFocusedView = next
+        }
+    }
 
-    /// Returns true if the press was handled
     func handlePress(_ press: UIPress) -> Bool {
         switch press.type {
         case .playPause:
@@ -259,13 +301,17 @@ final class VideoPlayerOverlay: UIView {
             delegate?.overlayDidRequestDismiss()
             return true
         case .leftArrow:
+            guard slider.isFocused else { return false }
             slider.seek(by: -slider.seekStep)
             delegate?.overlayDidSeek(to: slider.currentTime)
             return true
         case .rightArrow:
+            guard slider.isFocused else { return false }
             slider.seek(by: slider.seekStep)
             delegate?.overlayDidSeek(to: slider.currentTime)
             return true
+        case .select:
+            return false
         default:
             return false
         }
@@ -278,25 +324,11 @@ final class VideoPlayerOverlay: UIView {
         delegate?.overlayDidSeek(to: sender.currentTime)
     }
 
-    @objc private func playPauseTapped() {
-        delegate?.overlayDidTogglePlayPause()
-    }
-
-    @objc private func skipBackwardTapped() {
-        delegate?.overlayDidRequestSkipBackward()
-    }
-
-    @objc private func skipForwardTapped() {
-        delegate?.overlayDidRequestSkipForward()
-    }
-
-    @objc private func subtitlesTapped() {
-        delegate?.overlayDidRequestSubtitles()
-    }
-
-    @objc private func translationsTapped() {
-        delegate?.overlayDidRequestTranslations()
-    }
+    @objc private func playPauseTapped() { delegate?.overlayDidTogglePlayPause() }
+    @objc private func skipBackwardTapped() { delegate?.overlayDidRequestSkipBackward() }
+    @objc private func skipForwardTapped() { delegate?.overlayDidRequestSkipForward() }
+    @objc private func previousEpisodeTapped() { delegate?.overlayDidRequestPreviousEpisode() }
+    @objc private func nextEpisodeTapped() { delegate?.overlayDidRequestNextEpisode() }
 
     // MARK: - Show / Hide
 
@@ -312,11 +344,15 @@ final class VideoPlayerOverlay: UIView {
     }
 
     func hide(animated: Bool = true) {
+        lastFocusedView = nil
         guard animated else { isHidden = true; return }
         UIView.animate(withDuration: 0.25) { self.alpha = 0 } completion: { _ in self.isHidden = true }
     }
-
-    // MARK: - Helpers
+    
+    private func updateSeriesButtons() {
+        previousEpisodeButton.isHidden = !isSeries
+        nextEpisodeButton.isHidden = !isSeries
+    }
 
     private func updatePlayPauseIcon() {
         let name = isPlaying ? "pause.fill" : "play.fill"
@@ -337,28 +373,21 @@ final class VideoPlayerOverlay: UIView {
     private static func makeMenuButton(icon: String, title: String) -> UIButton {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        b.setImage(UIImage(systemName: icon, withConfiguration: config), for: .normal)
-        b.tintColor = .white
 
-        // Stack icon + label vertically inside button using a manual layout approach
-        // For tvOS the standard UIButton with .vertical layout works on iOS 15+
-        if #available(tvOS 15.0, *) {
-            var btnConfig = UIButton.Configuration.plain()
-            btnConfig.image = UIImage(systemName: icon, withConfiguration: config)
-            btnConfig.title = title
-            btnConfig.imagePlacement = .top
-            btnConfig.imagePadding = 6
-            btnConfig.baseForegroundColor = .white
-            btnConfig.attributedTitle = AttributedString(
-                title,
-                attributes: AttributeContainer([
-                    .font: UIFont.systemFont(ofSize: 11, weight: .medium),
-                    .foregroundColor: UIColor.white
-                ])
-            )
-            b.configuration = btnConfig
-        }
-
+        var btnConfig = UIButton.Configuration.plain()
+        btnConfig.image = UIImage(systemName: icon, withConfiguration: config)
+        btnConfig.title = title
+        btnConfig.imagePlacement = .top
+        btnConfig.imagePadding = 6
+        btnConfig.baseForegroundColor = .white
+        btnConfig.attributedTitle = AttributedString(
+            title,
+            attributes: AttributeContainer([
+                .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+                .foregroundColor: UIColor.white
+            ])
+        )
+        b.configuration = btnConfig
         return b
     }
 }

@@ -521,7 +521,7 @@ private extension UIView {
     }
 }
 
-private class OverlayControl: TVFocusControl {
+class OverlayControl: TVFocusControl {
     override init(frame: CGRect) {
         super.init(frame: frame)
         bgView.layer.cornerRadius = 32
@@ -540,7 +540,7 @@ private class OverlayControl: TVFocusControl {
     }
 }
 
-private final class RoundButton: OverlayControl {
+final class RoundButton: OverlayControl {
     private let iconView = UIImageView()
 
     init(symbolName: String) {
