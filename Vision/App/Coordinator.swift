@@ -75,7 +75,7 @@ extension AppCoordinator: AppCoordinatorProtocol {
 
     func showPlayer(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) {
         guard let controller = appController else { return }
-        let player = factory.makeVideoModule(queue: queue, startIndex: startIndex, initialContext: initialContext)
+        let player = factory.makeVideoPlayerModule(queue: queue, startIndex: startIndex, initialContext: initialContext)
         controller.presentModal(player, onDismiss: nil)
     }
 }

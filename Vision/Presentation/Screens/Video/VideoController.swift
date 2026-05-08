@@ -59,17 +59,17 @@ class VideoController: BaseViewController {
         viewModel.viewDidLoad()
         bindViewModel()
         bindPlayerEngine()
-        
+
         Task {
             await viewModel.loadCurrent()
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         playerEngine.player.pause()
     }
-    
+
     private func setupUI() {
         view.backgroundColor = .black
         playerView.player = playerEngine.player
@@ -77,21 +77,21 @@ class VideoController: BaseViewController {
         overlayView.isSeries = false
 
         overlayView.delegate = self
-        overlayView.videoTitle = "The Elephant Queen"
-        overlayView.totalDuration = 60 * 45
+        overlayView.videoTitle = ""
+        overlayView.totalDuration = 0
         overlayView.currentTime = 0
-        overlayView.bufferedTime = 60 * 12
+        overlayView.bufferedTime = 0
         overlayView.isPlaying = isPlaying
 
         view.addSubviews(playerView, overlayView, loadingView)
         playerView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
         overlayView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
         loadingView.constraintToCenter(in: view)
-        
+
         updateSubtitlesMenu()
         updateAudioMenu()
     }
-    
+
     private func bindViewModel() {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
@@ -103,7 +103,7 @@ class VideoController: BaseViewController {
                 }
             }
             .store(in: &cancellables)
-        
+
         viewModel.$currentContext
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
@@ -112,47 +112,50 @@ class VideoController: BaseViewController {
             }
             .store(in: &cancellables)
     }
-    
-    private func bindPlayerEngine() {}
-    
-    private func handleNewContext(_ context: PlaybackContext) {
-        print(context)
-        guard let url = URL(string: context.streamURL) else { return }
-        
-        print(url)
 
-//        if viewModel.isAwaitingResumeDecision {
-//            playerEngine.prepare(url: url)
-//        } else {
-//            playerEngine.play(url: url)
-//            if let resumeTime = viewModel.consumeAutoResumeTime() {
-//                playerEngine.seek(seconds: resumeTime)
-//            }
-//        }
-//
-//        let info = VideoQueueItem(
-//            id: context.movieId,
-//            title: title(for: context),
-//            subtitle: subtitle(for: context),
-//            viewsText: "",
-//            addedText: "",
-//            posterURL: ""
-//        )
-//        overlayView.updateInfo(item: info)
-//        Task { [weak self] in
-//            guard let self else { return }
-//            let items = await self.viewModel.buildEpisodeBrowseItems()
-//            await MainActor.run {
-//                self.overlayView.configureEpisodeBrowse(
-//                    items: items,
-//                    currentSeason: self.viewModel.currentSeasonIndex,
-//                    currentEpisode: self.viewModel.currentEpisodeIndex,
-//                    isSeries: self.viewModel.isSeries
-//                )
-//                self.showOverlayTemporarily()
-//            }
-//        }
+    private func bindPlayerEngine() {
+        playerEngine.onPlaybackStateChanged = { [weak self] playing in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.isPlaying = playing
+                self.overlayView.isPlaying = playing
+            }
+        }
+
+        playerEngine.onTimeUpdate = { [weak self] current, duration in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.overlayView.currentTime = current
+                if self.overlayView.totalDuration != duration && duration > 0 {
+                    self.overlayView.totalDuration = duration
+                }
+            }
+        }
+
+        playerEngine.onPlaybackFinished = { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.dismiss(animated: true)
+            }
+        }
     }
+
+    private func handleNewContext(_ context: PlaybackContext) {
+        guard let url = URL(string: context.streamURL) else { return }
+        playerEngine.play(url: url)
+        overlayView.videoTitle = titleFor(context: context)
+        overlayView.show()
+    }
+
+    private func titleFor(context: PlaybackContext) -> String {
+        switch context {
+        case .movie(_, _, _, _, let title):
+            return title
+        case .episode(_, let s, let e, _, _, _, let title):
+            return "S\(s)E\(e) · \(title)"
+        }
+    }
+
+    // MARK: - Press handling
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if !overlayView.isHidden {
@@ -170,10 +173,16 @@ class VideoController: BaseViewController {
         }
 
         if presses.contains(where: { $0.type == .menu }) {
+            if !overlayView.isHidden {
+                overlayView.hide()
+            } else {
+                dismiss(animated: true)
+            }
             return
         }
 
         if presses.contains(where: { $0.type == .playPause }) {
+            playerEngine.togglePlayPause()
             overlayView.show()
             return
         }
@@ -182,7 +191,6 @@ class VideoController: BaseViewController {
             if overlayView.isHidden {
                 overlayView.show()
             }
-            
             return
         }
 
@@ -197,6 +205,8 @@ class VideoController: BaseViewController {
         super.pressesBegan(presses, with: event)
     }
 
+    // MARK: - Subtitles / Audio menus
+
     private func updateSubtitlesMenu() {
         let actions = subtitles.enumerated().map { (index, option) in
             UIAction(
@@ -206,8 +216,7 @@ class VideoController: BaseViewController {
                 guard let self else { return }
                 for i in self.subtitles.indices { self.subtitles[i].isSelected = false }
                 self.subtitles[index].isSelected = true
-                self.updateSubtitlesMenu()   // обновляем checkmark
-                print("Subtitle selected:", option.language)
+                self.updateSubtitlesMenu()
             }
         }
 
@@ -224,8 +233,7 @@ class VideoController: BaseViewController {
                 guard let self else { return }
                 for i in self.audioTracks.indices { self.audioTracks[i].isSelected = false }
                 self.audioTracks[index].isSelected = true
-                self.updateAudioMenu()       // обновляем checkmark
-                print("Audio track selected:", option.language)
+                self.updateAudioMenu()
             }
         }
 
@@ -242,14 +250,12 @@ class VideoController: BaseViewController {
 
 extension VideoController: VideoPlayerOverlayDelegate {
     func overlayDidSeek(to time: Double) {
+        playerEngine.seek(seconds: time)
         overlayView.currentTime = time
-        // playerEngine.seek(to: time)
     }
 
     func overlayDidTogglePlayPause() {
-        isPlaying.toggle()
-        overlayView.isPlaying = isPlaying
-        // isPlaying ? playerEngine.play() : playerEngine.pause()
+        playerEngine.togglePlayPause()
     }
 
     func overlayDidRequestDismiss() {
@@ -257,24 +263,18 @@ extension VideoController: VideoPlayerOverlayDelegate {
     }
 
     func overlayDidRequestSkipBackward() {
-        let newTime = max(0, overlayView.currentTime - 10)
-        overlayView.currentTime = newTime
-        // playerEngine.seek(to: newTime)
+        playerEngine.seekBy(delta: -10)
     }
 
     func overlayDidRequestSkipForward() {
-        let newTime = min(overlayView.totalDuration, overlayView.currentTime + 10)
-        overlayView.currentTime = newTime
-        // playerEngine.seek(to: newTime)
+        playerEngine.seekBy(delta: 10)
     }
-    
+
     func overlayDidRequestPreviousEpisode() {
-        print("Previous episode tapped")
-        // Ваша логика перехода к предыдущему эпизоду
+        Task { await viewModel.loadCurrent() }
     }
 
     func overlayDidRequestNextEpisode() {
-        print("Next episode tapped")
-        // Ваша логика перехода к следующему эпизоду
+        Task { await viewModel.loadCurrent() }
     }
 }

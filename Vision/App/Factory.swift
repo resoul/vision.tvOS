@@ -8,7 +8,6 @@ protocol FactoryProtocol {
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeSearchModule(coordinator: AppCoordinatorProtocol) -> UIViewController
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext?) -> UIViewController
-    func makeVideoModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext?) -> UIViewController
 }
 
 final class ModuleFactory: FactoryProtocol {
@@ -133,20 +132,6 @@ final class ModuleFactory: FactoryProtocol {
     }
 
     func makeVideoPlayerModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) -> UIViewController {
-        let viewModel = PlayerViewModel(
-            queue: queue,
-            startIndex: startIndex,
-            initialContext: initialContext,
-            playerUseCase: container.playerUseCase,
-            watchHistoryUseCase: container.watchHistoryUseCase,
-            progressManager: container.progressManager,
-            settingsUseCase: container.settingsUseCase
-        )
-        
-        return VideoPlayerViewController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)
-    }
-    
-    func makeVideoModule(queue: [ContentItem], startIndex: Int, initialContext: PlaybackContext? = nil) -> UIViewController {
         let viewModel = VideoViewModel(
             queue: queue,
             currentIndex: startIndex,
