@@ -12,28 +12,17 @@ final class SearchViewModel {
     
     var onDetailRequested: ((ContentItem) -> Void)?
     
-    private var cancellables = Set<AnyCancellable>()
     private var searchTask: Task<Void, Never>?
     
     init(searchUseCase: SearchUseCaseProtocol) {
         self.searchUseCase = searchUseCase
-        setupSearch()
     }
     
-    private func setupSearch() {
-        $query
-            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .removeDuplicates()
-            .sink { [weak self] text in
-                self?.performSearch(query: text)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func performSearch(query: String) {
+    func search() {
         searchTask?.cancel()
         
-        guard !query.isEmpty else {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
             results = []
             isLoading = false
             errorMessage = nil
@@ -45,7 +34,7 @@ final class SearchViewModel {
         
         searchTask = Task {
             do {
-                let items = try await searchUseCase.search(query: query)
+                let items = try await searchUseCase.search(query: trimmed)
                 guard !Task.isCancelled else { return }
                 self.results = items
                 self.isLoading = false

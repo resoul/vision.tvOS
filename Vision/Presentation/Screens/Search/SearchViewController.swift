@@ -111,6 +111,7 @@ final class SearchViewController: BaseViewController {
         collectionView.delegate = self
         
         searchTextField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
+        searchTextField.delegate = self
         searchTextField.placeholder = L10n.Search.placeholder
     }
     
@@ -209,6 +210,14 @@ final class SearchViewController: BaseViewController {
             
             return section
         }
+    }
+}
+
+extension SearchViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        viewModel.search()
+        textField.resignFirstResponder()
+        return true
     }
 }
 
