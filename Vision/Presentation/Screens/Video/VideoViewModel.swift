@@ -122,8 +122,6 @@ final class VideoViewModel: ObservableObject {
             } else {
                 pendingAutoResumeTime = progress.positionSeconds
             }
-            
-            print(pendingAutoResumeTime)
         }
     }
     

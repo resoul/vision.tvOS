@@ -11,6 +11,7 @@ final class QueueVideoPlayerEngine {
     nonisolated(unsafe) var onPlaybackStateChanged: ((Bool) -> Void)?
     nonisolated(unsafe) var onTimeUpdate: ((Double, Double) -> Void)?
     nonisolated(unsafe) var onPlaybackFinished: (() -> Void)?
+    nonisolated(unsafe) var onTracksAvailable: ((AVMediaSelectionGroup, [AVMediaSelectionOption], AVMediaSelectionGroup?, [AVMediaSelectionOption]) -> Void)?
 
     private(set) var queue: [VideoQueueItem] = []
     private(set) var currentIndex: Int = 0
@@ -56,24 +57,27 @@ final class QueueVideoPlayerEngine {
             onItemChanged?(queueItem, currentIndex)
         }
         onPlaybackStateChanged?(true)
+        observeTracksAvailability()
     }
-    
+
     func play(url: URL) {
         bindPlayerObserversIfNeeded()
-        
+
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
         player.play()
         onPlaybackStateChanged?(true)
+        observeTracksAvailability()
     }
-    
+
     func prepare(url: URL) {
         bindPlayerObserversIfNeeded()
-        
+
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
         player.pause()
         onPlaybackStateChanged?(false)
+        observeTracksAvailability()
     }
 
     func playNext() async {
@@ -100,14 +104,13 @@ final class QueueVideoPlayerEngine {
         guard let currentItem = player.currentItem else { return }
         let duration = currentItem.duration.seconds
         let target: Double
-        
+
         if duration.isFinite, duration > 0 {
             target = min(max(seconds, 0), duration)
         } else {
-            // Duration can be unknown right after item replacement.
             target = max(seconds, 0)
         }
-        
+
         player.seek(to: CMTime(seconds: target, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
@@ -115,6 +118,36 @@ final class QueueVideoPlayerEngine {
         let current = player.currentTime().seconds
         let base = current.isFinite ? current : 0
         seek(seconds: base + delta)
+    }
+
+    func selectAudioOption(_ option: AVMediaSelectionOption, in group: AVMediaSelectionGroup) {
+        player.currentItem?.select(option, in: group)
+    }
+
+    func selectSubtitleOption(_ option: AVMediaSelectionOption?, in group: AVMediaSelectionGroup) {
+        player.currentItem?.select(option, in: group)
+    }
+
+    // MARK: - Private
+
+    private func observeTracksAvailability() {
+        guard let item = player.currentItem else { return }
+
+        Task {
+            async let audioGroup = try? item.asset.loadMediaSelectionGroup(for: .audible)
+            async let subtitleGroup = try? item.asset.loadMediaSelectionGroup(for: .legible)
+
+            let (audio, subtitles) = await (audioGroup, subtitleGroup)
+
+            guard let audio else { return }
+
+            await MainActor.run {
+                self.onTracksAvailable?(
+                    audio, audio.options,
+                    subtitles, subtitles?.options ?? []
+                )
+            }
+        }
     }
 
     private func bindPlayerObserversIfNeeded() {

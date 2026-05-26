@@ -73,7 +73,7 @@ final class VideoPlayerOverlay: UIView {
 
     // MARK: - UI: playback controls (center row)
 
-    private let previousEpisodeButton: UIButton = {  // NEW
+    private let previousEpisodeButton: UIButton = {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
         var btnConfig = UIButton.Configuration.plain()
@@ -291,6 +291,7 @@ final class VideoPlayerOverlay: UIView {
         ]
         if tracked.contains(where: { $0 === next }) {
             lastFocusedView = next
+            resetAutoHideTimer()
         }
     }
 
@@ -401,7 +402,7 @@ final class VideoPlayerOverlay: UIView {
     }
 
     private static func makeMenuButton(icon: String, title: String) -> UIButton {
-        let b = UIButton(type: .system)
+        let b = UIButton(type: .custom)
         let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
 
         var btnConfig = UIButton.Configuration.plain()
@@ -418,6 +419,19 @@ final class VideoPlayerOverlay: UIView {
             ])
         )
         b.configuration = btnConfig
+        
+        b.configurationUpdateHandler = { button in
+            let color: UIColor = button.isFocused ? .black : .white
+            button.configuration?.baseForegroundColor = color
+            button.configuration?.attributedTitle = AttributedString(
+                title,
+                attributes: AttributeContainer([
+                    .font: UIFont.systemFont(ofSize: 11, weight: .medium),
+                    .foregroundColor: color
+                ])
+            )
+        }
+        
         return b
     }
     

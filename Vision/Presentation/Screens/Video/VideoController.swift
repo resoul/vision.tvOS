@@ -23,25 +23,8 @@ class VideoController: BaseViewController {
     private let overlayView = VideoPlayerOverlay()
     private var isPlaying = true
 
-    // MARK: Mock data
-
-    private var subtitles: [SubtitleOption] = [
-        SubtitleOption(language: "Auto", isAuto: true, isSelected: true),
-        SubtitleOption(language: "English (US) CC", isAuto: false, isSelected: false),
-        SubtitleOption(language: "Arabic", isAuto: false, isSelected: false),
-        SubtitleOption(language: "Bulgarian", isAuto: false, isSelected: false),
-        SubtitleOption(language: "Cantonese, Traditional", isAuto: false, isSelected: false),
-        SubtitleOption(language: "Chinese, Simplified", isAuto: false, isSelected: false),
-        SubtitleOption(language: "Chinese, Traditional", isAuto: false, isSelected: false),
-    ]
-
-    private var audioTracks: [AudioOption] = [
-        AudioOption(language: "English", isSelected: true),
-        AudioOption(language: "Español", isSelected: false),
-        AudioOption(language: "Français", isSelected: false),
-        AudioOption(language: "Deutsch", isSelected: false),
-        AudioOption(language: "日本語", isSelected: false),
-    ]
+    private var audioGroup: AVMediaSelectionGroup?
+    private var subtitleGroup: AVMediaSelectionGroup?
 
     // MARK: - Init
 
@@ -88,9 +71,6 @@ class VideoController: BaseViewController {
         playerView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
         overlayView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
         loadingView.constraintToCenter(in: view)
-
-        updateSubtitlesMenu()
-        updateAudioMenu()
     }
 
     private func bindViewModel() {
@@ -112,7 +92,7 @@ class VideoController: BaseViewController {
                 self?.handleNewContext(context)
             }
             .store(in: &cancellables)
-        
+
         viewModel.$shouldDismiss
             .filter { $0 }
             .receive(on: DispatchQueue.main)
@@ -120,7 +100,7 @@ class VideoController: BaseViewController {
                 self?.dismiss(animated: true)
             }
             .store(in: &cancellables)
-        
+
         viewModel.$error
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
@@ -128,7 +108,7 @@ class VideoController: BaseViewController {
                 self?.showError(error)
             }
             .store(in: &cancellables)
-        
+
         viewModel.$resumePromptTime
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
@@ -137,7 +117,7 @@ class VideoController: BaseViewController {
                 self?.showResumePrompt(at: time)
             }
             .store(in: &cancellables)
-        
+
         NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -173,11 +153,30 @@ class VideoController: BaseViewController {
                 await self?.viewModel.playNext()
             }
         }
+
+        playerEngine.onTracksAvailable = { [weak self] audioGroup, audioOptions, subtitleGroup, subtitleOptions in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.audioGroup = audioGroup
+                self.subtitleGroup = subtitleGroup
+                self.updateAudioMenu(from: audioOptions)
+                
+                if subtitleGroup != nil {
+                    self.updateSubtitlesMenu(from: subtitleOptions)
+                    self.overlayView.subtitlesButton.isHidden = false
+                } else {
+                    self.overlayView.subtitlesButton.isHidden = true
+                }
+            }
+        }
     }
 
     private func handleNewContext(_ context: PlaybackContext) {
         guard let url = URL(string: context.streamURL) else { return }
-        
+
+        audioGroup = nil
+        subtitleGroup = nil
+
         if viewModel.isAwaitingResumeDecision {
             playerEngine.prepare(url: url)
         } else {
@@ -186,18 +185,16 @@ class VideoController: BaseViewController {
                 playerEngine.seek(seconds: resumeTime)
             }
         }
-        
+
         overlayView.videoTitle = titleFor(context: context)
         overlayView.isSeries = switch context {
-        case .episode:
-            true
-        default:
-            false
+        case .episode: true
+        default: false
         }
-        
+
         overlayView.show()
     }
-    
+
     private func showResumePrompt(at time: Double) {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
@@ -242,13 +239,8 @@ class VideoController: BaseViewController {
             }
         }
 
-        if presses.contains(where: { $0.type == .upArrow }) {
-            return
-        }
-
-        if presses.contains(where: { $0.type == .downArrow }) {
-            return
-        }
+        if presses.contains(where: { $0.type == .upArrow }) { return }
+        if presses.contains(where: { $0.type == .downArrow }) { return }
 
         if presses.contains(where: { $0.type == .menu }) {
             if !overlayView.isHidden {
@@ -266,35 +258,54 @@ class VideoController: BaseViewController {
         }
 
         if presses.contains(where: { $0.type == .select }) {
-            if overlayView.isHidden {
-                overlayView.show()
-            }
+            if overlayView.isHidden { overlayView.show() }
             return
         }
 
-        if presses.contains(where: { $0.type == .leftArrow }) {
-            return
-        }
-
-        if presses.contains(where: { $0.type == .rightArrow }) {
-            return
-        }
+        if presses.contains(where: { $0.type == .leftArrow }) { return }
+        if presses.contains(where: { $0.type == .rightArrow }) { return }
 
         super.pressesBegan(presses, with: event)
     }
 
-    // MARK: - Subtitles / Audio menus
+    // MARK: - Audio / Subtitles menus
 
-    private func updateSubtitlesMenu() {
-        let actions = subtitles.enumerated().map { (index, option) in
+    private func updateAudioMenu(from options: [AVMediaSelectionOption]) {
+        let actions = options.map { option in
             UIAction(
-                title: option.language,
-                state: option.isSelected ? .on : .off
+                title: option.displayName,
+                state: isCurrentAudio(option) ? .on : .off
             ) { [weak self] _ in
-                guard let self else { return }
-                for i in self.subtitles.indices { self.subtitles[i].isSelected = false }
-                self.subtitles[index].isSelected = true
-                self.updateSubtitlesMenu()
+                guard let self, let group = self.audioGroup else { return }
+                self.playerEngine.selectAudioOption(option, in: group)
+                self.updateAudioMenu(from: options)
+            }
+        }
+
+        overlayView.translationsButton.menu = UIMenu(title: "AUDIO", children: actions)
+        overlayView.translationsButton.showsMenuAsPrimaryAction = true
+    }
+
+    private func updateSubtitlesMenu(from options: [AVMediaSelectionOption]) {
+        var actions: [UIAction] = [
+            UIAction(
+                title: "Off",
+                state: isSubtitlesOff() ? .on : .off
+            ) { [weak self] _ in
+                guard let self, let group = self.subtitleGroup else { return }
+                self.playerEngine.selectSubtitleOption(nil, in: group)
+                self.updateSubtitlesMenu(from: options)
+            }
+        ]
+
+        actions += options.map { option in
+            UIAction(
+                title: option.displayName,
+                state: isCurrentSubtitle(option) ? .on : .off
+            ) { [weak self] _ in
+                guard let self, let group = self.subtitleGroup else { return }
+                self.playerEngine.selectSubtitleOption(option, in: group)
+                self.updateSubtitlesMenu(from: options)
             }
         }
 
@@ -302,23 +313,31 @@ class VideoController: BaseViewController {
         overlayView.subtitlesButton.showsMenuAsPrimaryAction = true
     }
 
-    private func updateAudioMenu() {
-        let actions = audioTracks.enumerated().map { (index, option) in
-            UIAction(
-                title: option.language,
-                state: option.isSelected ? .on : .off
-            ) { [weak self] _ in
-                guard let self else { return }
-                for i in self.audioTracks.indices { self.audioTracks[i].isSelected = false }
-                self.audioTracks[index].isSelected = true
-                self.updateAudioMenu()
-            }
-        }
+    // MARK: - Track helpers (используют кэшированные группы, без deprecated вызовов)
 
-        overlayView.translationsButton.menu = UIMenu(title: "AUDIO", children: actions)
-        overlayView.translationsButton.showsMenuAsPrimaryAction = true
+    private func isCurrentAudio(_ option: AVMediaSelectionOption) -> Bool {
+        guard let item = playerEngine.player.currentItem,
+              let group = audioGroup
+        else { return false }
+        return item.currentMediaSelection.selectedMediaOption(in: group) == option
     }
-    
+
+    private func isCurrentSubtitle(_ option: AVMediaSelectionOption) -> Bool {
+        guard let item = playerEngine.player.currentItem,
+              let group = subtitleGroup
+        else { return false }
+        return item.currentMediaSelection.selectedMediaOption(in: group) == option
+    }
+
+    private func isSubtitlesOff() -> Bool {
+        guard let item = playerEngine.player.currentItem,
+              let group = subtitleGroup
+        else { return true }
+        return item.currentMediaSelection.selectedMediaOption(in: group) == nil
+    }
+
+    // MARK: - Error
+
     private func showError(_ error: Error) {
         let alert = UIAlertController(
             title: "Playback Error",

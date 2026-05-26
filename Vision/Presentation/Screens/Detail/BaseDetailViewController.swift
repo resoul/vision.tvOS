@@ -6,18 +6,13 @@ class BaseDetailViewController: BaseViewController {
     let backdropIV = UIImageView()
     let backdropBlur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     let vignetteView = UIView()
+    let contentView = UIView()
     
     let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.showsVerticalScrollIndicator = false
         sv.translatesAutoresizingMaskIntoConstraints = false
         return sv
-    }()
-    
-    let contentView: UIView = {
-        let v = UIView()
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
     }()
     
     let posterIV: UIImageView = {
@@ -94,20 +89,10 @@ class BaseDetailViewController: BaseViewController {
     
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
     
-    // MARK: - Init
-    
-    init(
-        movie: ContentItem,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol
-    ) {
+    init(movie: ContentItem, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.movie = movie
         super.init(themeManager: themeManager, languageManager: languageManager)
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
-    
-    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -115,32 +100,15 @@ class BaseDetailViewController: BaseViewController {
         populateBasicData()
     }
     
-    // MARK: - Setup
-    
     private func setupUI() {
         view.backgroundColor = .black
-        
         backdropIV.contentMode = .scaleAspectFill
-        backdropIV.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(backdropIV)
-        
-        backdropBlur.translatesAutoresizingMaskIntoConstraints = false
         backdropBlur.alpha = 0.94
-        view.addSubview(backdropBlur)
-        
-        vignetteView.translatesAutoresizingMaskIntoConstraints = false
         vignetteView.backgroundColor = .clear
-        view.addSubview(vignetteView)
         
-        view.addSubview(scrollView)
+        view.addSubviews(backdropIV, backdropBlur, vignetteView, scrollView)
         scrollView.addSubview(contentView)
-        
-        contentView.addSubview(posterIV)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(metaStack)
-        contentView.addSubview(ratingsStack)
-        contentView.addSubview(infoStack)
-        contentView.addSubview(descriptionLabel)
+        contentView.addSubviews(posterIV, titleLabel, metaStack, ratingsStack, infoStack, descriptionLabel)
         
         buttonsStack.addArrangedSubview(playButton)
         buttonsStack.addArrangedSubview(favoriteButton)
@@ -159,31 +127,13 @@ class BaseDetailViewController: BaseViewController {
         posterIV.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
         posterIV.layer.borderWidth = 1
         
+        backdropIV.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        backdropBlur.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        vignetteView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        scrollView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        contentView.constraints(top: scrollView.topAnchor, leading: scrollView.leadingAnchor, bottom: scrollView.bottomAnchor, trailing: scrollView.trailingAnchor)
+        
         NSLayoutConstraint.activate([
-            backdropIV.topAnchor.constraint(equalTo: view.topAnchor),
-            backdropIV.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropIV.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backdropIV.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor),
-            backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            vignetteView.topAnchor.constraint(equalTo: view.topAnchor),
-            vignetteView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            vignetteView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            vignetteView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
             posterIV.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 80),
@@ -283,4 +233,6 @@ class BaseDetailViewController: BaseViewController {
         playButton.isUserInteractionEnabled = !isUnavailable
         playButton.alpha = isUnavailable ? 0.5 : 1.0
     }
+    
+    required init?(coder: NSCoder) { fatalError() }
 }

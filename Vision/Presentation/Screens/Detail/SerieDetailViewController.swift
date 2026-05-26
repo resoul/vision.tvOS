@@ -36,14 +36,8 @@ final class SerieDetailViewController: BaseDetailViewController {
         sv.translatesAutoresizingMaskIntoConstraints = false
         return sv
     }()
-
-    // MARK: - Init
-
-    init(
-        viewModel: SerieDetailViewModel,
-        themeManager: ThemeManagerProtocol,
-        languageManager: LanguageManagerProtocol
-    ) {
+    
+    init(viewModel: SerieDetailViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
         super.init(
             movie: ContentItem(
