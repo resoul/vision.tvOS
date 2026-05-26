@@ -9,7 +9,7 @@ final class CoreDataWatchHistoryRepository: WatchHistoryRepository {
     private let historySubject = CurrentValueSubject<[ContentItem], Never>([])
     var historyPublisher: AnyPublisher<[ContentItem], Never> { historySubject.eraseToAnyPublisher() }
 
-    init(stack: CoreDataStack = .shared) {
+    init(stack: CoreDataStack) {
         self.stack = stack
         self.context = stack.context
         refresh()

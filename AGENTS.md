@@ -215,8 +215,9 @@ Run these checks manually in the simulator or device before completing a task:
 To enhance the codebase's health, keep it completely clean, and prepare for future scaling, we recommend targeting the following areas for improvements and refactoring:
 
 ### 1. 🔌 Eliminate Singleton Coupling in Presentation
-- **Issue**: Views and ViewModels frequently access global state or infrastructure singletons directly (e.g. `ThemeManager.shared`, `LanguageManager.shared`, `FavoritesManager.shared`).
-- **Improvement**: Standardize constructor injection across the entire Presentation layer. Inject managers as protocol types via the `ModuleFactory` or `Container` during initialization. This decouples classes from concrete singletons, improving testability.
+- **Current status**: Presentation screens and ViewModels should not call infrastructure singletons directly. They are expected to receive managers, use cases, and repositories through `ModuleFactory` and `Container`.
+- **Improvement**: Keep standardizing constructor injection across the Presentation layer. New dependencies must be exposed as protocol types from `Container`/`Factory`; do not add `.shared` lookups to screens or ViewModels.
+- **Remaining debt**: Infrastructure-level singletons such as cache or UserDefaults helpers may still exist for legacy compatibility, but composition-owned services (including `CoreDataStack` and CoreData repositories) should be instantiated and wired by `Container`.
 
 ### 2. 🗃 Refactor Persistence Context Safety & Mapping
 - **Issue**: CoreData operations in repository implementations can be prone to concurrency bugs if they don't strictly use context synchronization.

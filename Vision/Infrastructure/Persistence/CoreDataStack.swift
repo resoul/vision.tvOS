@@ -2,8 +2,6 @@ import CoreData
 import Foundation
 
 final class CoreDataStack {
-    static let shared = CoreDataStack()
-    
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Vision", managedObjectModel: Self.makeModel())
         container.loadPersistentStores { _, error in

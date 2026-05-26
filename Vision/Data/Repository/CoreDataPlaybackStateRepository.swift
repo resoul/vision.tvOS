@@ -5,7 +5,7 @@ final class CoreDataPlaybackStateRepository: PlaybackStateRepository {
     private let stack: CoreDataStack
     private let context: NSManagedObjectContext
     
-    init(stack: CoreDataStack = .shared) {
+    init(stack: CoreDataStack) {
         self.stack = stack
         self.context = stack.context
     }

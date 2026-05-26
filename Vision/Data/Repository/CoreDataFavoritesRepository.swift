@@ -9,7 +9,7 @@ final class CoreDataFavoritesRepository: FavoritesRepository {
     private let favoritesSubject = CurrentValueSubject<[ContentItem], Never>([])
     var favoritesPublisher: AnyPublisher<[ContentItem], Never> { favoritesSubject.eraseToAnyPublisher() }
     
-    init(stack: CoreDataStack = .shared) {
+    init(stack: CoreDataStack) {
         self.stack = stack
         self.context = stack.context
         refresh()

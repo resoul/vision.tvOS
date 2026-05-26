@@ -3,6 +3,7 @@ protocol ContainerProtocol {
     var settingsUseCase: SettingsUseCaseProtocol { get }
     var themeManager: ThemeManagerProtocol { get }
     var languageManager: LanguageManagerProtocol { get }
+    var coreDataStack: CoreDataStack { get }
     var filmixClient: FilmixNetworkClient { get }
     var filmixRepository: FilmixMovieRepositoryProtocol { get }
     var imageRepository: ImageRepositoryProtocol { get }
@@ -30,14 +31,15 @@ final class Container: ContainerProtocol {
     )
     lazy var themeManager: ThemeManagerProtocol = ThemeManager()
     lazy var languageManager: LanguageManagerProtocol = LanguageManager()
+    lazy var coreDataStack: CoreDataStack = CoreDataStack()
     
     lazy var filmixClient: FilmixNetworkClient = FilmixNetworkClient()
     lazy var filmixRepository: FilmixMovieRepositoryProtocol = FilmixMovieRepository(client: filmixClient)
     lazy var imageRepository: ImageRepositoryProtocol = PosterCache.shared
     
-    lazy var favoritesManager: FavoritesManagerProtocol = FavoritesManager.shared
-    lazy var historyManager: WatchHistoryManagerProtocol = WatchHistoryManager.shared
-    lazy var progressManager: PlaybackProgressManagerProtocol = PlaybackProgressManager.shared
+    lazy var favoritesManager: FavoritesManagerProtocol = FavoritesManager()
+    lazy var historyManager: WatchHistoryManagerProtocol = WatchHistoryManager()
+    lazy var progressManager: PlaybackProgressManagerProtocol = PlaybackProgressManager()
     
     var getContentUseCase: GetContentUseCaseProtocol {
         GetContentUseCase(repository: filmixRepository)
@@ -47,13 +49,13 @@ final class Container: ContainerProtocol {
     
     lazy var searchUseCase: SearchUseCaseProtocol = SearchUseCase(repository: filmixRepository)
     
-    lazy var favoritesRepository: FavoritesRepository = CoreDataFavoritesRepository()
-    lazy var watchHistoryRepository: WatchHistoryRepository = CoreDataWatchHistoryRepository()
+    lazy var favoritesRepository: FavoritesRepository = CoreDataFavoritesRepository(stack: coreDataStack)
+    lazy var watchHistoryRepository: WatchHistoryRepository = CoreDataWatchHistoryRepository(stack: coreDataStack)
     
     lazy var favoritesUseCase: FavoritesUseCase = FavoritesUseCase(repository: favoritesRepository)
     lazy var watchHistoryUseCase: WatchHistoryUseCase = WatchHistoryUseCase(repository: watchHistoryRepository)
     
-    lazy var playbackStateRepository: PlaybackStateRepository = CoreDataPlaybackStateRepository()
+    lazy var playbackStateRepository: PlaybackStateRepository = CoreDataPlaybackStateRepository(stack: coreDataStack)
     lazy var playerUseCase: PlayerUseCaseProtocol = PlayerUseCase(
         movieRepository: filmixRepository,
         stateRepository: playbackStateRepository,
