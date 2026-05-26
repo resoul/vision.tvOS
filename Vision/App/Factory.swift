@@ -92,7 +92,6 @@ final class ModuleFactory: FactoryProtocol {
 
 
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController {
-        print("makeDetailModule", item)
         if item.type.isSeries {
             let vm = SerieDetailViewModel(
                 movie: item,
@@ -138,7 +137,8 @@ final class ModuleFactory: FactoryProtocol {
             initialContext: initialContext,
             playerUseCase: container.playerUseCase,
             watchHistoryUseCase: container.watchHistoryUseCase,
-            progressManager: container.progressManager
+            progressManager: container.progressManager,
+            settingsUseCase: container.settingsUseCase
         )
         
         return VideoController(viewModel: viewModel, themeManager: container.themeManager, languageManager: container.languageManager)

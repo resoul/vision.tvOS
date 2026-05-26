@@ -48,7 +48,7 @@ final class SerieDetailViewController: BaseDetailViewController {
         super.init(
             movie: ContentItem(
                 id: 0, title: "", year: "", description: "", genre: "",
-                rating: "", duration: "", type: .movie, translate: "",
+                rating: "", duration: "", type: .series(seasons: []), translate: "",
                 isAdIn: false, movieURL: "", posterURL: "",
                 actors: [], directors: [], genreList: [], lastAdded: nil
             ),

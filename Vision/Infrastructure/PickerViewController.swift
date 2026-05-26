@@ -55,8 +55,7 @@ final class PickerViewController: UIViewController {
         view.backgroundColor = UIColor.black.withAlphaComponent(0.85)
         
         titleLabel.text = pickerTitle
-        view.addSubview(titleLabel)
-        view.addSubview(scrollView)
+        view.addSubviews(titleLabel, scrollView)
         scrollView.addSubview(stackView)
         
         NSLayoutConstraint.activate([

@@ -13,6 +13,8 @@ protocol VideoPlayerOverlayDelegate: AnyObject {
 final class VideoPlayerOverlay: UIView {
 
     weak var delegate: VideoPlayerOverlayDelegate?
+    var autoHideInterval: TimeInterval = 5
+    private var autoHideWorkItem: DispatchWorkItem?
 
     // MARK: Public state
 
@@ -285,7 +287,7 @@ final class VideoPlayerOverlay: UIView {
         let tracked: [UIView] = [
             slider, subtitlesButton, translationsButton,
             playPauseButton, skipBackwardButton, skipForwardButton,
-            previousEpisodeButton, nextEpisodeButton  // NEW
+            previousEpisodeButton, nextEpisodeButton
         ]
         if tracked.contains(where: { $0 === next }) {
             lastFocusedView = next
@@ -295,6 +297,7 @@ final class VideoPlayerOverlay: UIView {
     func handlePress(_ press: UIPress) -> Bool {
         switch press.type {
         case .playPause:
+            resetAutoHideTimer()
             delegate?.overlayDidTogglePlayPause()
             return true
         case .menu:
@@ -302,11 +305,13 @@ final class VideoPlayerOverlay: UIView {
             return true
         case .leftArrow:
             guard slider.isFocused else { return false }
+            resetAutoHideTimer()
             slider.seek(by: -slider.seekStep)
             delegate?.overlayDidSeek(to: slider.currentTime)
             return true
         case .rightArrow:
             guard slider.isFocused else { return false }
+            resetAutoHideTimer()
             slider.seek(by: slider.seekStep)
             delegate?.overlayDidSeek(to: slider.currentTime)
             return true
@@ -320,30 +325,55 @@ final class VideoPlayerOverlay: UIView {
     // MARK: - Actions
 
     @objc private func sliderChanged(_ sender: VideoSliderControl) {
+        resetAutoHideTimer()
         currentTimeLabel.text = formatTime(sender.currentTime)
         delegate?.overlayDidSeek(to: sender.currentTime)
     }
 
-    @objc private func playPauseTapped() { delegate?.overlayDidTogglePlayPause() }
-    @objc private func skipBackwardTapped() { delegate?.overlayDidRequestSkipBackward() }
-    @objc private func skipForwardTapped() { delegate?.overlayDidRequestSkipForward() }
-    @objc private func previousEpisodeTapped() { delegate?.overlayDidRequestPreviousEpisode() }
-    @objc private func nextEpisodeTapped() { delegate?.overlayDidRequestNextEpisode() }
+    @objc private func playPauseTapped() {
+        resetAutoHideTimer()
+        delegate?.overlayDidTogglePlayPause()
+    }
+
+    @objc private func skipBackwardTapped() {
+        resetAutoHideTimer()
+        delegate?.overlayDidRequestSkipBackward()
+    }
+
+    @objc private func skipForwardTapped() {
+        resetAutoHideTimer()
+        delegate?.overlayDidRequestSkipForward()
+    }
+
+    @objc private func previousEpisodeTapped() {
+        resetAutoHideTimer()
+        delegate?.overlayDidRequestPreviousEpisode()
+    }
+
+    @objc private func nextEpisodeTapped() {
+        resetAutoHideTimer()
+        delegate?.overlayDidRequestNextEpisode()
+    }
 
     // MARK: - Show / Hide
 
     func show(animated: Bool = true) {
-        guard isHidden || alpha < 1 else { return }
+        guard isHidden || alpha < 1 else {
+            resetAutoHideTimer()
+            return
+        }
         isHidden = false
         let finish = {
             self.setNeedsFocusUpdate()
             self.updateFocusIfNeeded()
+            self.resetAutoHideTimer()
         }
         guard animated else { alpha = 1; finish(); return }
         UIView.animate(withDuration: 0.25) { self.alpha = 1 } completion: { _ in finish() }
     }
 
     func hide(animated: Bool = true) {
+        cancelAutoHideTimer()
         lastFocusedView = nil
         guard animated else { isHidden = true; return }
         UIView.animate(withDuration: 0.25) { self.alpha = 0 } completion: { _ in self.isHidden = true }
@@ -389,5 +419,19 @@ final class VideoPlayerOverlay: UIView {
         )
         b.configuration = btnConfig
         return b
+    }
+    
+    private func resetAutoHideTimer() {
+        autoHideWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.hide()
+        }
+        autoHideWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + autoHideInterval, execute: work)
+    }
+
+    private func cancelAutoHideTimer() {
+        autoHideWorkItem?.cancel()
+        autoHideWorkItem = nil
     }
 }

@@ -1,5 +1,31 @@
 import UIKit
 
+protocol TabBarDelegate: AnyObject {
+    func tabBar(_ tabBar: TabBarView, didSelectItem item: TabItem)
+    func tabBar(_ tabBar: TabBarView, didSelectGenre genre: GenreItem, inItem item: TabItem)
+    func tabBarDidSelectSearch(_ tabBar: TabBarView)
+    func tabBarDidSelectSettings(_ tabBar: TabBarView)
+}
+
+struct GenreItem: Equatable {
+    let id: String
+    let title: String
+}
+
+struct TabItem: Equatable {
+    let id: String
+    let title: String
+    let icon: String
+    let genres: [GenreItem]
+
+    init(id: String, title: String, icon: String, genres: [GenreItem] = []) {
+        self.id = id
+        self.title = title
+        self.icon = icon
+        self.genres = genres
+    }
+}
+
 struct TabBarConfiguration {
     var mainRowHeight: CGFloat
     var genreRowHeight: CGFloat
