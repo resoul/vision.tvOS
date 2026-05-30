@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-final class SettingsViewController: BaseViewController {
+final class SettingsViewController: BaseController {
     private let viewModel: SettingsViewModel
     
     // MARK: - UI Elements
@@ -51,13 +51,11 @@ final class SettingsViewController: BaseViewController {
         super.init(themeManager: themeManager, languageManager: languageManager)
     }
     
-    required init?(coder: NSCoder) { fatalError() }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.viewDidLoad()
         setupUI()
         bindViewModel()
-        viewModel.viewDidLoad()
     }
     
     private func setupUI() {
@@ -76,7 +74,6 @@ final class SettingsViewController: BaseViewController {
     }
     
     private func buildSections() {
-        // --- Playback Section ---
         addSectionHeader(L10n.Settings.Section.playback)
         
         autoplayRow = SettingsValueRow(title: L10n.Settings.Autoplay.title, icon: "play.rectangle")
@@ -87,7 +84,6 @@ final class SettingsViewController: BaseViewController {
         qualityRow?.onSelect = { [weak self] in self?.showQualityPicker() }
         stackView.addArrangedSubview(qualityRow!)
         
-        // --- Interface Section ---
         addSectionHeader(L10n.Settings.Section.interface)
         
         themeRow = SettingsValueRow(title: L10n.Settings.Theme.title, icon: "paintbrush.fill")
@@ -113,7 +109,6 @@ final class SettingsViewController: BaseViewController {
         cacheHint = SettingsHintRow(text: L10n.Settings.Cache.hint)
         stackView.addArrangedSubview(cacheHint!)
         
-        // --- Storage Section ---
         addSectionHeader(L10n.Settings.Section.storage)
         
         let storageView = SettingsStorageSectionView()
@@ -126,7 +121,6 @@ final class SettingsViewController: BaseViewController {
         storageSectionView = storageView
         stackView.addArrangedSubview(storageView)
         
-        // --- About Section ---
         addSectionHeader(L10n.Settings.Section.about)
         
         versionRow = SettingsInfoRow(title: L10n.Settings.About.version, value: viewModel.getVersionString())
@@ -199,8 +193,6 @@ final class SettingsViewController: BaseViewController {
             }
         }
     }
-    
-    // MARK: - Pickers
     
     private func showQualityPicker() {
         let items = VideoQuality.allCases.map { quality in

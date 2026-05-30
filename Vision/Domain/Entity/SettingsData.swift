@@ -11,6 +11,5 @@ enum VideoQuality: String, CaseIterable {
     case fullHD    = "1080p"
     case hd        = "720p"
     case qhd       = "480p"
-    case low       = "360p"
 }
 

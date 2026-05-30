@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class MovieDetailViewModel {
     private let movie: ContentItem
     private let useCase: GetMovieDetailUseCaseProtocol
@@ -45,13 +46,10 @@ final class MovieDetailViewModel {
     func load() async {
         isLoading = true
         defer { isLoading = false }
-
         do {
             let (detailData, translationsData) = try await useCase.fetchDetail(movie: movie, isSeries: false)
-            await MainActor.run {
-                self.detail = detailData
-                self.translations = translationsData
-            }
+            self.detail = detailData
+            self.translations = translationsData
             await resolveAllStreams(translationsData)
         } catch {
             print("Error loading movie detail: \(error)")
@@ -65,9 +63,7 @@ final class MovieDetailViewModel {
                 result[translation.studio] = resolved
             }
         }
-        await MainActor.run {
-            self.resolvedStreams = result
-        }
+        self.resolvedStreams = result
     }
 
     func refreshProgress() {

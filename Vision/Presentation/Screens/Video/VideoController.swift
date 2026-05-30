@@ -2,20 +2,7 @@ import UIKit
 import Combine
 import AVFoundation
 
-struct SubtitleOption {
-    let language: String
-    let isAuto: Bool
-    var isSelected: Bool
-}
-
-struct AudioOption {
-    let language: String
-    var isSelected: Bool
-}
-
-// MARK: - VideoController
-
-class VideoController: BaseViewController {
+class VideoController: BaseController {
     let viewModel: VideoViewModel
     private let loadingView = UIActivityIndicatorView(style: .large)
     private let playerView = QueueVideoPlayerLayerView()
@@ -25,23 +12,19 @@ class VideoController: BaseViewController {
 
     private var audioGroup: AVMediaSelectionGroup?
     private var subtitleGroup: AVMediaSelectionGroup?
-
-    // MARK: - Init
-
+    
     init(viewModel: VideoViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.viewModel = viewModel
         super.init(themeManager: themeManager, languageManager: languageManager)
         modalPresentationStyle = .fullScreen
     }
-
-    // MARK: - Lifecycle
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
         viewModel.viewDidLoad()
-        bindViewModel()
         bindPlayerEngine()
+        setupUI()
+        bindViewModel()
 
         Task {
             await viewModel.loadCurrent()
@@ -53,7 +36,7 @@ class VideoController: BaseViewController {
         playerEngine.player.pause()
         Task { await viewModel.saveState() }
     }
-
+    
     private func setupUI() {
         view.backgroundColor = .black
         playerView.player = playerEngine.player
@@ -72,7 +55,7 @@ class VideoController: BaseViewController {
         overlayView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
         loadingView.constraintToCenter(in: view)
     }
-
+    
     private func bindViewModel() {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
@@ -356,10 +339,6 @@ class VideoController: BaseViewController {
         })
 
         present(alert, animated: true)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
 

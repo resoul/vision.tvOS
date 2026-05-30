@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-final class MoviesController: BaseViewController {
+final class MoviesController: BaseController {
     private enum LayoutMetrics {
         static let columns = 5
         static let horizontalInset = 80.0
@@ -24,14 +24,12 @@ final class MoviesController: BaseViewController {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
-        iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
 
     private let backdropBlur: UIVisualEffectView = {
         let v = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         v.alpha = 0.92
-        v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
 
@@ -40,7 +38,7 @@ final class MoviesController: BaseViewController {
         l.type = .radial
         l.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.45).cgColor]
         l.startPoint = CGPoint(x: 0.5, y: 0.5)
-        l.endPoint = CGPoint(x: 1.2, y: 1.2) // Adjusted for softer vignette
+        l.endPoint = CGPoint(x: 1.2, y: 1.2)
         return l
     }()
 
@@ -52,7 +50,6 @@ final class MoviesController: BaseViewController {
         let v = UIActivityIndicatorView(style: .large)
         v.color = .white
         v.hidesWhenStopped = true
-        v.translatesAutoresizingMaskIntoConstraints = false
         return v
     }()
 
@@ -63,7 +60,6 @@ final class MoviesController: BaseViewController {
         l.textAlignment = .center
         l.numberOfLines = 2
         l.isHidden = true
-        l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
 
@@ -75,25 +71,19 @@ final class MoviesController: BaseViewController {
         self.viewModel = viewModel
         let layout = Self.makeLayout()
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
         super.init(themeManager: themeManager, languageManager: languageManager)
 
         collectionView.delegate = self
         collectionView.remembersLastFocusedIndexPath = true
         collectionView.allowsSelection = true
     }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        setupUI()
         configureDataSource()
-        bindViewModel()
         viewModel.onViewDidLoad()
+        setupUI()
+        bindViewModel()
     }
 
     override func viewDidLayoutSubviews() {
@@ -101,41 +91,18 @@ final class MoviesController: BaseViewController {
         baseGradientLayer.frame = view.bounds
         vignetteLayer.frame = view.bounds
     }
-
+    
     private func setupUI() {
         view.layer.insertSublayer(baseGradientLayer, at: 0)
-        view.addSubview(backdropImageView)
         view.layer.addSublayer(vignetteLayer)
-        view.addSubview(backdropBlur)
-
-        view.addSubview(collectionView)
-        view.addSubview(loadingIndicator)
-        view.addSubview(errorLabel)
-
-        NSLayoutConstraint.activate([
-            backdropImageView.topAnchor.constraint(equalTo: view.topAnchor),
-            backdropImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backdropImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            backdropBlur.topAnchor.constraint(equalTo: view.topAnchor),
-            backdropBlur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropBlur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backdropBlur.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-
-            errorLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            errorLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            errorLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6)
-        ])
-
+        view.addSubviews(backdropImageView, backdropBlur, collectionView, loadingIndicator, errorLabel)
+        backdropImageView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        backdropBlur.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        collectionView.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+        loadingIndicator.constraintToCenter(in: view)
+        errorLabel.constraintToCenter(in: view)
+        errorLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
+        
         collectionView.register(MoviesPosterCollectionCell.self, forCellWithReuseIdentifier: MoviesPosterCollectionCell.reuseID)
     }
 
@@ -184,9 +151,8 @@ final class MoviesController: BaseViewController {
             style.background.withAlphaComponent(0.85).cgColor
         ]
     }
-
+    
     private func bindViewModel() {
-        // Use self.cancellables from BaseViewController
         viewModel.onLoadingChanged = { [weak self] isLoading in
             guard let self else { return }
             if isLoading {

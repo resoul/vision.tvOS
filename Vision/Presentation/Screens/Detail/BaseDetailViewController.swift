@@ -1,6 +1,6 @@
 import UIKit
 
-class BaseDetailViewController: BaseViewController {
+class BaseDetailViewController: BaseController {
     let movie: ContentItem
     var detail: ContentDetail?
     let backdropIV = UIImageView()
@@ -99,7 +99,7 @@ class BaseDetailViewController: BaseViewController {
         setupUI()
         populateBasicData()
     }
-    
+
     private func setupUI() {
         view.backgroundColor = .black
         backdropIV.contentMode = .scaleAspectFill
@@ -165,8 +165,7 @@ class BaseDetailViewController: BaseViewController {
             infoStack.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 36),
             infoStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             infoStack.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            // Bottom constraint is handled by subclasses
-            
+
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
@@ -212,9 +211,9 @@ class BaseDetailViewController: BaseViewController {
         
         playButton.setThemeStyle(style)
         favoriteButton.setThemeStyle(style)
-        
+
         // Update labels based on theme
-        // In detail screen we mostly use white/overlay text, 
+        // In detail screen we mostly use white/overlay text,
         // but we respect textPrimary if it's the light theme.
         let isLight = themeManager.theme == .light
         let textColor = isLight ? style.textPrimary : .white
@@ -233,6 +232,4 @@ class BaseDetailViewController: BaseViewController {
         playButton.isUserInteractionEnabled = !isUnavailable
         playButton.alpha = isUnavailable ? 0.5 : 1.0
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
 }

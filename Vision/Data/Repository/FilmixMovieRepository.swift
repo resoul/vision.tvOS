@@ -1,5 +1,5 @@
-import UIKit
 import Alamofire
+import Foundation
 
 final class FilmixMovieRepository: FilmixMovieRepositoryProtocol {
     private let client: FilmixNetworkClient

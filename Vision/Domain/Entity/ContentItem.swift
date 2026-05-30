@@ -1,4 +1,4 @@
-import UIKit
+import Foundation
 
 struct ContentItem: Identifiable, Hashable {
     let id: Int
@@ -21,17 +21,6 @@ struct ContentItem: Identifiable, Hashable {
     enum ContentType: Hashable {
         case movie
         case series(seasons: [Season])
-    }
-
-    var accentColor: UIColor {
-        let palette: [UIColor] = [
-            UIColor(red: 0.55, green: 0.27, blue: 0.07, alpha: 1),
-            UIColor(red: 0.10, green: 0.28, blue: 0.55, alpha: 1),
-            UIColor(red: 0.35, green: 0.12, blue: 0.45, alpha: 1),
-            UIColor(red: 0.08, green: 0.35, blue: 0.28, alpha: 1),
-            UIColor(red: 0.50, green: 0.10, blue: 0.10, alpha: 1),
-        ]
-        return palette[abs(id) % palette.count]
     }
 }
 
@@ -61,7 +50,7 @@ struct Translation: Hashable {
     var isSeries: Bool { !seasons.isEmpty }
     
     var sortedQualities: [String] {
-        let order = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p", "360p"]
+        let order = ["4K UHD", "1080p Ultra+", "1080p", "720p", "480p"]
         let known   = order.filter { streams[$0] != nil }
         let unknown = streams.keys.filter { !order.contains($0) }.sorted()
         return known + unknown

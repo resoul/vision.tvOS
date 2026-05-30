@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class SerieDetailViewModel {
     private let movie: ContentItem
     private let useCase: GetMovieDetailUseCaseProtocol
@@ -50,11 +51,14 @@ final class SerieDetailViewModel {
 
         do {
             let (detailData, translationsData) = try await useCase.fetchDetail(movie: movie, isSeries: true)
-            await MainActor.run {
-                self.detail = detailData
-                self.translations = translationsData
-                self.activeTranslation = translationsData.first
-            }
+            let savedState = try? await playerUseCase.savedPlaybackState(movieId: movie.id)
+            let selectedTranslation = Self.selectedTranslation(from: translationsData, savedState: savedState)
+            let selectedSeasonIndex = Self.selectedSeasonIndex(for: selectedTranslation, savedState: savedState)
+
+            self.detail = detailData
+            self.translations = translationsData
+            self.activeTranslation = selectedTranslation
+            self.activeSeasonIndex = selectedSeasonIndex
             await resolveTranslationQualities(translationsData)
         } catch {
             print("Error loading series detail: \(error)")
@@ -77,9 +81,8 @@ final class SerieDetailViewModel {
                 result[translation.studio] = best
             }
         }
-        await MainActor.run {
-            self.resolvedTranslationQualities = result
-        }
+        
+        self.resolvedTranslationQualities = result
     }
     
     func displayQuality(for translation: Translation) -> String {
@@ -108,8 +111,10 @@ final class SerieDetailViewModel {
     }
 
     func selectTranslation(index: Int) {
-        activeTranslation = translations[safe: index]
+        guard let translation = translations[safe: index] else { return }
+        activeTranslation = translation
         activeSeasonIndex = 0
+        saveSelectedTranslation(translation)
     }
 
     func play(episode: Episode) {
@@ -147,6 +152,39 @@ final class SerieDetailViewModel {
             season: activeSeasonIndex + 1,
             episode: episodeIndex + 1
         )
+    }
+
+    private func saveSelectedTranslation(_ translation: Translation) {
+        let quality = displayQuality(for: translation)
+        Task {
+            try? await playerUseCase.saveSelectedTranslation(
+                movieId: movie.id,
+                studio: translation.studio,
+                quality: quality,
+                season: 1,
+                episode: 1
+            )
+        }
+    }
+
+    private static func selectedTranslation(from translations: [Translation], savedState: PlaybackState?) -> Translation? {
+        guard let savedState,
+              let savedTranslation = translations.first(where: { $0.studio == savedState.studio }) else {
+            return translations.first
+        }
+
+        return savedTranslation
+    }
+
+    private static func selectedSeasonIndex(for translation: Translation?, savedState: PlaybackState?) -> Int {
+        guard let translation,
+              let savedState,
+              savedState.season > 0 else {
+            return 0
+        }
+
+        let index = savedState.season - 1
+        return translation.seasons.indices.contains(index) ? index : 0
     }
 }
 

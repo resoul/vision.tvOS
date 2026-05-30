@@ -2,7 +2,6 @@ import UIKit
 import Combine
 
 final class SerieDetailViewController: BaseDetailViewController {
-
     private let viewModel: SerieDetailViewModel
 
     private let translationButton = DetailButton(
@@ -37,7 +36,11 @@ final class SerieDetailViewController: BaseDetailViewController {
         return sv
     }()
     
-    init(viewModel: SerieDetailViewModel, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
+    init(
+        viewModel: SerieDetailViewModel,
+        themeManager: ThemeManagerProtocol,
+        languageManager: LanguageManagerProtocol
+    ) {
         self.viewModel = viewModel
         super.init(
             movie: ContentItem(
@@ -50,11 +53,7 @@ final class SerieDetailViewController: BaseDetailViewController {
             languageManager: languageManager
         )
     }
-
-    required init?(coder: NSCoder) { fatalError() }
-
-    // MARK: - Lifecycle
-
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewModel.refreshProgress()
@@ -66,14 +65,10 @@ final class SerieDetailViewController: BaseDetailViewController {
         bindViewModel()
         Task { await viewModel.load() }
     }
-
-    // MARK: - Setup
-
+    
     private func setupSerieUI() {
-        contentView.addSubview(translationButton)
-        contentView.addSubview(seasonsScrollView)
+        contentView.addSubviews(translationButton, seasonsScrollView, episodesStack)
         seasonsScrollView.addSubview(seasonTabsStack)
-        contentView.addSubview(episodesStack)
 
         NSLayoutConstraint.activate([
             translationButton.topAnchor.constraint(equalTo: infoStack.bottomAnchor, constant: 32),

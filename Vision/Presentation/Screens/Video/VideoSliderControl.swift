@@ -235,7 +235,6 @@ class VideoSliderControl: UIControl {
     }
 
     private func setupTVOSGestures() {
-        // Swipe left / right on Siri Remote
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeRight))
         swipeRight.direction = .right
         addGestureRecognizer(swipeRight)
@@ -244,8 +243,8 @@ class VideoSliderControl: UIControl {
         swipeLeft.direction = .left
         addGestureRecognizer(swipeLeft)
 
-        // Pan on touch surface (tvOS 9+)
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handleTVPan(_:)))
+        pan.delegate = self
         addGestureRecognizer(pan)
     }
 
@@ -264,8 +263,9 @@ class VideoSliderControl: UIControl {
         case .began:
             tvPanAccumulator = 0
         case .changed:
-            let vel = gesture.velocity(in: self).x
-            let delta = vel * 0.005
+            let velocity = gesture.velocity(in: self)
+            guard abs(velocity.x) > abs(velocity.y) * 1.5 else { return }
+            let delta = velocity.x * 0.005
             seek(by: Double(delta))
         default:
             break
@@ -303,6 +303,15 @@ class VideoSliderControl: UIControl {
     
     override var intrinsicContentSize: CGSize {
         CGSize(width: UIView.noIntrinsicMetric, height: max(thumbDiameterFocused, trackHeightFocused) + 8)
+    }
+}
+
+extension VideoSliderControl: UIGestureRecognizerDelegate {
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
+        let velocity = pan.velocity(in: self)
+        
+        return abs(velocity.x) > abs(velocity.y)
     }
 }
 

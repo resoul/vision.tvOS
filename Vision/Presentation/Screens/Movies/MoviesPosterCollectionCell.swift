@@ -32,37 +32,19 @@ final class MoviesPosterCollectionCell: UICollectionViewCell {
         layer.cornerRadius = 14
         layer.cornerCurve = .continuous
 
-        contentView.addSubview(posterImageView)
-        contentView.addSubview(topGradientView)
-        contentView.addSubview(bottomGradientView)
-        contentView.addSubview(adsBadgeView)
-        contentView.addSubview(seriesBadgeView)
+        contentView.addSubviews(posterImageView, topGradientView, bottomGradientView, adsBadgeView, seriesBadgeView)
 
-        posterImageView.translatesAutoresizingMaskIntoConstraints = false
-        topGradientView.translatesAutoresizingMaskIntoConstraints = false
-        bottomGradientView.translatesAutoresizingMaskIntoConstraints = false
         adsBadgeView.translatesAutoresizingMaskIntoConstraints = false
         seriesBadgeView.translatesAutoresizingMaskIntoConstraints = false
 
         posterImageView.contentMode = .scaleAspectFill
         posterImageView.clipsToBounds = true
+        
+        posterImageView.constraints(top: contentView.topAnchor, leading: contentView.leadingAnchor, bottom: contentView.bottomAnchor, trailing: contentView.trailingAnchor)
+        topGradientView.constraints(top: contentView.topAnchor, leading: contentView.leadingAnchor, bottom: contentView.bottomAnchor, trailing: contentView.trailingAnchor)
+        bottomGradientView.constraints(top: contentView.topAnchor, leading: contentView.leadingAnchor, bottom: contentView.bottomAnchor, trailing: contentView.trailingAnchor)
 
         NSLayoutConstraint.activate([
-            posterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            posterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            posterImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            posterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-
-            topGradientView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            topGradientView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            topGradientView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            topGradientView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-
-            bottomGradientView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            bottomGradientView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            bottomGradientView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            bottomGradientView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-
             adsBadgeView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             adsBadgeView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
 
@@ -104,64 +86,5 @@ final class MoviesPosterCollectionCell: UICollectionViewCell {
             self.layer.borderWidth = willBeFocused ? 2 : 0
             self.layer.borderColor = UIColor.white.cgColor
         }
-    }
-}
-
-private final class GradientView: UIView {
-    private let colors: [CGColor]
-    private let locations: [NSNumber]
-
-    init(colors: [CGColor], locations: [NSNumber]) {
-        self.colors = colors
-        self.locations = locations
-        super.init(frame: .zero)
-        isUserInteractionEnabled = false
-        backgroundColor = .clear
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override class var layerClass: AnyClass {
-        CAGradientLayer.self
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        guard let gradient = layer as? CAGradientLayer else { return }
-        gradient.colors = colors
-        gradient.locations = locations
-        gradient.startPoint = CGPoint(x: 0.5, y: 0)
-        gradient.endPoint = CGPoint(x: 0.5, y: 1)
-    }
-}
-
-private final class BadgeView: UIView {
-    private let label = UILabel()
-
-    init(text: String, background: UIColor, font: UIFont) {
-        super.init(frame: .zero)
-
-        layer.cornerRadius = 6
-        layer.cornerCurve = .continuous
-        self.backgroundColor = background
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = text
-        label.textColor = .white
-        label.font = font
-
-        addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
-            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6),
-            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4)
-        ])
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }

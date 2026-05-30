@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-final class SearchViewController: BaseViewController {
+final class SearchViewController: BaseController {
     private let viewModel: SearchViewModel
     
     private let searchContainer: UIView = {
@@ -63,14 +63,12 @@ final class SearchViewController: BaseViewController {
         
         super.init(themeManager: themeManager, languageManager: languageManager)
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        configureDataSource()
         bindViewModel()
+        configureDataSource()
     }
     
     private func setupUI() {

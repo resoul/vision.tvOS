@@ -5,6 +5,8 @@ protocol PlayerUseCaseProtocol {
     func switchEpisode(in item: ContentItem, season: Int, episode: Int, currentStudio: String, currentQuality: String) async throws -> PlaybackContext
     func switchTranslation(in item: ContentItem, translation: Translation, currentContext: PlaybackContext) async throws -> PlaybackContext
     func savePlaybackState(movieId: Int, context: PlaybackContext) async throws
+    func savedPlaybackState(movieId: Int) async throws -> PlaybackState?
+    func saveSelectedTranslation(movieId: Int, studio: String, quality: String, season: Int, episode: Int) async throws
     func fetchTranslations(for item: ContentItem) async throws -> [Translation]
     func resolvePreferredStream(from streams: [String: String]) async -> (quality: String, url: String)?
     func preferredURL(from streams: [String: String]) async -> String?
@@ -153,6 +155,22 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
         case .episode(let id, let s, let e, let studio, let quality, _, _):
             state = PlaybackState(movieId: id, season: s, episode: e, studio: studio, quality: quality, updatedAt: Date())
         }
+        try await stateRepository.saveState(state)
+    }
+
+    func savedPlaybackState(movieId: Int) async throws -> PlaybackState? {
+        try await stateRepository.getState(movieId: movieId)
+    }
+
+    func saveSelectedTranslation(movieId: Int, studio: String, quality: String, season: Int, episode: Int) async throws {
+        let state = PlaybackState(
+            movieId: movieId,
+            season: season,
+            episode: episode,
+            studio: studio,
+            quality: quality,
+            updatedAt: Date()
+        )
         try await stateRepository.saveState(state)
     }
     

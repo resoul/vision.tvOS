@@ -9,20 +9,20 @@ final class ModalController: UIViewController {
         self.onDismiss = onDismiss
         super.init(nibName: nil, bundle: nil)
     }
-    required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         addChild(content)
-        content.view.translatesAutoresizingMaskIntoConstraints = false
+//        content.view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(content.view)
-        NSLayoutConstraint.activate([
-            content.view.topAnchor.constraint(equalTo: view.topAnchor),
-            content.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            content.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            content.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-        ])
+        content.view.constraints(top: view.topAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor)
+//        NSLayoutConstraint.activate([
+//            content.view.topAnchor.constraint(equalTo: view.topAnchor),
+//            content.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            content.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+//            content.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//        ])
         content.didMove(toParent: self)
     }
 
@@ -32,4 +32,6 @@ final class ModalController: UIViewController {
             onDismiss()
         }
     }
+    
+    required init?(coder: NSCoder) { fatalError() }
 }

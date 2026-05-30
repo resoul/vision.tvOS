@@ -34,7 +34,7 @@ Our project must strictly adhere to **Clean Architecture** principles. The core 
    - **`Service`**: Standard framework adapters (e.g., `SettingsService`) implementing Domain settings protocols.
 
 3. **`Vision/Presentation` (The Interface)**
-   - **`Screens`**: Grouped folders containing ViewControllers (`BaseViewController` descendants) and state-driven ViewModels (e.g., `Movies`, `Detail`, `Search`, `Settings`, `Video`). ViewModels must contain *no UIKit code* and represent state Reactively via `@Published`.
+   - **`Screens`**: Grouped folders containing ViewControllers (`BaseController` descendants) and state-driven ViewModels (e.g., `Movies`, `Detail`, `Search`, `Settings`, `Video`). ViewModels must contain *no UIKit code* and represent state Reactively via `@Published`.
    - **`Components`**: Small, reusable UI elements separated by context (e.g., `Detail/EpisodeRow`, `Detail/TranslationRow`, `Settings/ThemePicker`).
 
 4. **`Vision/Infrastructure` (Cross-Cutting Concerns)**
@@ -107,7 +107,7 @@ Use these rules as the first decision filter before adding a file, import, depen
 1. **Maintain Clean Architecture**: Always direct dependencies inwards (**Presentation ➔ Domain** and **Data ➔ Domain**). Never import `Data`, `Presentation`, or `Infrastructure` layers into `Domain`.
 2. **Domain Purity**: New Domain code must use pure Swift/Foundation models only. If a feature needs colors, images, players, CoreData objects, or UIKit styles, create an adapter in `Infrastructure`/`Presentation` instead of adding framework types to Domain.
 3. **UseCase Layer**: All business rules and cross-repository flows (e.g., loading translations and checking last-saved video states) MUST reside in `Domain/UseCase`. ViewModels must never invoke repositories directly.
-4. **Base Inheritance**: All ViewControllers must inherit from `BaseViewController` to inherit standard reactive theming, localization, and font changes.
+4. **Base Inheritance**: All ViewControllers must inherit from `BaseController` to inherit standard reactive theming, localization, and font changes.
 5. **No UI side effects in VM**: ViewModels must never directly invoke UIKit operations (e.g., displaying alerts, presenting controllers). They publish state transitions, and the `ViewController` handles the visual manifestation.
 6. **Localization Safety**: Hardcoded strings are forbidden. Always verify existing strings in `Vision/Infrastructure/L10n.swift` and `Vision/Resources/Localizable.xcstrings`. If a key is missing:
    - First, declare the key in `L10n.swift` under the proper nested enum.

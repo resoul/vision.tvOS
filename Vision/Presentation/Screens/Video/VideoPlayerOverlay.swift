@@ -11,13 +11,10 @@ protocol VideoPlayerOverlayDelegate: AnyObject {
 }
 
 final class VideoPlayerOverlay: UIView {
-
     weak var delegate: VideoPlayerOverlayDelegate?
     var autoHideInterval: TimeInterval = 5
     private var autoHideWorkItem: DispatchWorkItem?
-
-    // MARK: Public state
-
+    
     var videoTitle: String = "" {
         didSet { titleLabel.text = videoTitle }
     }
@@ -47,9 +44,7 @@ final class VideoPlayerOverlay: UIView {
     var isSeries: Bool = false {
         didSet { updateSeriesButtons() }
     }
-
-    // MARK: - UI: gradient
-
+    
     private let gradientLayer: CAGradientLayer = {
         let g = CAGradientLayer()
         g.colors = [
@@ -61,8 +56,6 @@ final class VideoPlayerOverlay: UIView {
         return g
     }()
 
-    // MARK: - UI: title
-
     private let titleLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 38, weight: .semibold)
@@ -70,9 +63,7 @@ final class VideoPlayerOverlay: UIView {
         l.numberOfLines = 1
         return l
     }()
-
-    // MARK: - UI: playback controls (center row)
-
+    
     private let previousEpisodeButton: UIButton = {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
@@ -127,11 +118,11 @@ final class VideoPlayerOverlay: UIView {
 
     private lazy var playbackControlsStack: UIStackView = {
         let s = UIStackView(arrangedSubviews: [
-            previousEpisodeButton,  // NEW
+            previousEpisodeButton,
             skipBackwardButton,
             playPauseButton,
             skipForwardButton,
-            nextEpisodeButton       // NEW
+            nextEpisodeButton
         ])
         s.axis = .horizontal
         s.alignment = .center

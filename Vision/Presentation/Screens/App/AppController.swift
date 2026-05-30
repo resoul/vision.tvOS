@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-final class AppController: BaseViewController {
+final class AppController: BaseController {
     var viewModel: AppViewModel
     private var currentChildVC: UIViewController?
     private var tabBarHeightConstraint: NSLayoutConstraint!
@@ -12,8 +12,6 @@ final class AppController: BaseViewController {
         self.viewModel = viewModel
         super.init(themeManager: themeManager, languageManager: languageManager)
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +53,8 @@ final class AppController: BaseViewController {
         newVC.view.translatesAutoresizingMaskIntoConstraints = false
         newVC.view.alpha = animated ? 0 : 1
         contentView.addSubview(newVC.view)
-        pinEdges(newVC.view, to: contentView)
+
+        newVC.view.constraints(top: contentView.topAnchor, leading: contentView.leadingAnchor, bottom: contentView.bottomAnchor, trailing: contentView.trailingAnchor)
         newVC.didMove(toParent: self)
 
         if animated {
@@ -102,15 +101,6 @@ final class AppController: BaseViewController {
                        usingSpringWithDamping: 0.85, initialSpringVelocity: 0) {
             self.view.layoutIfNeeded()
         }
-    }
-
-    private func pinEdges(_ child: UIView, to container: UIView) {
-        NSLayoutConstraint.activate([
-            child.topAnchor.constraint(equalTo: container.topAnchor),
-            child.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            child.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            child.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-        ])
     }
 
     func showContent(_ viewController: UIViewController, animated: Bool) {

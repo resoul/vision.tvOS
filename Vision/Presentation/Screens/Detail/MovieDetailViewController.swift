@@ -42,39 +42,24 @@ final class MovieDetailViewController: BaseDetailViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError() }
-
-    // MARK: - Lifecycle
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupMovieUI()
         bindViewModel()
+        setupUI()
         Task { await viewModel.load() }
     }
-
-    // MARK: - Setup
-
-    private func setupMovieUI() {
+    
+    private func setupUI() {
         contentView.addSubview(translationsStack)
-
-        NSLayoutConstraint.activate([
-            translationsStack.topAnchor.constraint(equalTo: infoStack.bottomAnchor, constant: 40),
-            translationsStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            translationsStack.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            translationsStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -80)
-        ])
+        translationsStack.constraints(top: infoStack.bottomAnchor, leading: titleLabel.leadingAnchor, bottom: contentView.bottomAnchor, trailing: titleLabel.trailingAnchor, padding: .init(top: 40, left: 0, bottom: 80, right: 0))
 
         favoriteButton.onPrimaryAction = { [weak self] in self?.viewModel.toggleFavorite() }
-
         playButton.onPrimaryAction = { [weak self] in
             guard let self, let first = self.viewModel.translations.first else { return }
             self.viewModel.play(translation: first)
         }
     }
-
-    // MARK: - Bindings
-
+    
     private func bindViewModel() {
         viewModel.$detail
             .compactMap { $0 }

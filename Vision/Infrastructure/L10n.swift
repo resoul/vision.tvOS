@@ -6,11 +6,6 @@ enum L10n {
         String(localized: key, bundle: bundle)
     }
     
-    enum Home {
-        static var title:        String { L10n.string("home.title") }
-        static var errorLoading: String { L10n.string("home.error.loading") }
-    }
-
     enum Tab {
         static var home:        String { L10n.string("tab.home") }
         static var movies:      String { L10n.string("tab.movies") }
@@ -120,16 +115,6 @@ enum L10n {
 
 
     enum Player {
-        static var author:        String { L10n.string("player.author") }
-        static var views:         String { L10n.string("player.views") }
-        static var added:         String { L10n.string("player.added") }
-        static var description:   String { L10n.string("player.description") }
-        static var audioTrack:    String { L10n.string("player.audio_track") }
-        static var settings:      String { L10n.string("player.settings") }
-        static var episodes:      String { L10n.string("player.episodes") }
-        static var upcomingEpisodes: String { L10n.string("player.upcoming_episodes") }
-        static var seasonEpisodeFormat: String { L10n.string("player.season_episode_format") }
-        
         enum Resume {
             static var title:     String { L10n.string("player.resume.title") }
             static func message(_ time: String) -> String {
