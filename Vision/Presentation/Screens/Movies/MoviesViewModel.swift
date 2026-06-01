@@ -35,9 +35,7 @@ final class MoviesViewModel: ContentListViewModelProtocol {
         guard index < movies.count else { return }
         onDetailRequested?(movies[index])
     }
-
-    // MARK: - Private
-
+    
     private func loadInitial() {
         isLoading = true
         onLoadingChanged?(true)
@@ -67,6 +65,16 @@ final class MoviesViewModel: ContentListViewModelProtocol {
                     isLoading = false
                     return
                 }
+
+                let existingIDs = Set(movies.map(\.id))
+                let hasDuplicates = newMovies.contains { existingIDs.contains($0.id) }
+
+                if hasDuplicates {
+                    isLoading = false
+                    loadInitial()
+                    return
+                }
+
                 movies.append(contentsOf: newMovies)
                 isLoading = false
                 onMoviesAppended?(newMovies)
@@ -77,4 +85,3 @@ final class MoviesViewModel: ContentListViewModelProtocol {
         }
     }
 }
-

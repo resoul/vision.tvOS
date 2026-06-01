@@ -201,10 +201,17 @@ final class SettingsViewController: BaseController {
                 isSelected: quality.rawValue == qualityRow?.valueText
             )
         }
-        let picker = PickerViewController(title: L10n.Settings.Quality.title, items: items)
+        let picker = PickerViewController(
+            title: L10n.Settings.Quality.title,
+            items: items,
+            themeManager: themeManager,
+            languageManager: languageManager
+        )
+        
         picker.onSelect = { [weak self] index in
             self?.viewModel.didSelectQuality(VideoQuality.allCases[index])
         }
+        
         present(picker, animated: true)
     }
 
@@ -213,10 +220,17 @@ final class SettingsViewController: BaseController {
         let items = Theme.allCases.map { theme in
             PickerViewController.Item(primary: theme.displayName, isSelected: theme == viewModel.currentTheme)
         }
-        let picker = PickerViewController(title: L10n.Settings.Theme.title, items: items)
+        let picker = PickerViewController(
+            title: L10n.Settings.Theme.title,
+            items: items,
+            themeManager: themeManager,
+            languageManager: languageManager
+        )
+        
         picker.onSelect = { [weak self] index in
             self?.viewModel.didSelectTheme(Theme.allCases[index])
         }
+        
         present(picker, animated: true)
     }
     
@@ -224,7 +238,13 @@ final class SettingsViewController: BaseController {
         let items = AppLanguage.allCases.map { lang in
             PickerViewController.Item(primary: lang.displayName, isSelected: lang == viewModel.currentLanguage)
         }
-        let picker = PickerViewController(title: L10n.Settings.Language.title, items: items)
+        let picker = PickerViewController(
+            title: L10n.Settings.Language.title,
+            items: items,
+            themeManager: themeManager,
+            languageManager: languageManager
+        )
+        
         picker.onSelect = { [weak self] index in
             self?.viewModel.didSelectLanguage(AppLanguage.allCases[index])
         }

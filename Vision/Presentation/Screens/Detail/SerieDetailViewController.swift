@@ -257,10 +257,17 @@ final class SerieDetailViewController: BaseDetailViewController {
             )
         }
 
-        let picker = PickerViewController(title: L10n.Detail.audioTrack, items: items)
+        let picker = PickerViewController(
+            title: L10n.Detail.audioTrack,
+            items: items,
+            themeManager: themeManager,
+            languageManager: languageManager
+        )
+        
         picker.onSelect = { [weak self] index in
             self?.viewModel.selectTranslation(index: index)
         }
+        
         present(picker, animated: true)
     }
     

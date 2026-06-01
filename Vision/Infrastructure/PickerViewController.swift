@@ -1,7 +1,6 @@
 import UIKit
 
-final class PickerViewController: UIViewController {
-    
+final class PickerViewController: BaseController {
     struct Item {
         let primary: String
         var secondary: String? = nil
@@ -36,15 +35,19 @@ final class PickerViewController: UIViewController {
     private let pickerTitle: String
     private let items: [Item]
     
-    init(title: String, items: [Item]) {
+    init(title: String, items: [Item], themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
         self.pickerTitle = title
         self.items = items
-        super.init(nibName: nil, bundle: nil)
+        super.init(themeManager: themeManager, languageManager: languageManager)
         modalPresentationStyle = .overFullScreen
         modalTransitionStyle = .crossDissolve
     }
     
-    required init?(coder: NSCoder) { fatalError() }
+    override func applyStyle(_ style: ThemeStyle) {
+        super.applyStyle(style)
+        view.backgroundColor = style.surface
+        titleLabel.textColor = style.textPrimary
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,8 +55,6 @@ final class PickerViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.85)
-        
         titleLabel.text = pickerTitle
         view.addSubviews(titleLabel, scrollView)
         scrollView.addSubview(stackView)
@@ -64,7 +65,8 @@ final class PickerViewController: UIViewController {
             
             scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 60),
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            scrollView.widthAnchor.constraint(equalToConstant: 800),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 120),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -120),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
             
             stackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
@@ -105,7 +107,7 @@ private final class PickerRow: TVFocusControl {
     required init?(coder: NSCoder) { fatalError() }
     
     private func setup(item: PickerViewController.Item) {
-        focusScale = 1.02
+        focusScale = 1.00
         
         label.text = item.primary
         label.font = .systemFont(ofSize: 32, weight: .medium)
