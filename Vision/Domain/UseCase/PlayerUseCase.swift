@@ -13,22 +13,22 @@ protocol PlayerUseCaseProtocol {
 }
 
 final class PlayerUseCase: PlayerUseCaseProtocol {
-    private let movieRepository: FilmixMovieRepositoryProtocol
+    private let filmix: FilmixProtocol
     private let stateRepository: PlaybackStateRepository
     private let settingsRepository: SettingsRepositoryProtocol
     
     init(
-        movieRepository: FilmixMovieRepositoryProtocol,
+        filmix: FilmixProtocol,
         stateRepository: PlaybackStateRepository,
         settingsRepository: SettingsRepositoryProtocol
     ) {
-        self.movieRepository = movieRepository
+        self.filmix = filmix
         self.stateRepository = stateRepository
         self.settingsRepository = settingsRepository
     }
     
     func resolveInitialContext(for item: ContentItem) async throws -> PlaybackContext {
-        let translations = try await movieRepository.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
+        let translations = try await filmix.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
         guard !translations.isEmpty else {
             throw PlayerError.noTranslations
         }
@@ -100,7 +100,7 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
     }
     
     func switchEpisode(in item: ContentItem, season: Int, episode: Int, currentStudio: String, currentQuality: String) async throws -> PlaybackContext {
-        let translations = try await movieRepository.fetchTranslations(postId: item.id, isSeries: true)
+        let translations = try await filmix.fetchTranslations(postId: item.id, isSeries: true)
         guard let translation = translations.first(where: { $0.studio == currentStudio }) else {
             throw PlayerError.noTranslations
         }
@@ -175,7 +175,7 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
     }
     
     func fetchTranslations(for item: ContentItem) async throws -> [Translation] {
-        try await movieRepository.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
+        try await filmix.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
     }
 
     func resolvePreferredStream(from streams: [String: String]) async -> (quality: String, url: String)? {

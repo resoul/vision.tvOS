@@ -5,20 +5,19 @@ protocol GetMovieDetailUseCaseProtocol {
 }
 
 final class GetMovieDetailUseCase: GetMovieDetailUseCaseProtocol {
-    private let repository: FilmixMovieRepositoryProtocol
+    private let filmix: FilmixProtocol
     
-    init(repository: FilmixMovieRepositoryProtocol) {
-        self.repository = repository
+    init(filmix: FilmixProtocol) {
+        self.filmix = filmix
     }
     
     func fetchDetail(movie: ContentItem, isSeries: Bool) async throws -> (ContentDetail, [Translation]) {
-        let detail = try await repository.fetchDetail(path: movie.movieURL)
+        let detail = try await filmix.fetchDetail(path: movie.movieURL)
         guard !detail.isNotMovie else {
-            // Restricted content: show metadata only, skip player translations.
             return (detail, [])
         }
 
-        let translations = try await repository.fetchTranslations(postId: movie.id, isSeries: isSeries)
+        let translations = try await filmix.fetchTranslations(postId: movie.id, isSeries: isSeries)
         return (detail, translations)
     }
 }

@@ -5,15 +5,15 @@ protocol SearchUseCaseProtocol {
 }
 
 final class SearchUseCase: SearchUseCaseProtocol {
-    private let repository: FilmixMovieRepositoryProtocol
+    private let filmix: FilmixProtocol
     
-    init(repository: FilmixMovieRepositoryProtocol) {
-        self.repository = repository
+    init(filmix: FilmixProtocol) {
+        self.filmix = filmix
     }
     
     func search(query: String) async throws -> [ContentItem] {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return [] }
-        let page = try await repository.search(query: query)
+        let page = try await filmix.search(query: query)
         return page.items
     }
 }

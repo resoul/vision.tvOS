@@ -1,13 +1,22 @@
 {
-  "originHash" : "1002c245c0fdae6ca9c33705b8fc0eaeec1eff55818735c136a20ed23937d94f",
+  "originHash" : "a22c2c23fbeb80c76078731343ddcdb89a66e5666e57d9ae0c5e4a2c1eada057",
   "pins" : [
     {
       "identity" : "alamofire",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
-        "revision" : "e938f8c66708e7352fc7e3512647fa54255b267a",
-        "version" : "5.11.2"
+        "revision" : "7595cbcf59809f9977c5f6378500de2ad73b7ddb",
+        "version" : "5.12.0"
+      }
+    },
+    {
+      "identity" : "filmix",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:resoul/filmix.git",
+      "state" : {
+        "revision" : "16882d1bc8af7a8cfe88d392952fc22070c0a94b",
+        "version" : "1.2.2"
       }
     },
     {
@@ -15,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
-        "revision" : "6c7915e16f729857aec3e99068c361e58a00ed68",
-        "version" : "2.13.4"
+        "revision" : "49dcadd93161f4a44b4994d3a3e8de9f085aface",
+        "version" : "2.13.5"
       }
     }
   ],

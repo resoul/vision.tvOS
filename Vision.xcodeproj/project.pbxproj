@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		894271502F900DDF008E900B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 8942714F2F900DDF008E900B /* Alamofire */; };
-		894271542F900E56008E900B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 894271532F900E56008E900B /* SwiftSoup */; };
+		899F51DC2FCEF6AF005F2E9E /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 899F51DB2FCEF6AF005F2E9E /* Filmix */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,8 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				894271502F900DDF008E900B /* Alamofire in Frameworks */,
-				894271542F900E56008E900B /* SwiftSoup in Frameworks */,
+				899F51DC2FCEF6AF005F2E9E /* Filmix in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,8 +72,7 @@
 			);
 			name = Vision;
 			packageProductDependencies = (
-				8942714F2F900DDF008E900B /* Alamofire */,
-				894271532F900E56008E900B /* SwiftSoup */,
+				899F51DB2FCEF6AF005F2E9E /* Filmix */,
 			);
 			productName = Vision;
 			productReference = 894271142F8FFEFA008E900B /* Vision.app */;
@@ -106,8 +103,7 @@
 			mainGroup = 8942710B2F8FFEFA008E900B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				8942714E2F900DDF008E900B /* XCRemoteSwiftPackageReference "Alamofire" */,
-				894271522F900E56008E900B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 894271152F8FFEFA008E900B /* Products */;
@@ -347,34 +343,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		8942714E2F900DDF008E900B /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			repositoryURL = "git@github.com:resoul/filmix.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 5.11.2;
-			};
-		};
-		894271522F900E56008E900B /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.13.4;
+				minimumVersion = 1.2.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		8942714F2F900DDF008E900B /* Alamofire */ = {
+		899F51DB2FCEF6AF005F2E9E /* Filmix */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 8942714E2F900DDF008E900B /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
-		894271532F900E56008E900B /* SwiftSoup */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 894271522F900E56008E900B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
-			productName = SwiftSoup;
+			package = 899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */;
+			productName = Filmix;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
