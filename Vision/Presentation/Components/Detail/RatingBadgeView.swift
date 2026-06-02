@@ -18,29 +18,26 @@ final class RatingBadgeView: UIView {
         layer.cornerCurve = .continuous
         
         logoLabel.text = logo
-        logoLabel.font = .systemFont(ofSize: 20, weight: .heavy)
+        logoLabel.font = .montserrat(.semiBold, size: 20)
         logoLabel.textColor = logoColor
         
         ratingLabel.text = rating
-        ratingLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        ratingLabel.font = .montserrat(.bold, size: 24)
         ratingLabel.textColor = .white
         
         votesLabel.text = votes
-        votesLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        votesLabel.font = .montserrat(.regular, size: 16)
         votesLabel.textColor = UIColor(white: 1, alpha: 0.5)
         
         let stack = UIStackView(arrangedSubviews: [logoLabel, ratingLabel, votesLabel])
         stack.axis = .horizontal
         stack.spacing = 8
         stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 6),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6)
-        ])
+        stack.constraints(
+            top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor,
+            padding: .init(top: 6, left: 12, bottom: 6, right: 12)
+        )
     }
 }

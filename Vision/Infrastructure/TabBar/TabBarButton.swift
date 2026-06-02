@@ -13,46 +13,41 @@ final class TabButton: TVFocusControl {
     init(item: TabItem, config: TabBarConfiguration) {
         self.config = config
         super.init(frame: .zero)
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        label.translatesAutoresizingMaskIntoConstraints = false
-        accentDot.translatesAutoresizingMaskIntoConstraints = false
         iconView.image = UIImage(systemName: item.icon)
         iconView.tintColor = config.inactiveColor
         label.text = item.title
         label.font = .montserrat(.semiBold, size: 24)
+        
         accentDot.backgroundColor = .white
         accentDot.layer.cornerRadius = 3
-        addSubview(iconView)
-        addSubview(label)
-        addSubview(accentDot)
+        addSubviews(iconView, label, accentDot)
+        iconView.constraints(
+            top: nil, leading: bgView.leadingAnchor, bottom: nil, trailing: nil,
+            padding: .init(top: 0, left: 16, bottom: 0, right: 0),
+            size: .init(width: 22, height: 22)
+        )
+        label.constraints(
+            top: bgView.topAnchor, leading: iconView.trailingAnchor, bottom: bgView.bottomAnchor, trailing: bgView.trailingAnchor,
+            padding: .init(top: 12, left: 10, bottom: 12, right: 18)
+        )
+        accentDot.constraints(
+            top: nil, leading: nil, bottom: bottomAnchor, trailing: nil,
+            size: .init(width: 20, height: 4)
+        )
+        
         NSLayoutConstraint.activate([
-            iconView.leadingAnchor.constraint(equalTo: bgView.leadingAnchor, constant: 16),
             iconView.centerYAnchor.constraint(equalTo: bgView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 22),
-            iconView.heightAnchor.constraint(equalToConstant: 22),
-            label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
-            label.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -18),
             label.centerYAnchor.constraint(equalTo: bgView.centerYAnchor),
-            accentDot.bottomAnchor.constraint(equalTo: bottomAnchor),
             accentDot.centerXAnchor.constraint(equalTo: centerXAnchor),
-            accentDot.widthAnchor.constraint(equalToConstant: 20),
-            accentDot.heightAnchor.constraint(equalToConstant: 4),
-            label.topAnchor.constraint(equalTo: bgView.topAnchor, constant: 12),
-            label.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -12),
         ])
+        
         updateLook(animated: false)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     override func applyFocusAppearance(focused: Bool) {
         label.textColor = focused ? config.activeColor : (isActiveTab ? config.activeColor : config.inactiveColor)
         iconView.tintColor = focused ? config.activeColor : (isActiveTab ? config.activeColor : config.inactiveColor)
         
-        // Use active color for focus background with low alpha
         let bgAlpha = focused ? config.focusedBgAlpha : (isActiveTab ? 0.08 : 0)
         let bgColor = focused ? config.activeColor : (isActiveTab ? config.activeColor : .clear)
         bgView.backgroundColor = bgColor.withAlphaComponent(bgAlpha)
@@ -62,7 +57,7 @@ final class TabButton: TVFocusControl {
         let block = {
             self.label.textColor = self.isActiveTab ? self.config.activeColor : self.config.inactiveColor
             self.iconView.tintColor = self.isActiveTab ? self.config.activeColor : self.config.inactiveColor
-            self.label.font = UIFont.systemFont(ofSize: 24, weight: self.isActiveTab ? .bold : .semibold)
+            self.label.font = .montserrat(self.isActiveTab ? .bold : .semiBold, size: 24)
             self.accentDot.alpha = self.isActiveTab ? 1 : 0
             self.accentDot.backgroundColor = self.config.activeColor
             
@@ -86,23 +81,20 @@ final class SettingsButton: TVFocusControl {
     init(config: TabBarConfiguration) {
         self.config = config
         super.init(frame: .zero)
-        iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.image = UIImage(systemName: "gearshape.fill")
         addSubview(iconView)
+        
+        iconView.constraints(
+            top: nil, leading: nil, bottom: nil, trailing: nil,
+            size: .init(width: 24, height: 24)
+        )
+        iconView.constraintToCenter(in: bgView)
+        
         NSLayoutConstraint.activate([
             bgView.widthAnchor.constraint(equalToConstant: 52),
             bgView.heightAnchor.constraint(equalToConstant: 48),
-            iconView.centerXAnchor.constraint(equalTo: bgView.centerXAnchor),
-            iconView.centerYAnchor.constraint(equalTo: bgView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 24),
-            iconView.heightAnchor.constraint(equalToConstant: 24),
         ])
         applyFocusAppearance(focused: false)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     override func applyFocusAppearance(focused: Bool) {
@@ -118,30 +110,27 @@ final class SearchButton: TVFocusControl {
     init(config: TabBarConfiguration, searchTitle: String) {
         self.config = config
         super.init(frame: .zero)
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        label.translatesAutoresizingMaskIntoConstraints = false
         iconView.image = UIImage(systemName: "magnifyingglass")
         label.text = searchTitle
-        label.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
-        addSubview(iconView)
-        addSubview(label)
+        label.font = .montserrat(.semiBold, size: 24)
+        addSubviews(iconView, label)
+        
+        iconView.constraints(
+            top: nil, leading: bgView.leadingAnchor, bottom: nil, trailing: nil,
+            padding: .init(top: 0, left: 16, bottom: 0, right: 0),
+            size: .init(width: 22, height: 22)
+        )
+        label.constraints(
+            top: bgView.topAnchor, leading: iconView.trailingAnchor, bottom: bgView.bottomAnchor, trailing: bgView.trailingAnchor,
+            padding: .init(top: 12, left: 10, bottom: 12, right: 18)
+        )
+        
         NSLayoutConstraint.activate([
-            iconView.leadingAnchor.constraint(equalTo: bgView.leadingAnchor, constant: 16),
             iconView.centerYAnchor.constraint(equalTo: bgView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 22),
-            iconView.heightAnchor.constraint(equalToConstant: 22),
-            label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
-            label.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -18),
-            label.topAnchor.constraint(equalTo: bgView.topAnchor, constant: 12),
-            label.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -12),
             label.centerYAnchor.constraint(equalTo: bgView.centerYAnchor),
         ])
+        
         applyFocusAppearance(focused: false)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     override func applyFocusAppearance(focused: Bool) {
@@ -161,22 +150,16 @@ final class GenreButton: TVFocusControl {
     init(genre: GenreItem, config: TabBarConfiguration) {
         self.config = config
         super.init(frame: .zero)
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.text = genre.title
-        label.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        label.font = .montserrat(.semiBold, size: 20)
         addSubview(label)
-        NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: bgView.leadingAnchor, constant: 14),
-            label.trailingAnchor.constraint(equalTo: bgView.trailingAnchor, constant: -14),
-            label.topAnchor.constraint(equalTo: bgView.topAnchor, constant: 10),
-            label.bottomAnchor.constraint(equalTo: bgView.bottomAnchor, constant: -10),
-        ])
-        updateLook(animated: false)
-    }
+        
+        label.constraints(
+            top: bgView.topAnchor, leading: bgView.leadingAnchor, bottom: bgView.bottomAnchor, trailing: bgView.trailingAnchor,
+            padding: .init(top: 10, left: 14, bottom: 10, right: 14)
+        )
 
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        updateLook(animated: false)
     }
 
     override func applyFocusAppearance(focused: Bool) {

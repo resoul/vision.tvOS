@@ -28,10 +28,6 @@ class TVFocusControl: UIControl {
         bgView.backgroundColor = UIColor(white: 1, alpha: normalBgAlpha)
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     override var canBecomeFocused: Bool { true }
 
     func applyFocusAppearance(focused: Bool) {}
@@ -49,5 +45,10 @@ class TVFocusControl: UIControl {
             return
         }
         onSelect?()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

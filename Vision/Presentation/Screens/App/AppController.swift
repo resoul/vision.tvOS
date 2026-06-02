@@ -75,7 +75,6 @@ final class AppController: BaseController {
         super.applyStyle(style)
         contentView.backgroundColor = style.background
         
-        // Refresh TabBar with new style
         let currentItems = tabBarView.currentItems
         let newConfig = TabBarConfiguration.standard(items: currentItems, style: style)
         tabBarView.apply(configuration: newConfig)

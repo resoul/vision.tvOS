@@ -23,7 +23,7 @@ final class SearchViewController: BaseController {
     
     private lazy var searchTextField: UITextField = {
         let tf = UITextField()
-        tf.font = .systemFont(ofSize: 32, weight: .medium)
+        tf.font = .montserrat(.medium, size: 32)
         tf.textColor = .white
         tf.returnKeyType = .search
         tf.translatesAutoresizingMaskIntoConstraints = false
@@ -45,7 +45,7 @@ final class SearchViewController: BaseController {
     
     private let emptyLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 28, weight: .medium)
+        l.font = .montserrat(.medium, size: 28)
         l.textColor = .lightGray
         l.textAlignment = .center
         l.isHidden = true

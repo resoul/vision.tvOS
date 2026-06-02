@@ -15,7 +15,10 @@ final class BadgeView: UIView {
         label.font = font
 
         addSubview(label)
-        label.constraints(top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor, padding: .init(top: 4, left: 6, bottom: 4, right: 6))
+        label.constraints(
+            top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor,
+            padding: .init(top: 4, left: 6, bottom: 4, right: 6)
+        )
     }
 
     required init?(coder: NSCoder) {

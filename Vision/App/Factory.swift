@@ -20,12 +20,7 @@ final class ModuleFactory: FactoryProtocol {
     }
     
     func makeApp() -> AppCoordinator {
-        FontManager.registerFonts(fontFamily: Fonts.Amazon.self)
         FontManager.registerFonts(fontFamily: Fonts.Montserrat.self)
-        FontManager.registerFonts(fontFamily: Fonts.Poppins.self)
-        FontManager.registerFonts(fontFamily: Fonts.Roboto.self)
-        FontManager.registerFonts(fontFamily: Fonts.Lato.self)
-
         (container.themeManager as? ThemeManager)?.apply(
             (container.themeManager as? ThemeManager)?.theme ?? .dark
         )

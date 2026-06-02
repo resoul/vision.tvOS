@@ -12,12 +12,12 @@ final class DetailInfoRow: UIView {
     required init?(coder: NSCoder) { fatalError() }
     
     private func setup() {
-        keyLabel.font = .systemFont(ofSize: 24, weight: .regular)
+        keyLabel.font = .montserrat(.regular, size: 24)
         keyLabel.textColor = UIColor(white: 1, alpha: 0.45)
         keyLabel.translatesAutoresizingMaskIntoConstraints = false
         keyLabel.setContentHuggingPriority(.required, for: .horizontal)
         
-        valueLabel.font = .systemFont(ofSize: 24, weight: .medium)
+        valueLabel.font = .montserrat(.medium, size: 24)
         valueLabel.textColor = .white
         valueLabel.numberOfLines = 0
         valueLabel.translatesAutoresizingMaskIntoConstraints = false

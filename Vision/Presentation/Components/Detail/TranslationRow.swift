@@ -12,18 +12,16 @@ final class TranslationRow: TVFocusControl {
         setup(studio: studio, quality: quality)
     }
     
-    required init?(coder: NSCoder) { fatalError() }
-    
     private func setup(studio: String, quality: String) {
         focusScale = 1.02
         normalBgAlpha = 0.05
         
         studioLabel.text = studio
-        studioLabel.font = .systemFont(ofSize: 26, weight: .semibold)
+        studioLabel.font = .montserrat(.semiBold, size: 26)
         studioLabel.textColor = .white
         
         qualityLabel.text = quality
-        qualityLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        qualityLabel.font = .montserrat(.bold, size: 20)
         qualityLabel.textColor = .systemGreen
         
         playIcon.tintColor = .white

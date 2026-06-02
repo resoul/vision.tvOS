@@ -9,7 +9,6 @@ final class DetailButton: TVFocusControl {
     private let label = UILabel()
     private let iconIV = UIImageView()
     private let style: Style
-    
     var onPrimaryAction: (() -> Void)?
     
     init(title: String, icon: UIImage? = nil, style: Style = .primary) {
@@ -18,35 +17,27 @@ final class DetailButton: TVFocusControl {
         setup(title: title, icon: icon)
     }
     
-    required init?(coder: NSCoder) { fatalError() }
-    
     private func setup(title: String, icon: UIImage?) {
         focusScale = 1.05
         
         label.text = title
-        label.font = .systemFont(ofSize: 28, weight: .semibold)
+        label.font = .montserrat(.semiBold, size: 28)
         label.translatesAutoresizingMaskIntoConstraints = false
         
         iconIV.image = icon
         iconIV.contentMode = .scaleAspectFit
-        iconIV.translatesAutoresizingMaskIntoConstraints = false
         
         let stack = UIStackView(arrangedSubviews: [iconIV, label])
         stack.axis = .horizontal
         stack.spacing = 16
         stack.alignment = .center
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 40),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -40),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-            
-            iconIV.widthAnchor.constraint(equalToConstant: 28),
-            iconIV.heightAnchor.constraint(equalToConstant: 28)
-        ])
+        iconIV.constraintToSize(size: .init(width: 28, height: 28))
+        stack.constraints(
+            top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor,
+            padding: .init(top: 16, left: 40, bottom: 16, right: 40)
+        )
         
         iconIV.isHidden = icon == nil
         

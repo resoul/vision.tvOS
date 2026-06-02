@@ -31,7 +31,7 @@ class BaseDetailViewController: BaseController {
     
     let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 54, weight: .heavy)
+        l.font = .montserrat(.semiBold, size: 54)
         l.textColor = .white
         l.numberOfLines = 2
         l.translatesAutoresizingMaskIntoConstraints = false
@@ -67,7 +67,7 @@ class BaseDetailViewController: BaseController {
     
     let descriptionLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 24, weight: .regular)
+        l.font = .montserrat(.regular, size: 24)
         l.textColor = UIColor(white: 1, alpha: 0.8)
         l.numberOfLines = 5
         l.translatesAutoresizingMaskIntoConstraints = false
@@ -79,7 +79,7 @@ class BaseDetailViewController: BaseController {
     let buttonsStack = UIStackView()
     let playbackUnavailableLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 22, weight: .medium)
+        label.font = .montserrat(.medium, size: 22)
         label.numberOfLines = 2
         label.text = L10n.Detail.playbackUnavailable
         label.isHidden = true

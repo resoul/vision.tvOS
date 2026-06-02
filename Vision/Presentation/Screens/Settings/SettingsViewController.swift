@@ -21,7 +21,7 @@ final class SettingsViewController: BaseController {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 52, weight: .heavy)
+        l.font = .montserrat(.semiBold, size: 52)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
@@ -130,7 +130,7 @@ final class SettingsViewController: BaseController {
     private func addSectionHeader(_ title: String) {
         let label = UILabel()
         label.text = title.uppercased()
-        label.font = .systemFont(ofSize: 26, weight: .bold)
+        label.font = .montserrat(.bold, size: 26)
         stackView.addArrangedSubview(label)
         stackView.setCustomSpacing(16, after: label)
     }

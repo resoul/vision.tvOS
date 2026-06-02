@@ -10,14 +10,14 @@ final class SettingsValueRow: SettingsRowBase {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 28, weight: .medium)
+        l.font = .montserrat(.medium, size: 28)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
     
     private let valueLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 26, weight: .regular)
+        l.font = .montserrat(.regular, size: 26)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
@@ -30,7 +30,7 @@ final class SettingsValueRow: SettingsRowBase {
     private let chevron: UILabel = {
         let l = UILabel()
         l.text = "›"
-        l.font = .systemFont(ofSize: 30, weight: .light)
+        l.font = .montserrat(.light, size: 30)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()

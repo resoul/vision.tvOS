@@ -17,16 +17,13 @@ final class DetailPillView: UIView {
         layer.cornerCurve = .continuous
         
         label.text = text
-        label.font = .systemFont(ofSize: 22, weight: .bold)
+        label.font = .montserrat(.bold, size: 22)
         label.textColor = .white
-        label.translatesAutoresizingMaskIntoConstraints = false
         
         addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4)
-        ])
+        label.constraints(
+            top: topAnchor, leading: leadingAnchor, bottom: bottomAnchor, trailing: trailingAnchor,
+            padding: .init(top: 4, left: 12, bottom: 4, right: 12)
+        )
     }
 }

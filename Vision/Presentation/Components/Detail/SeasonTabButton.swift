@@ -21,12 +21,12 @@ final class SeasonTabButton: TVFocusControl {
         focusScale = 1.1 
         
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        titleLabel.font = .montserrat(.bold, size: 20)
         titleLabel.textColor = .white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         subtitleLabel.text = subtitle
-        subtitleLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        subtitleLabel.font = .montserrat(.regular, size: 12)
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.6)
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         

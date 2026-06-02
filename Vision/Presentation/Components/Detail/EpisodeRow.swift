@@ -20,11 +20,11 @@ final class EpisodeRow: TVFocusControl {
         normalBgAlpha = 0.05
         
         indexLabel.text = "\(index + 1)."
-        indexLabel.font = .systemFont(ofSize: 22, weight: .regular)
+        indexLabel.font = .montserrat(.regular, size: 22)
         indexLabel.textColor = UIColor(white: 1, alpha: 0.4)
         
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 24, weight: .medium)
+        titleLabel.font = .montserrat(.medium, size: 24)
         titleLabel.textColor = .white
         
         watchedIcon.tintColor = .systemGreen

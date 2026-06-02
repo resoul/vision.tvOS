@@ -9,7 +9,7 @@ final class PickerViewController: BaseController {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 48, weight: .bold)
+        l.font = .montserrat(.bold, size: 48)
         l.textAlignment = .center
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
@@ -24,14 +24,8 @@ final class PickerViewController: BaseController {
         return s
     }()
     
-    private let scrollView: UIScrollView = {
-        let s = UIScrollView()
-        s.translatesAutoresizingMaskIntoConstraints = false
-        return s
-    }()
-    
+    private let scrollView: UIScrollView = UIScrollView()
     var onSelect: ((Int) -> Void)?
-    
     private let pickerTitle: String
     private let items: [Item]
     
@@ -58,17 +52,15 @@ final class PickerViewController: BaseController {
         titleLabel.text = pickerTitle
         view.addSubviews(titleLabel, scrollView)
         scrollView.addSubview(stackView)
+        scrollView.constraints(
+            top: titleLabel.bottomAnchor, leading: view.leadingAnchor, bottom: view.bottomAnchor, trailing: view.trailingAnchor,
+            padding: .init(top: 60, left: 120, bottom: 100, right: 120)
+        )
         
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 100),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 60),
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 120),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -120),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
-            
             stackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
@@ -104,13 +96,11 @@ private final class PickerRow: TVFocusControl {
         setup(item: item)
     }
     
-    required init?(coder: NSCoder) { fatalError() }
-    
     private func setup(item: PickerViewController.Item) {
         focusScale = 1.00
         
         label.text = item.primary
-        label.font = .systemFont(ofSize: 32, weight: .medium)
+        label.font = .montserrat(.medium, size: 32)
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         

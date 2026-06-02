@@ -58,7 +58,7 @@ final class VideoPlayerOverlay: UIView {
 
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 38, weight: .semibold)
+        l.font = .montserrat(.semiBold, size: 38)
         l.textColor = .white
         l.numberOfLines = 1
         return l

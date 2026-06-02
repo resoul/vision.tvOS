@@ -11,14 +11,14 @@ final class SettingsSliderRow: SettingsRowBase {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 28, weight: .medium)
+        l.font = .montserrat(.medium, size: 28)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
     
     private let valueLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 26, weight: .bold)
+        l.font = .montserrat(.bold, size: 26)
         l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
