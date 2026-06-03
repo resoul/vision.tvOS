@@ -7,18 +7,75 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */; };
+		897F7A762FCF6FBA007C6C9E /* TopShelfContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		897F7A7F2FCF7766007C6C9E /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 897F7A7E2FCF7766007C6C9E /* Filmix */; };
 		899F51DC2FCEF6AF005F2E9E /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 899F51DB2FCEF6AF005F2E9E /* Filmix */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		897F7A742FCF6FBA007C6C9E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8942710C2F8FFEFA008E900B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 897F7A6B2FCF6FBA007C6C9E;
+			remoteInfo = TopShelfContent;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		897F7A7B2FCF6FBA007C6C9E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				897F7A762FCF6FBA007C6C9E /* TopShelfContent.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		894271142F8FFEFA008E900B /* Vision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vision.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TopShelfContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = System/Library/Frameworks/TVServices.framework; sourceTree = SDKROOT; };
 		89A000012FA00000008E900B /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		897F7A772FCF6FBA007C6C9E /* Exceptions for "TopShelfContent" folder in "TopShelfContent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 897F7A6B2FCF6FBA007C6C9E /* TopShelfContent */;
+		};
+		897F7A842FCF8CFC007C6C9E /* Exceptions for "Vision" folder in "Vision" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+			);
+			target = 894271132F8FFEFA008E900B /* Vision */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		894271162F8FFEFA008E900B /* Vision */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				897F7A842FCF8CFC007C6C9E /* Exceptions for "Vision" folder in "Vision" target */,
+			);
 			path = Vision;
+			sourceTree = "<group>";
+		};
+		897F7A702FCF6FBA007C6C9E /* TopShelfContent */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				897F7A772FCF6FBA007C6C9E /* Exceptions for "TopShelfContent" folder in "TopShelfContent" target */,
+			);
+			path = TopShelfContent;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +89,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		897F7A692FCF6FBA007C6C9E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */,
+				897F7A7F2FCF7766007C6C9E /* Filmix in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -40,6 +106,8 @@
 			children = (
 				89A000012FA00000008E900B /* AGENTS.md */,
 				894271162F8FFEFA008E900B /* Vision */,
+				897F7A702FCF6FBA007C6C9E /* TopShelfContent */,
+				897F7A6D2FCF6FBA007C6C9E /* Frameworks */,
 				894271152F8FFEFA008E900B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,8 +116,17 @@
 			isa = PBXGroup;
 			children = (
 				894271142F8FFEFA008E900B /* Vision.app */,
+				897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		897F7A6D2FCF6FBA007C6C9E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -62,10 +139,12 @@
 				894271102F8FFEFA008E900B /* Sources */,
 				894271112F8FFEFA008E900B /* Frameworks */,
 				894271122F8FFEFA008E900B /* Resources */,
+				897F7A7B2FCF6FBA007C6C9E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				897F7A752FCF6FBA007C6C9E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				894271162F8FFEFA008E900B /* Vision */,
@@ -78,6 +157,29 @@
 			productReference = 894271142F8FFEFA008E900B /* Vision.app */;
 			productType = "com.apple.product-type.application";
 		};
+		897F7A6B2FCF6FBA007C6C9E /* TopShelfContent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 897F7A782FCF6FBA007C6C9E /* Build configuration list for PBXNativeTarget "TopShelfContent" */;
+			buildPhases = (
+				897F7A682FCF6FBA007C6C9E /* Sources */,
+				897F7A692FCF6FBA007C6C9E /* Frameworks */,
+				897F7A6A2FCF6FBA007C6C9E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				897F7A702FCF6FBA007C6C9E /* TopShelfContent */,
+			);
+			name = TopShelfContent;
+			packageProductDependencies = (
+				897F7A7E2FCF7766007C6C9E /* Filmix */,
+			);
+			productName = TopShelfContent;
+			productReference = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -85,11 +187,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2630;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					894271132F8FFEFA008E900B = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					897F7A6B2FCF6FBA007C6C9E = {
+						CreatedOnToolsVersion = 26.5;
 					};
 				};
 			};
@@ -111,12 +216,20 @@
 			projectRoot = "";
 			targets = (
 				894271132F8FFEFA008E900B /* Vision */,
+				897F7A6B2FCF6FBA007C6C9E /* TopShelfContent */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		894271122F8FFEFA008E900B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		897F7A6A2FCF6FBA007C6C9E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -133,7 +246,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		897F7A682FCF6FBA007C6C9E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		897F7A752FCF6FBA007C6C9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 897F7A6B2FCF6FBA007C6C9E /* TopShelfContent */;
+			targetProxy = 897F7A742FCF6FBA007C6C9E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		894271232F8FFEFC008E900B /* Debug */ = {
@@ -269,6 +397,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Vision/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vision;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -298,6 +427,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Vision/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vision;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -316,6 +446,62 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
+			};
+			name = Release;
+		};
+		897F7A792FCF6FBA007C6C9E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TopShelfContent/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TopShelfContent;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = airlance.Vision.TopShelfContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		897F7A7A2FCF6FBA007C6C9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TopShelfContent/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TopShelfContent;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = airlance.Vision.TopShelfContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 26.5;
 			};
 			name = Release;
 		};
@@ -340,6 +526,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		897F7A782FCF6FBA007C6C9E /* Build configuration list for PBXNativeTarget "TopShelfContent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				897F7A792FCF6FBA007C6C9E /* Debug */,
+				897F7A7A2FCF6FBA007C6C9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -354,6 +549,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		897F7A7E2FCF7766007C6C9E /* Filmix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */;
+			productName = Filmix;
+		};
 		899F51DB2FCEF6AF005F2E9E /* Filmix */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */;

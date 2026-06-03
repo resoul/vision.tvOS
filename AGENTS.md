@@ -17,33 +17,45 @@ Welcome, Agent. This document provides critical architectural context, standard 
 
 ## 📁 Project Architecture & Dependency Flow
 
-Our project must strictly adhere to **Clean Architecture** principles. The core rule of Clean Architecture is that **dependencies flow inwards towards the Domain layer**. The Domain layer is the architectural center: it owns business entities, repository protocols, and use cases, and it must not know about UI, networking, parsing, persistence frameworks, or application composition.
+Our project strictly adheres to **Clean Architecture** principles. The core rule of Clean Architecture is that **dependencies flow inwards towards the Domain layer**. The Domain layer is the architectural center: it owns business entities, repository protocols, and use cases, and it contains no dependencies on external libraries or outer layers (UI, network, storage).
 
-> **Important current-state note**: a few legacy Domain files still import UIKit (`Theme`, `ContentItem`, `ImageRepositoryProtocol`). Treat these as known technical debt, not as precedent. Do not add new UIKit/CoreData/Alamofire dependencies to Domain. When touching these areas, prefer moving UI-specific values into `Infrastructure` or `Presentation` adapters while keeping the Domain model pure.
+> **Note on Domain Purity**: The Domain layer is fully isolated from external UI or system frameworks. All previous legacy imports of `UIKit` in the Domain layer have been fully cleaned up.
 
 ### 📦 Project File Map
 
 1. **`Vision/Domain` (The Independent Core)**
-   - **`Entity`**: Pure domain models and structs (e.g., `ContentItem`, `Translation`, `PlaybackContext`, `PlaybackState`, `Theme`, `Language`). These contain pure business state and zero external framework imports.
-   - **`Repository`**: Swift protocol interfaces defining data access patterns (e.g., `FilmixMovieRepositoryProtocol`, `PlaybackStateRepository`, `FavoritesRepository`).
-   - **`UseCase`**: Encapsulates specific business rules and coordinates data aggregation (e.g., `PlayerUseCase`, `FavoritesUseCase`, `SettingsUseCase`). They interact only with domain repositories and entities.
+   - **`Entity`**: Pure domain models and structs (e.g., `ContentItem`, `Translation`, `PlaybackContext`, `PlaybackState`, `Theme`, `AppLanguage`, `Category`, `Genre`, `SettingsData`, `SettingsStorageData`). Contains zero framework imports and represents the pure business state.
+   - **`Repository`**: Swift protocol interfaces defining data access patterns (e.g., `FavoritesRepository`, `PlaybackStateRepository`, `WatchHistoryRepository`, `SettingsRepositoryProtocol`, `ImageRepositoryProtocol`).
+   - **`UseCase`**: Encapsulates business logic and coordinates data flow (e.g., `PlayerUseCase`, `FavoritesUseCase`, `WatchHistoryUseCase`, `GetContentUseCase`, `GetMovieDetailUseCase`, `SearchUseCase`, `SettingsUseCase`). They interact only with domain entities and repository protocols.
 
 2. **`Vision/Data` (The Gatekeeper of Data)**
-   - **`Repository`**: Concrete implementations of Domain repository protocols (e.g., `FilmixMovieRepository`, `CoreDataFavoritesRepository`, `CoreDataPlaybackStateRepository`). Converts network DTOs or CoreData managed entities into clean domain entities.
-   - **`Network`**: Low-level api communication (e.g., `FilmixNetworkClient`), decoders (`FilmixStreamDecoder`), HTML parsers (`FilmixHTMLParser`), and decodable DTO models.
-   - **`Service`**: Standard framework adapters (e.g., `SettingsService`) implementing Domain settings protocols.
+   - **`Repository`**: Concrete implementations of Domain repository protocols mapping persistence objects to Domain entities (e.g., `CoreDataFavoritesRepository`, `CoreDataPlaybackStateRepository`, `CoreDataWatchHistoryRepository`).
+   - **`Service`**: Framework adapters implementing Domain services, e.g., `SettingsService` implementing `SettingsRepositoryProtocol`.
+   - *Note on Networking*: Low-level API communication is offloaded to the external `Filmix` framework package. It is wrapped inside `Vision/Infrastructure/Filmix.swift` via the `FilmixProtocol` (acting as a gateway for movies parsing, detail retrieval, translations, and search).
 
 3. **`Vision/Presentation` (The Interface)**
-   - **`Screens`**: Grouped folders containing ViewControllers (`BaseController` descendants) and state-driven ViewModels (e.g., `Movies`, `Detail`, `Search`, `Settings`, `Video`). ViewModels must contain *no UIKit code* and represent state Reactively via `@Published`.
-   - **`Components`**: Small, reusable UI elements separated by context (e.g., `Detail/EpisodeRow`, `Detail/TranslationRow`, `Settings/ThemePicker`).
+   - **`Screens`**: Grouped folders containing ViewControllers and state-driven ViewModels:
+     - `App`: The root container VC and VM (`AppController.swift`, `AppViewModel.swift`) orchestrating the custom top tab bar and workspace swapping.
+     - `Movies`: Holds `MoviesController` and its collection of data source view models (`MoviesViewModel`, `FavoritesViewModel`, `WatchHistoryViewModel`) conforming to the shared `ContentListViewModelProtocol`.
+     - `Detail`: Movie and Series details (`MovieDetailViewController/ViewModel`, `SerieDetailViewController/ViewModel`) sharing `BaseDetailViewController.swift`.
+     - `Search`: Simple query/filter controller (`SearchViewController`, `SearchViewModel`).
+     - `Settings`: Setup interface (`SettingsViewController`, `SettingsViewModel`).
+     - `Video`: Video engine page controller (`VideoController`, `VideoViewModel`, overlays, and controls).
+   - **`Components`**: Small, reusable layout components separated by context:
+     - `Detail/`: Row views, season selectors, and labels (`EpisodeRow.swift`, `SeasonTabButton.swift`, `TranslationRow.swift`, etc.).
+     - `Settings/`: Option items and settings sliders (`SettingsValueRow.swift`, `SettingsSliderRow.swift`, `SettingsStorageSectionView.swift`, etc.).
 
 4. **`Vision/Infrastructure` (Cross-Cutting Concerns)**
-   - **`Managers` & `Caches`**: Global helpers (`ThemeManager`, `LanguageManager`, `FontManager`, `PosterCache`).
-   - **`Persistence`**: Direct persistence mechanics like CoreData initialization (`CoreDataStack`) or UserDefaults managers (`PlaybackProgressManager`, `FavoritesManager`).
-   - **`Extensions`**: Layout, foundation, and UIKit helper files (e.g., `TVFocusControl`, `ModalController`, `PickerViewController`).
+   - **`BaseController.swift`**: The base view controller that handles theme updates and styling hooks for all screens.
+   - **Global Helpers**: Shared managers such as `ThemeManager.swift`, `LanguageManager.swift`, `FontSettingsManager.swift`, and image loaders like `PosterCache.swift` (implementing `ImageRepositoryProtocol`).
+   - **Utility Controls**: UI components like `TVFocusControl.swift`, `ModalController.swift`, `PickerViewController.swift`.
+   - **`Player/`**: Custom AVPlayer wrapper engine and view (`QueueVideoPlayerEngine.swift`, `QueueVideoPlayerLayerView.swift`).
+   - **`Persistence/`**: DB synchronization (`CoreDataStack.swift`), UserDefaults adapters (`PlaybackProgressManager.swift`, `FavoritesManager.swift`, `WatchHistoryManager.swift`), and the `Entities/` folder hosting DB managed structures (`CDFavorite`, `CDHistory`, `CDPlaybackState`, `CDEpisodeProgress`).
+   - **`TabBar/`**: Reusable custom tab bar implementation (`TabBarView.swift`, `TabBarButton.swift`).
+   - **`UIKit/`**: Pure extensions and styling assets (`ThemeStyle.swift`, `Color.swift`, `Font.swift`).
 
 5. **`Vision/App` (The Composition Root)**
-   - Wireframe structure containing the application lifecycle (`AppDelegate`), custom Dependency Injection Container (`Container`), views Factory (`ModuleFactory`), and navigation control (`AppCoordinator`).
+   - Wires up the lifecycle (`AppDelegate`), Dependency Injection container (`Container.swift`), views assembly Factory (`Factory.swift`), and navigation controller (`Coordinator.swift`).
 
 ### 🔁 Typical Feature Flow
 
@@ -121,6 +133,18 @@ Use these rules as the first decision filter before adding a file, import, depen
 
 When a request relates to a specific feature domain, start with these files instead of scanning the entire project.
 
+- **App Root & Navigation**
+  - [AppController.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/App/AppController.swift)
+  - [AppViewModel.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/App/AppViewModel.swift)
+  - [Coordinator.swift](file:///Users/resoul/projects/Vision/Vision/App/Coordinator.swift)
+  - [Container.swift](file:///Users/resoul/projects/Vision/Vision/App/Container.swift)
+  - [Factory.swift](file:///Users/resoul/projects/Vision/Vision/App/Factory.swift)
+- **Content Lists (Movies, Favorites, History)**
+  - [MoviesController.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Movies/MoviesController.swift)
+  - [MoviesViewModel.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Movies/MoviesViewModel.swift)
+  - [FavoritesViewModel.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Movies/FavoritesViewModel.swift)
+  - [WatchHistoryViewModel.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Movies/WatchHistoryViewModel.swift)
+  - [ContentListViewModelProtocol.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Movies/ContentListViewModelProtocol.swift)
 - **Player Overlay & UI Controls**
   - [VideoController.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Video/VideoController.swift)
   - [VideoPlayerOverlay.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Video/VideoPlayerOverlay.swift)
@@ -139,20 +163,20 @@ When a request relates to a specific feature domain, start with these files inst
   - [EpisodeRow.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Components/Detail/EpisodeRow.swift)
   - [SeasonTabButton.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Components/Detail/SeasonTabButton.swift)
   - [TranslationRow.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Components/Detail/TranslationRow.swift)
-- **Settings**
+- **Settings & API Gateway**
   - [SettingsViewController.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Settings/SettingsViewController.swift)
   - [SettingsViewModel.swift](file:///Users/resoul/projects/Vision/Vision/Presentation/Screens/Settings/SettingsViewModel.swift)
   - [SettingsUseCase.swift](file:///Users/resoul/projects/Vision/Vision/Domain/UseCase/SettingsUseCase.swift)
   - [SettingsService.swift](file:///Users/resoul/projects/Vision/Vision/Data/Service/SettingsService.swift)
-- **DI & Navigation Setup**
-  - [Container.swift](file:///Users/resoul/projects/Vision/Vision/App/Container.swift)
-  - [Factory.swift](file:///Users/resoul/projects/Vision/Vision/App/Factory.swift)
-  - [Coordinator.swift](file:///Users/resoul/projects/Vision/Vision/App/Coordinator.swift)
+  - [Filmix.swift](file:///Users/resoul/projects/Vision/Vision/Infrastructure/Filmix.swift)
 
 ---
 
 ## 👥 Feature Ownership Map
 
+- **App & Layout Domain**:
+  - *UI/Interaction*: `AppController`, `MoviesController`, custom `TabBarView` components, list layout components.
+  - *State & Navigation*: `AppViewModel`, `MoviesViewModel`, `FavoritesViewModel`, `WatchHistoryViewModel`, `AppCoordinator`.
 - **Player Domain**:
   - *UI/Interaction*: `VideoController`, `VideoPlayerOverlay`, `VideoSliderControl`
   - *Runtime Engines*: `QueueVideoPlayerEngine`
@@ -243,11 +267,21 @@ To enhance the codebase's health, keep it completely clean, and prepare for futu
   - Rely on Swift Concurrency (`AsyncStream` / `AsyncSequence`) in UseCases and Repositories to stream real-time events (like real-time search queries or persistent changes).
   - Use `@MainActor` annotations on ViewModels and ViewControllers to guarantee UI operations run on the main thread without manual `DispatchQueue.main.async` calls.
 
+### 6. 🛡️ Eliminate Cross-Layer Dependencies (Clean Architecture Domain Isolation)
+- **Issue**: `Theme.swift` in the `Domain` layer directly references `L10n` located in the `Infrastructure` layer (e.g. `L10n.Settings.Theme.dark`). In Clean Architecture, inner layers (Domain) must not depend on outer layers (Infrastructure).
+- **Improvement**:
+  - Extract display names to localizable formatting mapping logic in Presentation or presentation-facing configuration. The Domain entity should only contain the raw value or raw localized keys, not a direct dependency on `L10n` helper class from Infrastructure.
+
+### 7. ⏳ Refactor Callback APIs to Swift Concurrency
+- **Issue**: Several repository/service interfaces such as `SettingsRepositoryProtocol` still use legacy callback patterns (`fetchSettings(completion:)`). This forces the use of checked continuations (`withCheckedContinuation`) in Domain UseCases.
+- **Improvement**:
+  - Update `SettingsRepositoryProtocol` and `SettingsService` to expose asynchronous Swift Concurrency interfaces (e.g. `func fetchSettings() async throws -> SettingsData`) directly. This simplifies the Domain UseCases and improves overall compiler-checked thread-safety.
+
 ### 🧩 Architectural Goal Verification Matrix
 
 | Area | Current Status | Target Architecture |
 |---|---|---|
-| **Domain Isolation** | Medium-Low (known UIKit imports in legacy Domain files; Combine also appears in repository/use case protocols) | High (zero UI/framework leakage, pure Swift/Foundation protocols/entities) |
+| **Domain Isolation** | Medium (Domain no longer imports UIKit/Combine directly, but `Theme` entity depends on `L10n` in Infrastructure) | High (zero UI/framework/infrastructure leakage, pure Swift/Foundation protocols/entities) |
 | **DI Quality** | Medium (using lazy Container vars) | High (Strict constructor injection, zero singleton lookups in VM) |
 | **Database Concurrency** | Medium (direct CoreData reads) | High (Strict background queue parsing, zero CD managed objects leaked) |
 | **Player View Size** | Medium (~450 lines) | High (<300 lines via focus & gesture delegate extraction) |

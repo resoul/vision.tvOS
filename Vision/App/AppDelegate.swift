@@ -3,6 +3,7 @@ import UIKit
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
+    private var coordinator: AppCoordinator?
 
     func application(
         _ application: UIApplication,
@@ -18,9 +19,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let container = Container()
         let module = ModuleFactory(container: container, windowScene: windowScene)
+        let coordinator = module.makeApp()
+        
         window = module.window
-        module.makeApp().start()
+        self.coordinator = coordinator
+        self.coordinator?.start()
 
+        return true
+    }
+    
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        guard let deepLink = TopShelfDeepLink(url: url) else { return false }
+        let item = ContentItem(
+            id: deepLink.id,
+            title: deepLink.title,
+            year: "",
+            description: "",
+            genre: "",
+            rating: "",
+            duration: "",
+            type: deepLink.type == "movie" ? .movie : .series(seasons: []),
+            translate: "",
+            isAdIn: false,
+            movieURL: deepLink.movieURL,
+            posterURL: deepLink.posterURL,
+            actors: [],
+            directors: [],
+            genreList: [],
+            lastAdded: nil
+        )
+        
+        coordinator?.showDetail(for: item)
         return true
     }
 
