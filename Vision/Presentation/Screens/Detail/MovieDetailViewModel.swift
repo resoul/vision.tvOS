@@ -11,13 +11,14 @@ final class MovieDetailViewModel {
 
     @Published var detail: ContentDetail?
     @Published var translations: [Translation] = []
+    @Published var selectedTranslation: Translation?
     @Published var resolvedStreams: [String: (quality: String, url: String)] = [:]
     @Published var isLoading = false
     @Published var isFavorite = false
     @Published var isWatched = false
 
     private var cancellables = Set<AnyCancellable>()
-    var onPlayRequested: ((Translation, String) -> Void)?
+    var onPlayRequested: ((PlaybackContext) -> Void)?
 
     init(
         movie: ContentItem,
@@ -50,6 +51,7 @@ final class MovieDetailViewModel {
             let (detailData, translationsData) = try await useCase.fetchDetail(movie: movie, isSeries: false)
             self.detail = detailData
             self.translations = translationsData
+            self.selectedTranslation = translationsData.first
             await resolveAllStreams(translationsData)
         } catch {
             print("Error loading movie detail: \(error)")
@@ -77,10 +79,27 @@ final class MovieDetailViewModel {
     }
     
     func play(translation: Translation) {
-        let stream = resolvedStreams[translation.studio]
-        let url = stream?.url ?? translation.bestURL ?? ""
-        guard !url.isEmpty else { return }
-        onPlayRequested?(translation, url)
+        guard let stream = resolvedStreams[translation.studio] else {
+            guard let url = translation.bestURL, !url.isEmpty else { return }
+            let context = PlaybackContext.movie(
+                id: movie.id,
+                studio: translation.studio,
+                quality: translation.bestQuality ?? "",
+                url: url,
+                title: movie.title
+            )
+            onPlayRequested?(context)
+            return
+        }
+
+        let context = PlaybackContext.movie(
+            id: movie.id,
+            studio: translation.studio,
+            quality: stream.quality,
+            url: stream.url,
+            title: movie.title
+        )
+        onPlayRequested?(context)
     }
     
     func displayQuality(for translation: Translation) -> String {

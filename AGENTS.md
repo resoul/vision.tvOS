@@ -6,7 +6,7 @@ Welcome, Agent. This document provides critical architectural context, standard 
 
 ## 🛠 Technology Stack
 
-- **Platform**: tvOS 17.0+
+- **Platform**: tvOS 26.0+
 - **Architecture**: Clean Architecture + MVVM + Coordinator (with a dedicated Dependency Injection Container).
 - **UI Framework**: Native UIKit (Auto Layout, UICollectionView Compositional Layout, custom focus controls).
 - **Reactive Framework**: Combine (exclusively for UI-state bindings, reactive theming, and settings updates).

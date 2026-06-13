@@ -12,9 +12,7 @@ final class MovieDetailViewController: BaseDetailViewController {
         sv.translatesAutoresizingMaskIntoConstraints = false
         return sv
     }()
-
-    // MARK: - Init
-
+    
     convenience init(
         movie: ContentItem,
         viewModel: MovieDetailViewModel,
@@ -55,8 +53,10 @@ final class MovieDetailViewController: BaseDetailViewController {
 
         favoriteButton.onPrimaryAction = { [weak self] in self?.viewModel.toggleFavorite() }
         playButton.onPrimaryAction = { [weak self] in
-            guard let self, let first = self.viewModel.translations.first else { return }
-            self.viewModel.play(translation: first)
+            guard let self,
+                  let translation = self.viewModel.selectedTranslation
+                      ?? self.viewModel.translations.first else { return }
+            self.viewModel.play(translation: translation)
         }
     }
     
@@ -167,12 +167,15 @@ final class MovieDetailViewController: BaseDetailViewController {
     
     private func rebuildTranslations(_ list: [Translation]) {
         translationsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        for translation in list {
-            let qualityLabel = viewModel.displayQuality(for: translation)
-            let row = TranslationRow(studio: translation.studio, quality: qualityLabel)
-            row.onPlay = { [weak self] in self?.viewModel.play(translation: translation) }
-            row.setThemeStyle(themeManager.theme.style)
-            translationsStack.addArrangedSubview(row)
-        }
+            for translation in list {
+                let qualityLabel = viewModel.displayQuality(for: translation)
+                let row = TranslationRow(studio: translation.studio, quality: qualityLabel)
+                row.onPlay = { [weak self] in
+                    self?.viewModel.selectedTranslation = translation
+                    self?.viewModel.play(translation: translation)
+                }
+                row.setThemeStyle(themeManager.theme.style)
+                translationsStack.addArrangedSubview(row)
+            }
     }
 }

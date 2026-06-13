@@ -108,8 +108,8 @@ final class ModuleFactory: FactoryProtocol {
                 progressManager: container.progressManager,
                 playerUseCase: container.playerUseCase
             )
-            vm.onPlayRequested = { [weak coordinator] _, url in
-                coordinator?.showPlayer(queue: [item], startIndex: 0, initialContext: nil)
+            vm.onPlayRequested = { [weak coordinator] context in
+                coordinator?.showPlayer(queue: [item], startIndex: 0, initialContext: context)
             }
             
             return MovieDetailViewController(movie: item, viewModel: vm, themeManager: container.themeManager, languageManager: container.languageManager)
