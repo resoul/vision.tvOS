@@ -3,7 +3,7 @@ import Combine
 
 @MainActor
 final class WatchHistoryViewModel: ContentListViewModelProtocol {
-    private let watchHistoryUseCase: WatchHistoryUseCase
+    private let watchHistoryUseCase: WatchHistoryUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
 
     var onLoadingChanged: ((Bool) -> Void)?
@@ -16,7 +16,7 @@ final class WatchHistoryViewModel: ContentListViewModelProtocol {
     private var movies: [ContentItem] = []
     private var didLoadInitial = false
 
-    init(watchHistoryUseCase: WatchHistoryUseCase) {
+    init(watchHistoryUseCase: WatchHistoryUseCaseProtocol) {
         self.watchHistoryUseCase = watchHistoryUseCase
     }
 

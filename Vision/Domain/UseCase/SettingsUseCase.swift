@@ -22,8 +22,8 @@ final class SettingsUseCase: SettingsUseCaseProtocol {
     private let themeManager: ThemeManagerProtocol
     private let languageManager: LanguageManagerProtocol
     private let imageRepository: ImageRepositoryProtocol
-    private let favoritesUseCase: FavoritesUseCase
-    private let watchHistoryUseCase: WatchHistoryUseCase
+    private let favoritesUseCase: FavoritesUseCaseProtocol
+    private let watchHistoryUseCase: WatchHistoryUseCaseProtocol
     
     private let settingsSubject = CurrentValueSubject<SettingsData, Never>(
         SettingsData(isAutoplayEnabled: true, preferredQuality: .auto, cacheSizeStep: 3)
@@ -57,8 +57,8 @@ final class SettingsUseCase: SettingsUseCaseProtocol {
         themeManager: ThemeManagerProtocol,
         languageManager: LanguageManagerProtocol,
         imageRepository: ImageRepositoryProtocol,
-        favoritesUseCase: FavoritesUseCase,
-        watchHistoryUseCase: WatchHistoryUseCase
+        favoritesUseCase: FavoritesUseCaseProtocol,
+        watchHistoryUseCase: WatchHistoryUseCaseProtocol
     ) {
         self.repository = repository
         self.themeManager = themeManager

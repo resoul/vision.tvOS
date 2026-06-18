@@ -1,7 +1,14 @@
 import Foundation
 import Combine
 
-final class FavoritesUseCase {
+protocol FavoritesUseCaseProtocol {
+    func toggle(_ item: ContentItem) async throws
+    func isFavorite(id: Int) async throws -> Bool
+    func getAll() async throws -> [ContentItem]
+    var favoritesPublisher: AnyPublisher<[ContentItem], Never> { get }
+}
+
+final class FavoritesUseCase: FavoritesUseCaseProtocol {
     private let repository: FavoritesRepository
     
     var favoritesPublisher: AnyPublisher<[ContentItem], Never> {

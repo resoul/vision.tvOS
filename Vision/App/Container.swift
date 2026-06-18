@@ -13,8 +13,8 @@ protocol ContainerProtocol {
     var getMovieDetailUseCase: GetMovieDetailUseCaseProtocol { get }
     var searchUseCase: SearchUseCaseProtocol { get }
     
-    var favoritesUseCase: FavoritesUseCase { get }
-    var watchHistoryUseCase: WatchHistoryUseCase { get }
+    var favoritesUseCase: FavoritesUseCaseProtocol { get }
+    var watchHistoryUseCase: WatchHistoryUseCaseProtocol { get }
     var playerUseCase: PlayerUseCaseProtocol { get }
 }
 
@@ -50,8 +50,8 @@ final class Container: ContainerProtocol {
     lazy var favoritesRepository: FavoritesRepository = CoreDataFavoritesRepository(stack: coreDataStack)
     lazy var watchHistoryRepository: WatchHistoryRepository = CoreDataWatchHistoryRepository(stack: coreDataStack)
     
-    lazy var favoritesUseCase: FavoritesUseCase = FavoritesUseCase(repository: favoritesRepository)
-    lazy var watchHistoryUseCase: WatchHistoryUseCase = WatchHistoryUseCase(repository: watchHistoryRepository)
+    lazy var favoritesUseCase: FavoritesUseCaseProtocol = FavoritesUseCase(repository: favoritesRepository)
+    lazy var watchHistoryUseCase: WatchHistoryUseCaseProtocol = WatchHistoryUseCase(repository: watchHistoryRepository)
     
     lazy var playbackStateRepository: PlaybackStateRepository = CoreDataPlaybackStateRepository(stack: coreDataStack)
     lazy var playerUseCase: PlayerUseCaseProtocol = PlayerUseCase(

@@ -14,8 +14,6 @@ final class SettingsService: SettingsRepositoryProtocol {
         let qualityRaw = userDefaults.string(forKey: Keys.quality) ?? VideoQuality.auto.rawValue
         let quality = VideoQuality(rawValue: qualityRaw) ?? .auto
         let cacheStep = userDefaults.integer(forKey: Keys.cache)
-        
-        // Use 3 as default for cache step (2 GB) if not set
         let finalCacheStep = userDefaults.object(forKey: Keys.cache) != nil ? cacheStep : 3
         
         let data = SettingsData(

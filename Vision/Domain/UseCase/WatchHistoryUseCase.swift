@@ -1,7 +1,17 @@
 import Foundation
 import Combine
 
-final class WatchHistoryUseCase {
+protocol WatchHistoryUseCaseProtocol {
+    func saveProgress(_ item: ContentItem, episodeId: String?, position: Double, watched: Bool) async throws
+    func getInProgress() async throws -> [ContentItem]
+    func getHistory() async throws -> [ContentItem]
+    func touch(_ item: ContentItem) async throws
+    func remove(id: Int) async throws
+    func clearAll() async throws
+    var historyPublisher: AnyPublisher<[ContentItem], Never> { get }
+}
+
+final class WatchHistoryUseCase: WatchHistoryUseCaseProtocol {
     private let repository: WatchHistoryRepository
     
     var historyPublisher: AnyPublisher<[ContentItem], Never> {

@@ -3,7 +3,7 @@ import Combine
 
 @MainActor
 final class FavoritesViewModel: ContentListViewModelProtocol {
-    private let favoritesUseCase: FavoritesUseCase
+    private let favoritesUseCase: FavoritesUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
     
     var onLoadingChanged: ((Bool) -> Void)?
@@ -15,7 +15,7 @@ final class FavoritesViewModel: ContentListViewModelProtocol {
     
     private var movies: [ContentItem] = []
     
-    init(favoritesUseCase: FavoritesUseCase) {
+    init(favoritesUseCase: FavoritesUseCaseProtocol) {
         self.favoritesUseCase = favoritesUseCase
     }
     

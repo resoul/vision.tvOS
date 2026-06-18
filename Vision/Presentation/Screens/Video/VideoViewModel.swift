@@ -19,7 +19,7 @@ final class VideoViewModel: ObservableObject {
     private let queue: [ContentItem]
     private var currentIndex: Int
     private let playerUseCase: PlayerUseCaseProtocol
-    private let watchHistoryUseCase: WatchHistoryUseCase
+    private let watchHistoryUseCase: WatchHistoryUseCaseProtocol
     private let progressManager: PlaybackProgressManagerProtocol
     private let settingsUseCase: SettingsUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
@@ -38,7 +38,7 @@ final class VideoViewModel: ObservableObject {
         currentIndex: Int,
         initialContext: PlaybackContext?,
         playerUseCase: PlayerUseCaseProtocol,
-        watchHistoryUseCase: WatchHistoryUseCase,
+        watchHistoryUseCase: WatchHistoryUseCaseProtocol,
         progressManager: PlaybackProgressManagerProtocol,
         settingsUseCase: SettingsUseCaseProtocol
     ) {

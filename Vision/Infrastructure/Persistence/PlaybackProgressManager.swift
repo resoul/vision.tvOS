@@ -19,8 +19,6 @@ protocol PlaybackProgressManagerProtocol {
 }
 
 final class PlaybackProgressManager: PlaybackProgressManagerProtocol {
-    static let shared = PlaybackProgressManager()
-    
     private let userDefaults = UserDefaults.standard
     private let progressKey = "v_playback_progress"
     private let watchedKey = "v_watched_items"
@@ -33,7 +31,6 @@ final class PlaybackProgressManager: PlaybackProgressManagerProtocol {
         all[key] = progress
         saveAllProgress(all)
         
-        // Auto-mark as watched if > 93%
         if progress.fraction > 0.93 {
             setWatched(true, movieId: movieId, season: season, episode: episode)
         }

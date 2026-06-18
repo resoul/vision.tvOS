@@ -7,15 +7,12 @@ protocol WatchHistoryManagerProtocol {
 }
 
 final class WatchHistoryManager: WatchHistoryManagerProtocol {
-    static let shared = WatchHistoryManager()
-    
     private let userDefaults = UserDefaults.standard
     private let key = "v_watch_history"
     private let maxItems = 100
     
     func touch(_ item: ContentItem) {
         var history = load()
-        // Remove existing to move to front
         history.removeAll { $0 == item.id }
         history.insert(item.id, at: 0)
         

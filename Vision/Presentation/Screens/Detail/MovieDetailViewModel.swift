@@ -5,7 +5,7 @@ import Combine
 final class MovieDetailViewModel {
     private let movie: ContentItem
     private let useCase: GetMovieDetailUseCaseProtocol
-    private let favoritesUseCase: FavoritesUseCase
+    private let favoritesUseCase: FavoritesUseCaseProtocol
     private let progressManager: PlaybackProgressManagerProtocol
     private let playerUseCase: PlayerUseCaseProtocol
 
@@ -23,7 +23,7 @@ final class MovieDetailViewModel {
     init(
         movie: ContentItem,
         useCase: GetMovieDetailUseCaseProtocol,
-        favoritesUseCase: FavoritesUseCase,
+        favoritesUseCase: FavoritesUseCaseProtocol,
         progressManager: PlaybackProgressManagerProtocol,
         playerUseCase: PlayerUseCaseProtocol
     ) {
