@@ -2,7 +2,7 @@ import Foundation
 
 protocol PlayerUseCaseProtocol {
     func resolveInitialContext(for item: ContentItem) async throws -> PlaybackContext
-    func switchEpisode(in item: ContentItem, season: Int, episode: Int, currentStudio: String, currentQuality: String) async throws -> PlaybackContext
+    func resolveEpisode(from translations: [Translation], id: Int, season: Int, episode: Int, studio: String, quality: String) -> PlaybackContext?
     func switchTranslation(in item: ContentItem, translation: Translation, currentContext: PlaybackContext) async throws -> PlaybackContext
     func savePlaybackState(movieId: Int, context: PlaybackContext) async throws
     func savedPlaybackState(movieId: Int) async throws -> PlaybackState?
@@ -32,15 +32,11 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
         guard !translations.isEmpty else {
             throw PlayerError.noTranslations
         }
-        
-        // 1. Check last saved state
+
         let lastState = try await stateRepository.getState(movieId: item.id)
-        
-        // 2. Get preferred quality from settings
         let preferredQuality = await getPreferredQuality()
         
         if let state = lastState {
-            // Try to find the exact studio/episode from state
             if let translation = translations.first(where: { $0.studio == state.studio }) ?? translations.first {
                 if item.type.isSeries {
                     let seasonIdx = max(0, state.season - 1)
@@ -54,7 +50,7 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
                             season: state.season,
                             episode: state.episode,
                             studio: translation.studio,
-                            quality: preferredQuality, // Or use state.quality if preferred
+                            quality: preferredQuality,
                             url: url,
                             title: episode.title
                         )
@@ -72,7 +68,6 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
             }
         }
         
-        // 3. Fallback: First available
         let translation = translations.first!
         if item.type.isSeries {
             let season = translation.seasons.first!
@@ -99,27 +94,22 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
         }
     }
     
-    func switchEpisode(in item: ContentItem, season: Int, episode: Int, currentStudio: String, currentQuality: String) async throws -> PlaybackContext {
-        let translations = try await filmix.fetchTranslations(postId: item.id, isSeries: true)
-        guard let translation = translations.first(where: { $0.studio == currentStudio }) else {
-            throw PlayerError.noTranslations
-        }
-        
+    func resolveEpisode(from translations: [Translation], id: Int, season: Int, episode: Int, studio: String, quality: String) -> PlaybackContext? {
+        guard let translation = translations.first(where: { $0.studio == studio }) else { return nil }
+
         let seasonIdx = season - 1
         let episodeIdx = episode - 1
-        
+
         guard let s = translation.seasons[safe: seasonIdx],
-              let e = s.episodes[safe: episodeIdx] else {
-            throw PlayerError.episodeNotFound
-        }
-        
-        let url = resolveURL(from: e.streams, preferred: currentQuality)
+              let e = s.episodes[safe: episodeIdx] else { return nil }
+
+        let url = resolveURL(from: e.streams, preferred: quality)
         return .episode(
-            id: item.id,
+            id: id,
             season: season,
             episode: episode,
             studio: translation.studio,
-            quality: currentQuality,
+            quality: quality,
             url: url,
             title: e.title
         )
@@ -136,7 +126,6 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
         case .episode(let id, let s, let e, _, _, _, _):
             guard let season = translation.seasons[safe: s - 1],
                   let episode = season.episodes[safe: e - 1] else {
-                // Fallback to first episode if translation doesn't have same structure
                 let fallbackS = translation.seasons.first!
                 let fallbackE = fallbackS.episodes.first!
                 let url = resolveURL(from: fallbackE.streams, preferred: quality)
@@ -214,9 +203,7 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
     }
     
     private func resolveURL(from streams: [String: String], preferred: String) -> String {
-        // Simple logic: find preferred or highest
         if let url = streams[preferred] { return url }
-        // Fallback to highest available numeric quality
         let sorted = streams.sorted { lhs, rhs in
             let l = Int(lhs.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0
             let r = Int(rhs.key.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 0

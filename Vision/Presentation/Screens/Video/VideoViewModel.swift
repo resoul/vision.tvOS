@@ -28,6 +28,7 @@ final class VideoViewModel: ObservableObject {
     private let periodicSaveStepSeconds: Double = 15
     private var pendingResumeTime: Double?
     private var pendingAutoResumeTime: Double?
+    private var retryAction: (() async -> Void)?
     
     var isAwaitingResumeDecision: Bool {
         pendingResumeTime != nil
@@ -98,8 +99,18 @@ final class VideoViewModel: ObservableObject {
             try? await watchHistoryUseCase.touch(item)
             checkResumeStatus(for: context)
             self.currentContext = context
+            retryAction = nil
         } catch {
+            retryAction = { [weak self] in await self?.loadCurrent() }
             self.error = error
+        }
+    }
+
+    func retry() async {
+        if let retryAction {
+            await retryAction()
+        } else {
+            await loadCurrent()
         }
     }
     
@@ -195,6 +206,22 @@ final class VideoViewModel: ObservableObject {
 
     // MARK: - Playback navigation
 
+    var canPlayNext: Bool {
+        guard let target = resolveAdjacentEpisode(direction: .forward) else {
+            return currentIndex + 1 < queue.count
+        }
+        if case .episode = target { return true }
+        return false
+    }
+
+    var canPlayPrevious: Bool {
+        guard let target = resolveAdjacentEpisode(direction: .backward) else {
+            return currentIndex - 1 >= 0
+        }
+        if case .episode = target { return true }
+        return false
+    }
+
     func playNext() async {
         guard let target = resolveAdjacentEpisode(direction: .forward) else {
             guard currentIndex + 1 < queue.count else { shouldDismiss = true; return }
@@ -227,7 +254,7 @@ final class VideoViewModel: ObservableObject {
         case .episode(let season, let episode):
             await changeEpisode(season: season, episode: episode)
         case .seriesEnded:
-            break // Already at S1E1, stay
+            break
         }
     }
 
@@ -235,24 +262,25 @@ final class VideoViewModel: ObservableObject {
         guard let item = queue[safe: currentIndex],
               let context = currentContext else { return }
 
-        isLoading = true
-        defer { isLoading = false }
-
-        do {
-            let studio: String
-            let quality: String
-            switch context {
-            case .movie(_, let s, let q, _, _):
-                studio = s; quality = q
-            case .episode(_, _, _, let s, let q, _, _):
-                studio = s; quality = q
-            }
-
-            let newContext = try await playerUseCase.switchEpisode(in: item, season: season, episode: episode, currentStudio: studio, currentQuality: quality)
-            self.currentContext = newContext
-        } catch {
-            self.error = error
+        let studio: String
+        let quality: String
+        switch context {
+        case .movie(_, let s, let q, _, _):
+            studio = s; quality = q
+        case .episode(_, _, _, let s, let q, _, _):
+            studio = s; quality = q
         }
+
+        guard let newContext = playerUseCase.resolveEpisode(
+            from: translations, id: item.id, season: season, episode: episode, studio: studio, quality: quality
+        ) else {
+            retryAction = { [weak self] in await self?.changeEpisode(season: season, episode: episode) }
+            self.error = PlayerError.episodeNotFound
+            return
+        }
+
+        self.currentContext = newContext
+        retryAction = nil
     }
 
     // MARK: - Private
@@ -266,8 +294,6 @@ final class VideoViewModel: ObservableObject {
         case forward, backward
     }
 
-    /// Returns nil if current context is not an episode (caller handles queue fallback).
-    /// Returns .seriesEnded if there's nowhere to go in the given direction.
     private func resolveAdjacentEpisode(direction: NavigationDirection) -> EpisodeNavigationTarget? {
         guard let context = currentContext,
               case .episode(_, let s, let e, let studio, _, _, _) = context,

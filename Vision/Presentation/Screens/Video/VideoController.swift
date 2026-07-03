@@ -174,6 +174,8 @@ class VideoController: BaseController {
         case .episode: true
         default: false
         }
+        overlayView.isPreviousEpisodeEnabled = viewModel.canPlayPrevious
+        overlayView.isNextEpisodeEnabled = viewModel.canPlayNext
 
         overlayView.show()
     }
@@ -330,7 +332,7 @@ class VideoController: BaseController {
 
         alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
             self?.viewModel.clearError()
-            Task { await self?.viewModel.loadCurrent() }
+            Task { await self?.viewModel.retry() }
         })
 
         alert.addAction(UIAlertAction(title: "Close", style: .cancel) { [weak self] _ in

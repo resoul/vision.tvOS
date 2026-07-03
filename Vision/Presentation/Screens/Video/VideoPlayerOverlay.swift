@@ -44,6 +44,14 @@ final class VideoPlayerOverlay: UIView {
     var isSeries: Bool = false {
         didSet { updateSeriesButtons() }
     }
+
+    var isPreviousEpisodeEnabled: Bool = true {
+        didSet { previousEpisodeButton.isEnabled = isPreviousEpisodeEnabled }
+    }
+
+    var isNextEpisodeEnabled: Bool = true {
+        didSet { nextEpisodeButton.isEnabled = isNextEpisodeEnabled }
+    }
     
     private let gradientLayer: CAGradientLayer = {
         let g = CAGradientLayer()
@@ -105,7 +113,7 @@ final class VideoPlayerOverlay: UIView {
         return b
     }()
 
-    private let nextEpisodeButton: UIButton = {  // NEW
+    private let nextEpisodeButton: UIButton = {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
         var btnConfig = UIButton.Configuration.plain()
@@ -240,7 +248,6 @@ final class VideoPlayerOverlay: UIView {
             skipForwardButton.widthAnchor.constraint(equalToConstant: 60),
             skipForwardButton.heightAnchor.constraint(equalToConstant: 60),
 
-            // NEW — episode buttons
             previousEpisodeButton.widthAnchor.constraint(equalToConstant: 60),
             previousEpisodeButton.heightAnchor.constraint(equalToConstant: 60),
             nextEpisodeButton.widthAnchor.constraint(equalToConstant: 60),
@@ -253,8 +260,6 @@ final class VideoPlayerOverlay: UIView {
         skipBackwardButton.addTarget(self, action: #selector(skipBackwardTapped), for: .primaryActionTriggered)
         skipForwardButton.addTarget(self, action: #selector(skipForwardTapped), for: .primaryActionTriggered)
         slider.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
-
-        // NEW
         previousEpisodeButton.addTarget(self, action: #selector(previousEpisodeTapped), for: .primaryActionTriggered)
         nextEpisodeButton.addTarget(self, action: #selector(nextEpisodeTapped), for: .primaryActionTriggered)
     }
@@ -283,6 +288,8 @@ final class VideoPlayerOverlay: UIView {
         if tracked.contains(where: { $0 === next }) {
             lastFocusedView = next
             resetAutoHideTimer()
+        } else {
+            cancelAutoHideTimer()
         }
     }
 
@@ -294,18 +301,6 @@ final class VideoPlayerOverlay: UIView {
             return true
         case .menu:
             delegate?.overlayDidRequestDismiss()
-            return true
-        case .leftArrow:
-            guard slider.isFocused else { return false }
-            resetAutoHideTimer()
-            slider.seek(by: -slider.seekStep)
-            delegate?.overlayDidSeek(to: slider.currentTime)
-            return true
-        case .rightArrow:
-            guard slider.isFocused else { return false }
-            resetAutoHideTimer()
-            slider.seek(by: slider.seekStep)
-            delegate?.overlayDidSeek(to: slider.currentTime)
             return true
         case .select:
             return false

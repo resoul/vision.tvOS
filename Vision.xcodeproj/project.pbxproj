@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		895B75282FF80C5E003833CF /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75272FF80C5E003833CF /* Filmix */; };
+		895B752A2FF80C6A003833CF /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75292FF80C6A003833CF /* Filmix */; };
 		897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */; };
 		897F7A762FCF6FBA007C6C9E /* TopShelfContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		897F7A7F2FCF7766007C6C9E /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 897F7A7E2FCF7766007C6C9E /* Filmix */; };
-		899F51DC2FCEF6AF005F2E9E /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 899F51DB2FCEF6AF005F2E9E /* Filmix */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,7 +85,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				899F51DC2FCEF6AF005F2E9E /* Filmix in Frameworks */,
+				895B75282FF80C5E003833CF /* Filmix in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,7 +94,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */,
-				897F7A7F2FCF7766007C6C9E /* Filmix in Frameworks */,
+				895B752A2FF80C6A003833CF /* Filmix in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,7 +151,7 @@
 			);
 			name = Vision;
 			packageProductDependencies = (
-				899F51DB2FCEF6AF005F2E9E /* Filmix */,
+				895B75272FF80C5E003833CF /* Filmix */,
 			);
 			productName = Vision;
 			productReference = 894271142F8FFEFA008E900B /* Vision.app */;
@@ -174,7 +174,7 @@
 			);
 			name = TopShelfContent;
 			packageProductDependencies = (
-				897F7A7E2FCF7766007C6C9E /* Filmix */,
+				895B75292FF80C6A003833CF /* Filmix */,
 			);
 			productName = TopShelfContent;
 			productReference = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */;
@@ -208,7 +208,7 @@
 			mainGroup = 8942710B2F8FFEFA008E900B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */,
+				895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 894271152F8FFEFA008E900B /* Products */;
@@ -473,7 +473,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 26.5;
+				TVOS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Debug;
 		};
@@ -501,7 +501,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 26.5;
+				TVOS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Release;
 		};
@@ -538,25 +538,25 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */ = {
+		895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:resoul/filmix.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.2;
+				minimumVersion = 1.2.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		897F7A7E2FCF7766007C6C9E /* Filmix */ = {
+		895B75272FF80C5E003833CF /* Filmix */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */;
+			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */;
 			productName = Filmix;
 		};
-		899F51DB2FCEF6AF005F2E9E /* Filmix */ = {
+		895B75292FF80C6A003833CF /* Filmix */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 899F51DA2FCEF6AF005F2E9E /* XCRemoteSwiftPackageReference "filmix" */;
+			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */;
 			productName = Filmix;
 		};
 /* End XCSwiftPackageProductDependency section */
