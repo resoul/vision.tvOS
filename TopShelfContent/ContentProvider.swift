@@ -5,7 +5,7 @@ import Filmix
 final class ContentProvider: TVTopShelfContentProvider {
     private let service: FilmixService = FilmixServiceImpl()
     private enum Constants {
-        static let feedPath = "https://filmix.my/"
+        static let feedPath = "https://filmix.gg/"
         static let appName = "Vision"
         static let deepLinkScheme = "vision"
         static let maxItems = 10

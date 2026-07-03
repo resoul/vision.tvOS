@@ -41,7 +41,6 @@
 		894271142F8FFEFA008E900B /* Vision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vision.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TopShelfContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = System/Library/Frameworks/TVServices.framework; sourceTree = SDKROOT; };
-		89A000012FA00000008E900B /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -104,7 +103,6 @@
 		8942710B2F8FFEFA008E900B = {
 			isa = PBXGroup;
 			children = (
-				89A000012FA00000008E900B /* AGENTS.md */,
 				894271162F8FFEFA008E900B /* Vision */,
 				897F7A702FCF6FBA007C6C9E /* TopShelfContent */,
 				897F7A6D2FCF6FBA007C6C9E /* Frameworks */,
