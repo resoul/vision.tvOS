@@ -33,7 +33,7 @@ final class ModuleFactory: FactoryProtocol {
     }
     
     func makeContentModule(for destination: TabDestination, coordinator: AppCoordinatorProtocol) -> UIViewController {
-        let basePath = "https://filmix.my/"
+        let basePath = FilmixNetworkClient.baseURL
         let makeMovies: (String) -> UIViewController = { [weak coordinator] path in
             let viewModel = MoviesViewModel(basePath: path, getContentUseCase: self.container.getContentUseCase)
             viewModel.onPlayRequested = { movies, index in
