@@ -1,4 +1,5 @@
 import UIKit
+import Filmix
 
 protocol FactoryProtocol {
     func makeApp() -> AppCoordinator
