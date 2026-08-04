@@ -212,9 +212,6 @@ class BaseDetailViewController: BaseController {
         playButton.setThemeStyle(style)
         favoriteButton.setThemeStyle(style)
 
-        // Update labels based on theme
-        // In detail screen we mostly use white/overlay text,
-        // but we respect textPrimary if it's the light theme.
         let isLight = themeManager.theme == .light
         let textColor = isLight ? style.textPrimary : .white
         

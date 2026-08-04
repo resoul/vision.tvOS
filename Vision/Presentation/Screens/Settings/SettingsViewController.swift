@@ -3,26 +3,17 @@ import Combine
 
 final class SettingsViewController: BaseController {
     private let viewModel: SettingsViewModel
-    
-    // MARK: - UI Elements
+    private let contentView = UIView()
     
     private let scrollView: UIScrollView = {
         let s = UIScrollView()
-        s.translatesAutoresizingMaskIntoConstraints = false
         s.showsVerticalScrollIndicator = false
         return s
-    }()
-    
-    private let contentView: UIView = {
-        let v = UIView()
-        v.translatesAutoresizingMaskIntoConstraints = false
-        return v
     }()
     
     private let titleLabel: UILabel = {
         let l = UILabel()
         l.font = .montserrat(.semiBold, size: 52)
-        l.translatesAutoresizingMaskIntoConstraints = false
         return l
     }()
     
@@ -31,7 +22,6 @@ final class SettingsViewController: BaseController {
         s.axis = .vertical
         s.spacing = 32
         s.alignment = .fill
-        s.translatesAutoresizingMaskIntoConstraints = false
         return s
     }()
     
