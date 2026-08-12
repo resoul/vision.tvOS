@@ -153,7 +153,7 @@ final class QueueVideoPlayerEngine {
     private func bindPlayerObserversIfNeeded() {
         if timeObserver == nil {
             timeObserver = player.addPeriodicTimeObserver(
-                forInterval: CMTime(seconds: 0.5, preferredTimescale: 600),
+                forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
                 queue: .main
             ) { [weak self] time in
                 guard let self else { return }

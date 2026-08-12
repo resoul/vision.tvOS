@@ -124,7 +124,7 @@ class VideoController: BaseController {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.viewModel.updateProgress(currentTime: current, duration: duration)
-                self.overlayView.currentTime = current
+                self.overlayView.setPlaybackTime(current)
                 if self.overlayView.totalDuration != duration && duration > 0 {
                     self.overlayView.totalDuration = duration
                 }

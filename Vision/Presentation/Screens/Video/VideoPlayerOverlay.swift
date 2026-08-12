@@ -26,11 +26,20 @@ final class VideoPlayerOverlay: UIView {
         }
     }
 
+    private var animatesCurrentTimeUpdate = false
+
     var currentTime: Double = 0 {
         didSet {
-            slider.currentTime = currentTime
+            slider.setCurrentTime(currentTime, animated: animatesCurrentTimeUpdate)
             currentTimeLabel.text = formatTime(currentTime)
+            animatesCurrentTimeUpdate = false
         }
+    }
+
+    /// Playback ticks are interpolated; direct `currentTime` assignments remain immediate for seeks.
+    func setPlaybackTime(_ time: Double) {
+        animatesCurrentTimeUpdate = true
+        currentTime = time
     }
 
     var bufferedTime: Double = 0 {

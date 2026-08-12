@@ -1,7 +1,5 @@
 import UIKit
 
-// MARK: - PosterCache
-
 final class PosterCache {
 
     static let shared = PosterCache()
@@ -9,25 +7,19 @@ final class PosterCache {
         try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
     }
 
-    // ~/Library/Caches/posters/
     private let cacheDir: URL = {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         return caches.appendingPathComponent("posters", isDirectory: true)
     }()
 
-    // In-memory cache
     private let memCache = NSCache<NSString, UIImage>()
 
-    // Active tasks — avoid duplicate downloads
     private var activeTasks: [String: URLSessionDataTask] = [:]
     private let lock = NSLock()
 
-    // MARK: - Memory Limit
-
-    /// Call from CacheSettings whenever the user changes the slider.
     func applyMemoryLimit(bytes: Int) {
         if bytes == 0 {
-            // NSCache treats 0 as "no limit"
+
             memCache.totalCostLimit = 0
         } else {
             memCache.totalCostLimit = bytes
@@ -44,24 +36,22 @@ final class PosterCache {
         guard !urlString.isEmpty, let url = URL(string: urlString) else { return nil }
         let key = cacheKey(for: urlString)
 
-        // 1. Memory hit
         if let cached = memCache.object(forKey: key as NSString) {
             return cached
         }
 
-        // 2. Disk hit (async read)
         let diskURL = cacheDir.appendingPathComponent(key)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             if let data = try? Data(contentsOf: diskURL),
                let image = UIImage(data: data) {
-                // Store with approximate byte cost
+
                 let cost = data.count
                 self.memCache.setObject(image, forKey: key as NSString, cost: cost)
                 DispatchQueue.main.async { completion(image) }
                 return
             }
-            // 3. Network download
+
             self.download(url: url, key: key, diskURL: diskURL, completion: completion)
         }
 

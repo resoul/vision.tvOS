@@ -13,12 +13,7 @@ class VideoSliderControl: UIControl {
         didSet { updateLayers(animated: false) }
     }
     
-    var currentTime: Double = 0 {
-        didSet {
-            currentTime = max(0, min(currentTime, totalDuration))
-            updateLayers(animated: false)
-        }
-    }
+    private(set) var currentTime: Double = 0
     
     var bufferedTime: Double = 0 {
         didSet {
@@ -131,18 +126,28 @@ class VideoSliderControl: UIControl {
     }
 
     private func layoutSublayers() {
+        updateLayers(animated: false)
+    }
+
+    private func updateLayers(animated: Bool, duration: CFTimeInterval = 0.15, timingFunction: CAMediaTimingFunctionName = .linear) {
         let h = isFocusedOrHighlighted ? trackHeightFocused : trackHeight
         let midY = bounds.midY
 
         let trackFrame = CGRect(x: 0, y: midY - h / 2, width: bounds.width, height: h)
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(!animated)
+        if animated {
+            CATransaction.setAnimationDuration(duration)
+            CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: timingFunction))
+        }
+
         trackLayer.frame = trackFrame
         trackLayer.cornerRadius = h / 2
 
         progressGradientLayer.frame = trackFrame
         progressGradientLayer.cornerRadius = h / 2
 
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
         updateBufferLayerFrame(trackFrame: trackFrame, h: h)
         updateProgressLayerFrame(trackFrame: trackFrame, h: h)
         updateThumbLayerFrame(midY: midY)
@@ -171,26 +176,17 @@ class VideoSliderControl: UIControl {
     func seek(by seconds: Double) {
         let newTime = max(0, min(currentTime + seconds, totalDuration))
         guard newTime != currentTime else { return }
-        currentTime = newTime
+        setCurrentTime(newTime, animated: false)
         sendActions(for: .valueChanged)
         animateSeekFeedback(forward: seconds > 0)
     }
     
-    func setCurrentTime(_ time: Double, animated: Bool) {
-        currentTime = time
+    /// Use animation for periodic playback updates; user-initiated seeks should be immediate.
+    func setCurrentTime(_ time: Double, animated: Bool = false) {
+        let newTime = max(0, min(time, totalDuration))
+        guard newTime != currentTime else { return }
+        currentTime = newTime
         updateLayers(animated: animated)
-    }
-
-    private func updateLayers(animated: Bool) {
-        if animated {
-            CATransaction.begin()
-            CATransaction.setAnimationDuration(0.15)
-        } else {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-        }
-        layoutSublayers()
-        CATransaction.commit()
     }
 
     private func updateBufferLayer() {
@@ -204,9 +200,7 @@ class VideoSliderControl: UIControl {
     }
 
     private func animateFocusChange() {
-        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseOut]) {
-            self.layoutSublayers()
-        }
+        updateLayers(animated: true, duration: 0.2, timingFunction: .easeOut)
     }
 
     private func animateSeekFeedback(forward: Bool) {
