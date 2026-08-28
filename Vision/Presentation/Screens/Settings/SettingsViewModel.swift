@@ -1,5 +1,7 @@
 import Combine
 import Foundation
+import VisionProvider
+import Flux
 
 final class SettingsViewModel: ObservableObject {
     enum State {
@@ -13,6 +15,7 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var currentTheme: Theme = .dark
     @Published private(set) var currentStyle: ThemeStyle = Theme.dark.style
     @Published private(set) var currentLanguage: AppLanguage = .russian
+    @Published private(set) var currentProvider: ProviderType = .filmix
     @Published private(set) var storageData: SettingsStorageData = .empty
     @Published private(set) var storageError: String?
 
@@ -21,6 +24,8 @@ final class SettingsViewModel: ObservableObject {
     private let settingsUseCase: SettingsUseCaseProtocol
     private let themeManager: ThemeManagerProtocol
     private let languageManager: LanguageManagerProtocol
+    private let providerManager: VisionProviderManagerProtocol
+    private let bag = SubscriptionBag()
     private var cancellables = Set<AnyCancellable>()
     private var currentSettingsData = SettingsData(
         isAutoplayEnabled: true,
@@ -28,10 +33,16 @@ final class SettingsViewModel: ObservableObject {
         cacheSizeStep: 3
     )
 
-    init(settingsUseCase: SettingsUseCaseProtocol, themeManager: ThemeManagerProtocol, languageManager: LanguageManagerProtocol) {
+    init(
+        settingsUseCase: SettingsUseCaseProtocol,
+        themeManager: ThemeManagerProtocol,
+        languageManager: LanguageManagerProtocol,
+        providerManager: VisionProviderManagerProtocol
+    ) {
         self.settingsUseCase = settingsUseCase
         self.themeManager = themeManager
         self.languageManager = languageManager
+        self.providerManager = providerManager
         bindUseCase()
         bindManagers()
     }
@@ -43,6 +54,12 @@ final class SettingsViewModel: ObservableObject {
         settingsUseCase.fetchSettings()
         Task { [weak self] in
             await self?.settingsUseCase.refreshStorage()
+        }
+    }
+
+    func didSelectProvider(_ provider: ProviderType) {
+        Task { [weak self] in
+            await self?.providerManager.setProvider(provider)
         }
     }
 
@@ -136,5 +153,11 @@ final class SettingsViewModel: ObservableObject {
         languageManager.currentLanguage
             .receive(on: DispatchQueue.main)
             .assign(to: &$currentLanguage)
+
+        providerManager.activeProvider.flux
+            .sinkOnMain { [weak self] provider in
+                self?.currentProvider = provider
+            }
+            .store(in: bag)
     }
 }

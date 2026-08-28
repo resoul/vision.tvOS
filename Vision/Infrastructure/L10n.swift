@@ -11,6 +11,7 @@ enum L10n {
         static var movies:      String { L10n.string("tab.movies") }
         static var series:      String { L10n.string("tab.series") }
         static var cartoons:    String { L10n.string("tab.cartoons") }
+        static var tvShows:     String { L10n.string("tab.tv_shows") }
         static var favorites:   String { L10n.string("tab.favorites") }
         static var watchHistory: String { L10n.string("tab.watch_history") }
         static var search:      String { L10n.string("tab.search") }
@@ -62,6 +63,9 @@ enum L10n {
 
     enum Settings {
         static var title:         String { L10n.string("settings.title") }
+        enum Provider {
+            static var title:     String { L10n.string("settings.provider.title") }
+        }
         enum Autoplay {
             static var title:     String { L10n.string("settings.autoplay.title") }
             static var on:        String { L10n.string("settings.autoplay.on") }

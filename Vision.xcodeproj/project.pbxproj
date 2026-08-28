@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		895B75282FF80C5E003833CF /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75272FF80C5E003833CF /* Filmix */; };
-		895B752A2FF80C6A003833CF /* Filmix in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75292FF80C6A003833CF /* Filmix */; };
+		895B75282FF80C5E003833CF /* VisionProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75272FF80C5E003833CF /* VisionProvider */; };
+		895B752A2FF80C6A003833CF /* VisionProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 895B75292FF80C6A003833CF /* VisionProvider */; };
 		897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 897F7A6E2FCF6FBA007C6C9E /* TVServices.framework */; };
 		897F7A762FCF6FBA007C6C9E /* TopShelfContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -84,7 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				895B75282FF80C5E003833CF /* Filmix in Frameworks */,
+				895B75282FF80C5E003833CF /* VisionProvider in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,7 +93,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				897F7A6F2FCF6FBA007C6C9E /* TVServices.framework in Frameworks */,
-				895B752A2FF80C6A003833CF /* Filmix in Frameworks */,
+				895B752A2FF80C6A003833CF /* VisionProvider in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,7 +149,7 @@
 			);
 			name = Vision;
 			packageProductDependencies = (
-				895B75272FF80C5E003833CF /* Filmix */,
+				895B75272FF80C5E003833CF /* VisionProvider */,
 			);
 			productName = Vision;
 			productReference = 894271142F8FFEFA008E900B /* Vision.app */;
@@ -172,7 +172,7 @@
 			);
 			name = TopShelfContent;
 			packageProductDependencies = (
-				895B75292FF80C6A003833CF /* Filmix */,
+				895B75292FF80C6A003833CF /* VisionProvider */,
 			);
 			productName = TopShelfContent;
 			productReference = 897F7A6C2FCF6FBA007C6C9E /* TopShelfContent.appex */;
@@ -206,7 +206,7 @@
 			mainGroup = 8942710B2F8FFEFA008E900B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */,
+				895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "VisionProvider" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 894271152F8FFEFA008E900B /* Products */;
@@ -536,26 +536,26 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */ = {
+		895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "VisionProvider" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:resoul/filmix.git";
+			repositoryURL = "git@github.com:resoul/VisionProvider.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.3;
+				minimumVersion = 2.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		895B75272FF80C5E003833CF /* Filmix */ = {
+		895B75272FF80C5E003833CF /* VisionProvider */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */;
-			productName = Filmix;
+			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "VisionProvider" */;
+			productName = VisionProvider;
 		};
-		895B75292FF80C6A003833CF /* Filmix */ = {
+		895B75292FF80C6A003833CF /* VisionProvider */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "filmix" */;
-			productName = Filmix;
+			package = 895B75262FF80C5E003833CF /* XCRemoteSwiftPackageReference "VisionProvider" */;
+			productName = VisionProvider;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

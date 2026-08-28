@@ -13,22 +13,22 @@ protocol PlayerUseCaseProtocol {
 }
 
 final class PlayerUseCase: PlayerUseCaseProtocol {
-    private let filmix: FilmixProtocol
+    private let provider: ContentProviderProtocol
     private let stateRepository: PlaybackStateRepository
     private let settingsRepository: SettingsRepositoryProtocol
     
     init(
-        filmix: FilmixProtocol,
+        provider: ContentProviderProtocol,
         stateRepository: PlaybackStateRepository,
         settingsRepository: SettingsRepositoryProtocol
     ) {
-        self.filmix = filmix
+        self.provider = provider
         self.stateRepository = stateRepository
         self.settingsRepository = settingsRepository
     }
     
     func resolveInitialContext(for item: ContentItem) async throws -> PlaybackContext {
-        let translations = try await filmix.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
+        let translations = try await provider.fetchTranslations(item: item)
         guard !translations.isEmpty else {
             throw PlayerError.noTranslations
         }
@@ -164,7 +164,7 @@ final class PlayerUseCase: PlayerUseCaseProtocol {
     }
     
     func fetchTranslations(for item: ContentItem) async throws -> [Translation] {
-        try await filmix.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
+        try await provider.fetchTranslations(item: item)
     }
 
     func resolvePreferredStream(from streams: [String: String]) async -> (quality: String, url: String)? {

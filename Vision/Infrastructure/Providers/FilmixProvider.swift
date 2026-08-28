@@ -1,35 +1,91 @@
 import Foundation
-import Filmix
+import VisionProvider
 
-protocol FilmixProtocol {
-    func search(query: String) async throws -> ContentPage
-    func fetchTranslations(postId: Int, isSeries: Bool) async throws -> [Translation]
-    func fetchDetail(path: String) async throws -> ContentDetail
-    func fetchPage(url: URL?) async throws -> ContentPage
-}
-
-final class Filmix: FilmixProtocol {
-    private let service: FilmixService = FilmixServiceImpl()
+final class FilmixProvider: ContentProviderProtocol {
+    let providerType: ProviderType = .filmix
+    private let service: FilmixService
+    
+    init(service: FilmixService = FilmixServiceImpl()) {
+        self.service = service
+    }
+    
+    var availableCategories: [Category] {
+        [
+            Category(
+                id: "home",
+                title: L10n.Tab.home,
+                url: "https://filmix.my/",
+                icon: "house.fill",
+                kind: .home
+            ),
+            Category(
+                id: "movies",
+                title: L10n.Tab.movies,
+                url: "https://filmix.my/film/",
+                icon: "film.fill",
+                kind: .movies,
+                genres: Genre.movies
+            ),
+            Category(
+                id: "series",
+                title: L10n.Tab.series,
+                url: "https://filmix.my/seria/",
+                icon: "tv.fill",
+                kind: .series,
+                genres: Genre.series
+            ),
+            Category(
+                id: "cartoons",
+                title: L10n.Tab.cartoons,
+                url: "https://filmix.my/mults/",
+                icon: "sparkles.tv.fill",
+                kind: .cartoons,
+                genres: Genre.cartoons
+            ),
+            Category(
+                id: "favorites",
+                title: L10n.Tab.favorites,
+                url: "favorites://",
+                icon: "star.fill",
+                kind: .favorites
+            ),
+            Category(
+                id: "history",
+                title: L10n.Tab.watchHistory,
+                url: "history://",
+                icon: "play.circle.fill",
+                kind: .watchHistory
+            )
+        ]
+    }
     
     func fetchPage(url: URL?) async throws -> ContentPage {
         let dto = try await service.fetchPage(url: url)
-        return ContentPage(items: dto.movies.map { toContentItemEntity(dto: $0) }, nextPageURL: dto.nextPageURL)
+        return ContentPage(
+            items: dto.movies.map { toContentItemEntity(dto: $0) },
+            nextPageURL: dto.nextPageURL
+        )
     }
     
-    func fetchDetail(path: String) async throws -> ContentDetail {
-        let dto = try await service.fetchDetail(path: path)
+    func fetchDetail(item: ContentItem) async throws -> ContentDetail {
+        let dto = try await service.fetchDetail(path: item.movieURL)
         return toDetailEntity(dto: dto)
     }
     
-    func fetchTranslations(postId: Int, isSeries: Bool) async throws -> [Translation] {
-        let dto = try await service.fetchTranslations(postId: postId, isSeries: isSeries)
+    func fetchTranslations(item: ContentItem) async throws -> [Translation] {
+        let dto = try await service.fetchTranslations(postId: item.id, isSeries: item.type.isSeries)
         return dto.map { toTranslationEntity(dto: $0) }
     }
     
     func search(query: String) async throws -> ContentPage {
         let dto = try await service.search(query: query)
-        return ContentPage(items: dto.movies.map { toContentItemEntity(dto: $0) }, nextPageURL: dto.nextPageURL)
+        return ContentPage(
+            items: dto.movies.map { toContentItemEntity(dto: $0) },
+            nextPageURL: dto.nextPageURL
+        )
     }
+    
+    // MARK: - Mappers
     
     private func toContentItemEntity(dto: FilmixMovieDTO) -> ContentItem {
         ContentItem(

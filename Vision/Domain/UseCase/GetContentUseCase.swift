@@ -6,37 +6,39 @@ protocol GetContentUseCaseProtocol {
 }
 
 final class GetContentUseCase: GetContentUseCaseProtocol {
-    private let filmix: FilmixProtocol
+    private let provider: ContentProviderProtocol
     
     private var basePath: String = ""
-    private var currentPage: Int = 1
+    private var nextPageURL: URL?
     private var hasMore: Bool = true
     
-    init(filmix: FilmixProtocol) {
-        self.filmix = filmix
+    init(provider: ContentProviderProtocol) {
+        self.provider = provider
     }
     
     func fetchInitial(path: String) async throws -> [ContentItem] {
         self.basePath = path
-        self.currentPage = 1
         self.hasMore = true
+        self.nextPageURL = nil
         
-        let page = try await filmix.fetchPage(url: URL(string: path))
-        self.hasMore = !page.items.isEmpty
+        let url = path.isEmpty ? nil : URL(string: path)
+        let page = try await provider.fetchPage(url: url)
+        self.nextPageURL = page.nextPageURL
+        self.hasMore = page.nextPageURL != nil || !page.items.isEmpty
         return page.items
     }
     
     func fetchNextPage() async throws -> [ContentItem] {
-        guard hasMore else { return [] }
+        guard hasMore, let nextURL = nextPageURL else { return [] }
         
-        let nextPage = currentPage + 1
-        let urlString = "\(basePath)/pages/\(nextPage)/"
-        
-        let page = try await filmix.fetchPage(url: URL(string: urlString))
+        let page = try await provider.fetchPage(url: nextURL)
         if page.items.isEmpty {
             hasMore = false
         } else {
-            currentPage = nextPage
+            self.nextPageURL = page.nextPageURL
+            if page.nextPageURL == nil {
+                hasMore = false
+            }
         }
         
         return page.items

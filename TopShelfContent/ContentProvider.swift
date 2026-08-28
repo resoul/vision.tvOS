@@ -1,6 +1,6 @@
 import Foundation
 import TVServices
-import Filmix
+import VisionProvider
 
 final class ContentProvider: TVTopShelfContentProvider {
     private let service: FilmixService = FilmixServiceImpl()

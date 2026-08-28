@@ -5,19 +5,19 @@ protocol GetMovieDetailUseCaseProtocol {
 }
 
 final class GetMovieDetailUseCase: GetMovieDetailUseCaseProtocol {
-    private let filmix: FilmixProtocol
+    private let provider: ContentProviderProtocol
     
-    init(filmix: FilmixProtocol) {
-        self.filmix = filmix
+    init(provider: ContentProviderProtocol) {
+        self.provider = provider
     }
     
     func fetchDetail(movie: ContentItem, isSeries: Bool) async throws -> (ContentDetail, [Translation]) {
-        let detail = try await filmix.fetchDetail(path: movie.movieURL)
+        let detail = try await provider.fetchDetail(item: movie)
         guard !detail.isNotMovie else {
             return (detail, [])
         }
 
-        let translations = try await filmix.fetchTranslations(postId: movie.id, isSeries: isSeries)
+        let translations = try await provider.fetchTranslations(item: movie)
         return (detail, translations)
     }
 }

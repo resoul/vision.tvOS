@@ -1,6 +1,6 @@
 import Foundation
 
-struct Genre {
+struct Genre: Hashable {
     let title: String
     let url: String
 

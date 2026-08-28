@@ -1,45 +1,49 @@
 import Foundation
 
-struct Category {
+struct Category: Identifiable, Hashable {
     let id: String
     let title: String
     let url: String
     let icon: String
-    var kind: Kind
+    let kind: Kind
     var genres: [Genre] = []
 
-    enum Kind {
-        case regular
+    enum Kind: Hashable {
+        case home
+        case movies
+        case series
+        case cartoons
+        case tvShows
         case favorites
         case watchHistory
     }
 
-    static var all: [Category] {[
+    static var defaultCategories: [Category] {[
         Category(id: "home",
                  title: L10n.Tab.home,
-                 url: "https://filmix.my/",
+                 url: "",
                  icon: "house.fill",
-                 kind: .regular),
+                 kind: .home),
 
         Category(id: "movies",
                  title: L10n.Tab.movies,
-                 url: "https://filmix.my/film/",
+                 url: "",
                  icon: "film.fill",
-                 kind: .regular,
+                 kind: .movies,
                  genres: Genre.movies),
 
         Category(id: "series",
                  title: L10n.Tab.series,
-                 url: "https://filmix.my/seria/",
+                 url: "",
                  icon: "tv.fill",
-                 kind: .regular,
+                 kind: .series,
                  genres: Genre.series),
 
         Category(id: "cartoons",
                  title: L10n.Tab.cartoons,
-                 url: "https://filmix.my/mults/",
+                 url: "",
                  icon: "sparkles.tv.fill",
-                 kind: .regular,
+                 kind: .cartoons,
                  genres: Genre.cartoons),
 
         Category(id: "favorites",

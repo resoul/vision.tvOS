@@ -1,5 +1,5 @@
 import UIKit
-import Filmix
+import VisionProvider
 
 protocol FactoryProtocol {
     func makeApp() -> AppCoordinator
@@ -30,13 +30,21 @@ final class ModuleFactory: FactoryProtocol {
     }
     
     func makeAppController(coordinator: AppCoordinatorProtocol) -> AppController {
-        AppController(viewModel: AppViewModel(coordinator: coordinator), themeManager: container.themeManager, languageManager: container.languageManager)
+        let viewModel = AppViewModel(
+            coordinator: coordinator,
+            provider: container.contentProvider,
+            providerManager: container.providerManager
+        )
+        return AppController(
+            viewModel: viewModel,
+            themeManager: container.themeManager,
+            languageManager: container.languageManager
+        )
     }
     
     func makeContentModule(for destination: TabDestination, coordinator: AppCoordinatorProtocol) -> UIViewController {
-        let basePath = FilmixNetworkClient.baseURL
-        let makeMovies: (String) -> UIViewController = { [weak coordinator] path in
-            let viewModel = MoviesViewModel(basePath: path, getContentUseCase: self.container.getContentUseCase)
+        let makeMovies: (String?) -> UIViewController = { [weak coordinator] path in
+            let viewModel = MoviesViewModel(basePath: path ?? "", getContentUseCase: self.container.getContentUseCase)
             viewModel.onPlayRequested = { movies, index in
                 coordinator?.showPlayer(queue: movies, startIndex: index, initialContext: nil)
             }
@@ -49,13 +57,15 @@ final class ModuleFactory: FactoryProtocol {
 
         switch destination {
         case .home:
-            return makeMovies(basePath)
+            return makeMovies(nil)
         case .movies(path: let url):
-            return makeMovies(url ?? basePath)
+            return makeMovies(url)
         case .series(path: let url):
-            return makeMovies(url ?? basePath)
+            return makeMovies(url)
         case .cartoons(path: let url):
-            return makeMovies(url ?? basePath)
+            return makeMovies(url)
+        case .tvShows(path: let url):
+            return makeMovies(url)
         case .favorites:
             let viewModel = FavoritesViewModel(favoritesUseCase: container.favoritesUseCase)
             viewModel.onDetailRequested = { [weak coordinator] item in
@@ -77,7 +87,8 @@ final class ModuleFactory: FactoryProtocol {
         let viewModel = SettingsViewModel(
             settingsUseCase: container.settingsUseCase,
             themeManager: container.themeManager,
-            languageManager: container.languageManager
+            languageManager: container.languageManager,
+            providerManager: container.providerManager
         )
         return SettingsViewController(
             viewModel: viewModel,
@@ -85,7 +96,6 @@ final class ModuleFactory: FactoryProtocol {
             languageManager: container.languageManager
         )
     }
-
 
     func makeDetailModule(item: ContentItem, coordinator: AppCoordinatorProtocol) -> UIViewController {
         if item.type.isSeries {

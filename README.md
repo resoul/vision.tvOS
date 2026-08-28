@@ -1,176 +1,128 @@
 # Vision
 
-An elegant and modern **tvOS** application built with **Swift** and **UIKit** (without Storyboards), following a clean and scalable architecture.
+An elegant and modern **tvOS** application built with **Swift** and **UIKit** (100% programmatic, no Storyboards), featuring a clean and scalable **Multi-Provider Clean Architecture**.
 
-The application is designed to provide a smooth TV experience with fast navigation, optimized performance, and a clean user interface adapted for Apple TV.
+Designed specifically for Apple TV, Vision delivers a fast, responsive, and cinematic experience with native focus engine optimization, custom video player, and unified content aggregation.
 
 ---
 
 ## ✨ Features
 
-- 📺 Native tvOS application
-- 🎬 Browse movies and TV shows
-- 🔍 Fast search functionality
-- ⭐ Detailed information screen
-- 📁 Seasons & Episodes support
-- 🎥 Video playback
-- 🖼️ Image caching
-- 🚀 Optimized for Apple TV Focus Engine
-- 🏗️ Clean Architecture
-- 💉 Dependency Injection
-- 🌍 Localization support
-- 📦 Modular project structure
-- 🎯 No Storyboards (UIKit only)
+- 📺 **Native tvOS Experience**: Tailored UI and navigation designed specifically for Apple TV and Siri Remote.
+- 🎛️ **Multi-Provider Architecture**: Modular integration of multiple online cinema providers (**Filmix**, **Kinobase**, **Seasonvar**) via [VisionProvider](https://github.com/resoul/VisionProvider.git).
+- 🔄 **Reactive State Management**: Powered by [Flux](https://github.com/resoul/flux.git) for instant, reactive provider switching and UI synchronization.
+- 🏷️ **Source Badging**: Visual provider badges on posters (`FILMIX`, `KINOBASE`, `SEASONVAR`) in unified listings.
+- 📁 **Seasons & Episodes**: Full TV series support with seasons, episodes, and multiple voiceover/studio options.
+- 🎥 **Custom Video Player**: HLS (m3u8) and MP4 video playback, quality selection (4K UHD, 1080p, 720p), audio track switcher, subtitle support, and resume playback.
+- ⭐ **Unified Favorites & Watch History**: Persistent CoreData storage with automatic cross-provider resolution and playback resumption.
+- 🔍 **Instant Search**: Fast and responsive search across active content sources.
+- 🎨 **Dynamic Themes & Localization**: Dark/Light/Midnight themes and full multi-language support (`xcstrings`).
+- 📦 **Top Shelf Extension**: Home screen spotlight showcasing trending and featured media.
+- 🎯 **Focus Engine Optimization**: Smooth scaling, animations, and custom sound feedback on focus changes.
 
 ---
 
 ## 🏛 Architecture
 
-The project follows **Clean Architecture**, separating responsibilities into independent layers.
-
-```
-App
-│
-├── Presentation
-├── Domain
-├── Data
-├── Infrastructure
-└── Resources
-```
-
-### Layers
-
-- **Presentation**
-    - ViewControllers
-    - ViewModels
-    - Custom UI Components
-
-- **Domain**
-    - Business Logic
-    - Use Cases
-
-- **Data**
-    - Data Sources
-    - Repository Implementations
-
-- **Infrastructure**
-    - Networking
-    - Caching
-    - Deep Links
-    - Utilities
-
----
-
-## 🛠 Technologies
-
-- Swift
-- UIKit
-- tvOS SDK
-- AVKit
-- Auto Layout
-- Dependency Injection
-- Clean Architecture
-- MVVM
-- URLSession
-- Image Caching
-
----
-
-## 📂 Project Structure
+The project follows **Clean Architecture** and **MVVM-C** principles with constructor-based Dependency Injection:
 
 ```
 Vision/
 │
-├── App/
-├── Presentation/
-├── Domain/
-├── Data/
-├── Infrastructure/
-├── Resources/
-└── TopShelfContent/
+├── App/                     # App lifecycle, Coordinator, DI Container, Module Factory
+│   ├── AppDelegate.swift
+│   ├── Container.swift
+│   ├── Coordinator.swift
+│   └── Factory.swift
+│
+├── Domain/                  # Pure business rules and entities
+│   ├── Entity/              # ContentItem, ContentDetail, Category, Genre, PlaybackState
+│   └── UseCase/             # GetContent, GetMovieDetail, Search, Player, Favorites, History
+│
+├── Data/                    # Repositories & persistence
+│   ├── Repository/          # CoreData favorites, watch history, playback state
+│   └── Service/             # Settings, Screenshots, Cache services
+│
+├── Infrastructure/          # Frameworks, networking & provider adapters
+│   ├── ContentProviderProtocol.swift
+│   ├── Providers/           # FilmixProvider, KinobaseProvider, SeasonvarProvider, VisionContentProvider
+│   ├── Player/              # Video playback engine & overlay controls
+│   ├── Persistence/         # CoreData stack
+│   └── Theme & L10n/        # ThemeManager, LanguageManager, L10n
+│
+├── Presentation/            # UI layer (100% Programmatic UIKit)
+│   └── Screens/
+│       ├── App/             # TabBar navigation & dynamic category routing
+│       ├── Movies/          # Grid view, poster collection cells, badge views
+│       ├── Detail/          # Movie & Serie detail views, episode selectors
+│       ├── Search/          # Search view controller & live results
+│       ├── Video/           # Custom TV video player controller
+│       └── Settings/        # Provider picker, cache settings, theme/language selection
+│
+└── TopShelfContent/         # Apple TV Top Shelf extension
 ```
 
 ---
 
-# 📸 Screenshots
+## 🔌 Content Providers
 
-| Home |  |
-|------|---------|
-| ![](simulator-appletv4k-2026-07-03at18.42.37.jpg) | ![](simulator-appletv4k-2026-07-03at18.41.21.jpg) |
+Vision seamlessly aggregates content from multiple providers via **[VisionProvider](https://github.com/resoul/VisionProvider.git)**:
 
-| Detals                 |  |
-|------------------------|---------|
-| ![](simulator-appletv4k-2026-07-03at18.42.14.jpg) | ![](simulator-appletv4k-2026-07-03at18.41.43.jpg) |
+| Provider | Supported Categories | Video Formats | Features |
+| :--- | :--- | :--- | :--- |
+| **Filmix** | Movies, Series, Cartoons, Genres | HLS / MP4 | Quality selection up to 4K, multiple translations, ads info |
+| **Kinobase** | Showcase (Main), Movies, Series, TV Shows, Animation | HLS (m3u8) | Multi-audio tracks, subtitles, quality switcher |
+| **Seasonvar** | Showcase, Series | Direct MP4 | Multi-season support, voiceover selections |
 
-| Top Shelf |
-|------------|
-| ![](simulator-appletv4k-2026-07-03at18.57.38.jpg) |
+---
+
+## 🛠 Tech Stack
+
+- **Platform**: tvOS 18+
+- **Language**: Swift 6 (Strict Concurrency ready)
+- **UI Framework**: UIKit (Programmatic Auto Layout, no Storyboards / XIBs)
+- **State & Events**: [Flux](https://github.com/resoul/flux.git) (`Flux<T>`, `CurrentValueDistinct<T>`, `SubscriptionBag`)
+- **Networking**: [Alamofire](https://github.com/Alamofire/Alamofire.git)
+- **HTML Parsing**: [SwiftSoup](https://github.com/scinfu/SwiftSoup.git)
+- **Persistence**: CoreData + Custom LRU Poster Cache
+- **Media Playback**: AVKit & AVFoundation
+- **Dependency Management**: Swift Package Manager (SPM)
 
 ---
 
 ## 🚀 Getting Started
 
-### Requirements
+### Prerequisites
 
+- macOS 15+
 - Xcode 16+
-- Swift 6+
-- tvOS 18+
+- Apple TV Simulator (tvOS 18.0+) or physical Apple TV 4K / HD
 
 ### Installation
 
-```bash
-git clone https://github.com/yourusername/Vision.git
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/resoul/Vision.git
+   cd Vision
+   ```
 
-Open the project in **Xcode** and run it on:
+2. Open the Xcode project:
+   ```bash
+   open Vision.xcodeproj
+   ```
 
-- Apple TV Simulator
-- Apple TV Device
+3. Xcode will automatically resolve package dependencies (`VisionProvider`, `Flux`, `Alamofire`, `SwiftSoup`).
 
----
-
-## 🎯 Focus
-
-The application is fully optimized for the **Apple TV Focus Engine**, providing smooth navigation using the Siri Remote.
-
----
-
-## 📦 Top Shelf Extension
-
-The project includes a **Top Shelf Extension**, allowing featured content to appear directly on the Apple TV Home Screen for quick access.
-
----
-
-## 🌍 Localization
-
-The application supports localization using Apple's localization system (`xcstrings`), making it easy to add additional languages.
-
----
-
-## 📈 Performance
-
-- Efficient image caching
-- Lightweight navigation
-- Smooth animations
-- Optimized memory usage
-- Fast loading screens
+4. Select scheme **Vision** -> target **Apple TV 4K (at 1080p)** simulator, and press **Run** (`⌘ + R`).
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome.
-
-If you'd like to improve the project, feel free to fork the repository and submit a pull request.
+Contributions, feature suggestions, and pull requests are welcome!
 
 ---
 
 ## 📄 License
 
-This project is released under the MIT License.
-
----
-
-## 👨‍💻 Author
-
-Created with ❤️ using Swift and UIKit.
+This project is licensed under the MIT License.

@@ -1,5 +1,6 @@
 import UIKit
 import Combine
+import VisionProvider
 
 final class SettingsViewController: BaseController {
     private let viewModel: SettingsViewModel
@@ -26,6 +27,7 @@ final class SettingsViewController: BaseController {
     }()
     
     // MARK: - Rows
+    private var providerRow: SettingsValueRow?
     private var autoplayRow: SettingsValueRow?
     private var qualityRow: SettingsValueRow?
     private var themeRow: SettingsValueRow?
@@ -66,6 +68,10 @@ final class SettingsViewController: BaseController {
     private func buildSections() {
         addSectionHeader(L10n.Settings.Section.playback)
         
+        providerRow = SettingsValueRow(title: L10n.Settings.Provider.title, icon: "tv.badge.wifi.fill")
+        providerRow?.onSelect = { [weak self] in self?.showProviderPicker() }
+        stackView.addArrangedSubview(providerRow!)
+        
         autoplayRow = SettingsValueRow(title: L10n.Settings.Autoplay.title, icon: "play.rectangle")
         autoplayRow?.onSelect = { [weak self] in self?.viewModel.toggleAutoplay() }
         stackView.addArrangedSubview(autoplayRow!)
@@ -101,15 +107,10 @@ final class SettingsViewController: BaseController {
         
         addSectionHeader(L10n.Settings.Section.storage)
         
-        let storageView = SettingsStorageSectionView()
-        storageView.onClearPosters = { [weak self] in
-            self?.confirmClearPosters()
-        }
-        storageView.onClearHistory = { [weak self] in
-            self?.confirmClearHistory()
-        }
-        storageSectionView = storageView
-        stackView.addArrangedSubview(storageView)
+        storageSectionView = SettingsStorageSectionView()
+        storageSectionView?.onClearPosters = { [weak self] in self?.confirmClearPosters() }
+        storageSectionView?.onClearHistory = { [weak self] in self?.confirmClearHistory() }
+        stackView.addArrangedSubview(storageSectionView!)
         
         addSectionHeader(L10n.Settings.Section.about)
         
@@ -133,6 +134,11 @@ final class SettingsViewController: BaseController {
                     self?.updateUI(with: data)
                 }
             }
+            .store(in: &cancellables)
+            
+        viewModel.$currentProvider
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] provider in self?.providerRow?.updateValue(provider.title) }
             .store(in: &cancellables)
             
         viewModel.$currentTheme
@@ -162,6 +168,7 @@ final class SettingsViewController: BaseController {
     }
     
     private func updateUI(with data: SettingsData) {
+        providerRow?.updateValue(viewModel.currentProvider.title)
         autoplayRow?.updateValue(data.isAutoplayEnabled ? L10n.Settings.Autoplay.on : L10n.Settings.Autoplay.off)
         qualityRow?.updateValue(data.preferredQuality.rawValue)
         cacheSlider?.setIndex(data.cacheSizeStep)
@@ -182,6 +189,27 @@ final class SettingsViewController: BaseController {
                 label.textColor = style.textSecondary.withAlphaComponent(0.6)
             }
         }
+    }
+    
+    private func showProviderPicker() {
+        let items = ProviderType.allCases.map { provider in
+            PickerViewController.Item(
+                primary: provider.title,
+                isSelected: provider == viewModel.currentProvider
+            )
+        }
+        let picker = PickerViewController(
+            title: L10n.Settings.Provider.title,
+            items: items,
+            themeManager: themeManager,
+            languageManager: languageManager
+        )
+        
+        picker.onSelect = { [weak self] index in
+            self?.viewModel.didSelectProvider(ProviderType.allCases[index])
+        }
+        
+        present(picker, animated: true)
     }
     
     private func showQualityPicker() {
@@ -205,7 +233,6 @@ final class SettingsViewController: BaseController {
         present(picker, animated: true)
     }
 
-    
     private func showThemePicker() {
         let items = Theme.allCases.map { theme in
             PickerViewController.Item(primary: theme.displayName, isSelected: theme == viewModel.currentTheme)
