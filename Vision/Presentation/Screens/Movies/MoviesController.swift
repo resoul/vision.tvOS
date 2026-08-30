@@ -123,11 +123,14 @@ final class MoviesController: BaseController {
     }
 
     private func applySnapshot(animated: Bool) {
-        moviesByID = Dictionary(uniqueKeysWithValues: movies.map { ($0.id, $0) })
+        var seenIDs = Set<Int>()
+        let uniqueMovies = movies.filter { seenIDs.insert($0.id).inserted }
+
+        moviesByID = Dictionary(uniqueMovies.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
 
         var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
         snapshot.appendSections([0])
-        snapshot.appendItems(movies.map(\.id), toSection: 0)
+        snapshot.appendItems(uniqueMovies.map(\.id), toSection: 0)
         dataSource?.apply(snapshot, animatingDifferences: animated)
     }
 

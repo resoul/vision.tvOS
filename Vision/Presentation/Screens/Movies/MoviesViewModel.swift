@@ -43,10 +43,12 @@ final class MoviesViewModel: ContentListViewModelProtocol {
         Task {
             do {
                 let newMovies = try await getContentUseCase.fetchInitial(path: basePath)
-                movies = newMovies
+                var seenIDs = Set<Int>()
+                let uniqueMovies = newMovies.filter { seenIDs.insert($0.id).inserted }
+                movies = uniqueMovies
                 isLoading = false
                 onLoadingChanged?(false)
-                onMoviesChanged?(newMovies)
+                onMoviesChanged?(uniqueMovies)
             } catch {
                 isLoading = false
                 onLoadingChanged?(false)
@@ -66,18 +68,17 @@ final class MoviesViewModel: ContentListViewModelProtocol {
                     return
                 }
 
-                let existingIDs = Set(movies.map(\.id))
-                let hasDuplicates = newMovies.contains { existingIDs.contains($0.id) }
+                var existingIDs = Set(movies.map(\.id))
+                let uniqueNewMovies = newMovies.filter { existingIDs.insert($0.id).inserted }
 
-                if hasDuplicates {
+                guard !uniqueNewMovies.isEmpty else {
                     isLoading = false
-                    loadInitial()
                     return
                 }
 
-                movies.append(contentsOf: newMovies)
+                movies.append(contentsOf: uniqueNewMovies)
                 isLoading = false
-                onMoviesAppended?(newMovies)
+                onMoviesAppended?(uniqueNewMovies)
             } catch {
                 isLoading = false
                 onError?(error.localizedDescription)

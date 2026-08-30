@@ -170,9 +170,12 @@ final class SearchViewController: BaseController {
     }
     
     private func applySnapshot(animated: Bool) {
+        var seenIDs = Set<Int>()
+        let uniqueResults = results.filter { seenIDs.insert($0.id).inserted }
+
         var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
         snapshot.appendSections([0])
-        snapshot.appendItems(results.map { $0.id }, toSection: 0)
+        snapshot.appendItems(uniqueResults.map { $0.id }, toSection: 0)
         dataSource?.apply(snapshot, animatingDifferences: animated)
     }
     

@@ -5,6 +5,8 @@ import Flux
 final class VisionContentProvider: ContentProviderProtocol {
     private let manager: VisionProviderManagerProtocol
     private let providers: [ProviderType: ContentProviderProtocol]
+    private var currentType: ProviderType = .filmix
+    private let bag = SubscriptionBag()
     
     init(manager: VisionProviderManagerProtocol) {
         self.manager = manager
@@ -13,10 +15,15 @@ final class VisionContentProvider: ContentProviderProtocol {
             .kinobase: KinobaseProvider(service: manager.kinobase),
             .seasonvar: SeasonvarProvider(service: manager.seasonvar)
         ]
+        
+        manager.activeProvider.flux
+            .sinkOnMain { [weak self] type in
+                self?.currentType = type
+            }
+            .store(in: bag)
     }
     
     var activeProvider: ContentProviderProtocol {
-        let currentType = manager.activeProvider.value
         return providers[currentType] ?? providers[.filmix]!
     }
     
