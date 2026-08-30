@@ -9,9 +9,9 @@ Designed specifically for Apple TV, Vision delivers a fast, responsive, and cine
 ## ✨ Features
 
 - 📺 **Native tvOS Experience**: Tailored UI and navigation designed specifically for Apple TV and Siri Remote.
-- 🎛️ **Multi-Provider Architecture**: Modular integration of multiple online cinema providers (**Filmix**, **Kinobase**, **Seasonvar**) via [VisionProvider](https://github.com/resoul/VisionProvider.git).
+- 🎛️ **Multi-Provider Architecture**: Modular integration of multiple online cinema providers (**Filmix**, **Seasonvar**) via [VisionProvider](https://github.com/resoul/VisionProvider.git).
 - 🔄 **Reactive State Management**: Powered by [Flux](https://github.com/resoul/flux.git) for instant, reactive provider switching and UI synchronization.
-- 🏷️ **Source Badging**: Visual provider badges on posters (`FILMIX`, `KINOBASE`, `SEASONVAR`) in unified listings.
+- 🏷️ **Source Badging**: Visual provider badges on posters (`FILMIX`, `SEASONVAR`) in unified listings.
 - 📁 **Seasons & Episodes**: Full TV series support with seasons, episodes, and multiple voiceover/studio options.
 - 🎥 **Custom Video Player**: HLS (m3u8) and MP4 video playback, quality selection (4K UHD, 1080p, 720p), audio track switcher, subtitle support, and resume playback.
 - ⭐ **Unified Favorites & Watch History**: Persistent CoreData storage with automatic cross-provider resolution and playback resumption.
@@ -45,7 +45,7 @@ Vision/
 │
 ├── Infrastructure/          # Frameworks, networking & provider adapters
 │   ├── ContentProviderProtocol.swift
-│   ├── Providers/           # FilmixProvider, KinobaseProvider, SeasonvarProvider, VisionContentProvider
+│   ├── Providers/           # FilmixProvider, SeasonvarProvider, VisionContentProvider
 │   ├── Player/              # Video playback engine & overlay controls
 │   ├── Persistence/         # CoreData stack
 │   └── Theme & L10n/        # ThemeManager, LanguageManager, L10n
@@ -71,7 +71,6 @@ Vision seamlessly aggregates content from multiple providers via **[VisionProvid
 | Provider | Supported Categories | Video Formats | Features |
 | :--- | :--- | :--- | :--- |
 | **Filmix** | Movies, Series, Cartoons, Genres | HLS / MP4 | Quality selection up to 4K, multiple translations, ads info |
-| **Kinobase** | Showcase (Main), Movies, Series, TV Shows, Animation | HLS (m3u8) | Multi-audio tracks, subtitles, quality switcher |
 | **Seasonvar** | Showcase, Series | Direct MP4 | Multi-season support, voiceover selections |
 
 ---

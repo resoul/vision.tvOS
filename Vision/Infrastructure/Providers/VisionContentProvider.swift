@@ -12,7 +12,6 @@ final class VisionContentProvider: ContentProviderProtocol {
         self.manager = manager
         self.providers = [
             .filmix: FilmixProvider(service: manager.filmix),
-            .kinobase: KinobaseProvider(service: manager.kinobase),
             .seasonvar: SeasonvarProvider(service: manager.seasonvar)
         ]
         
@@ -38,9 +37,7 @@ final class VisionContentProvider: ContentProviderProtocol {
     /// Resolves the specific provider for a content item based on its URL,
     /// falling back to the active provider.
     func provider(for item: ContentItem) -> ContentProviderProtocol {
-        if item.movieURL.contains("kinobase.org") {
-            return providers[.kinobase] ?? activeProvider
-        } else if item.movieURL.contains("seasonvar.ru") {
+        if item.movieURL.contains("seasonvar.ru") {
             return providers[.seasonvar] ?? activeProvider
         } else if item.movieURL.contains("filmix") {
             return providers[.filmix] ?? activeProvider

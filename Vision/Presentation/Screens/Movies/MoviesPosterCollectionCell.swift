@@ -116,9 +116,7 @@ final class MoviesPosterCollectionCell: UICollectionViewCell {
 
     private func providerInfo(for item: ContentItem) -> (title: String, color: UIColor)? {
         let url = item.movieURL.lowercased()
-        if url.contains("kinobase.org") {
-            return ("KINOBASE", UIColor(red: 0.06, green: 0.72, blue: 0.50, alpha: 0.92))
-        } else if url.contains("seasonvar.ru") {
+        if url.contains("seasonvar.ru") {
             return ("SEASONVAR", UIColor(red: 0.96, green: 0.62, blue: 0.04, alpha: 0.92))
         } else if url.contains("filmix") {
             return ("FILMIX", UIColor(red: 0.55, green: 0.36, blue: 0.96, alpha: 0.92))
